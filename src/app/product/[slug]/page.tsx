@@ -1,19 +1,17 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { products, getProductBySlug, getRelatedProducts } from '@/data/products';
+import { getProductBySlug, getRelatedProducts } from '@/data/products';
 import ProductDetailView from '@/components/ProductDetailView';
+
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 0;
 
 interface ProductPageProps {
   params: {
     slug: string;
   };
-}
-
-export async function generateStaticParams() {
-  return products.map((product) => ({
-    slug: product.slug,
-  }));
 }
 
 export async function generateMetadata({
@@ -29,7 +27,9 @@ export async function generateMetadata({
 
   return {
     title: `${product.title} | LUMIFLICK Bangladesh`,
-    description: product.shortDescription || `Buy ${product.title} premium wall frame in Bangladesh. High quality matte finish with Cash on delivery.`,
+    description:
+      product.shortDescription ||
+      `Buy ${product.title} premium wall frame in Bangladesh. High quality matte finish with Cash on delivery.`,
     openGraph: {
       title: `${product.title} | LUMIFLICK`,
       description: product.shortDescription,
@@ -52,7 +52,11 @@ export default function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const relatedProducts = getRelatedProducts(product.slug, product.categorySlug, 4);
+  const relatedProducts = getRelatedProducts(
+    product.slug,
+    product.categorySlug || 'best-selling',
+    4
+  );
 
   return (
     <div className="bg-white">

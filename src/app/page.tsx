@@ -6,6 +6,9 @@ import ProductGridSection from '@/components/ProductGridSection';
 import ReviewsCarousel from '@/components/ReviewsCarousel';
 import { getProductsByCategory, getFeaturedProducts } from '@/data/products';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function HomePage() {
   const bestSellingProds = getFeaturedProducts();
   const religiousProds = getProductsByCategory('religious-luxury-frame').slice(0, 8);

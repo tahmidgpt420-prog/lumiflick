@@ -36,8 +36,12 @@ export default function ShopPage() {
     let result = [...productsList];
 
     if (selectedCategory !== 'all') {
+      const norm = selectedCategory.toLowerCase();
       result = result.filter(
-        (p) => p.categorySlug === selectedCategory || (selectedCategory === 'best-selling' && p.bestSeller)
+        (p) =>
+          p.categorySlug?.toLowerCase() === norm ||
+          p.category?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === norm ||
+          (norm === 'best-selling' && (p.bestSeller || p.category?.toLowerCase() === 'best selling'))
       );
     }
 

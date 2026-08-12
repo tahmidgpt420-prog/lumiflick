@@ -1,9 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Product, Category, OrderDetails, CustomerReview } from '@/types';
-import { products as initialProducts } from './products';
-import { categories as initialCategories } from './categories';
-import { customerReviews as initialReviews } from './reviews';
+import rawStoreData from './store.json';
 
 const STORE_FILE = path.join(process.cwd(), 'src', 'data', 'store.json');
 const TMP_STORE_FILE = '/tmp/store.json';
@@ -71,8 +69,8 @@ export function getStoreData(): StoreData {
 
   // 3. Fallback to initial seed data
   const initialData: StoreData = {
-    products: initialProducts,
-    categories: initialCategories,
+    products: (rawStoreData.products || []) as Product[],
+    categories: (rawStoreData.categories || []) as Category[],
     orders: [
       {
         orderId: 'LF-982314',
@@ -104,7 +102,7 @@ export function getStoreData(): StoreData {
         notes: 'Please call before delivering parcel',
       },
     ],
-    reviews: initialReviews,
+    reviews: (rawStoreData.reviews || []) as CustomerReview[],
     settings: defaultSettings,
   };
 
@@ -151,7 +149,12 @@ export function getProductByIdOrSlug(idOrSlug: string): Product | undefined {
 
 export function saveProduct(productData: Partial<Product>): Product {
   const store = getStoreData();
-  const existingIndex = store.products.findIndex((p) => p.id === productData.id);
+  const existingIndex = store.products.findIndex(
+    (p) =>
+      (productData.id && p.id === productData.id) ||
+      (productData.id && p.slug === productData.id) ||
+      (productData.slug && p.slug === productData.slug)
+  );
 
   if (existingIndex >= 0) {
     const updated: Product = {
@@ -297,7 +300,7 @@ export function updateOrderStatus(orderId: string, status: string): boolean {
 export function getAllReviews(): CustomerReview[] {
   const store = getStoreData();
   if (!store.reviews || store.reviews.length === 0) {
-    return initialReviews;
+    return (rawStoreData.reviews || []) as CustomerReview[];
   }
   return store.reviews;
 }
@@ -305,7 +308,7 @@ export function getAllReviews(): CustomerReview[] {
 export function saveReview(reviewData: Partial<CustomerReview>): CustomerReview {
   const store = getStoreData();
   if (!store.reviews) {
-    store.reviews = [...initialReviews];
+    store.reviews = [...((rawStoreData.reviews || []) as CustomerReview[])];
   }
 
   const existingIndex = store.reviews.findIndex((r) => r.id === reviewData.id);

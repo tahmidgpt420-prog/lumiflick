@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Product, ProductVariation } from '@/types';
-import { categories } from '@/data/categories';
+import { Product, ProductVariation, Category } from '@/types';
+import { categories as initialCategories } from '@/data/categories';
 import ImageGalleryPicker from './ImageGalleryPicker';
 import {
   Save,
@@ -36,6 +36,22 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [sale, setSale] = useState<boolean>(initialData?.sale ?? true);
   const [featured, setFeatured] = useState<boolean>(initialData?.featured ?? false);
   const [bestSeller, setBestSeller] = useState<boolean>(initialData?.bestSeller ?? false);
+  const [catList, setCatList] = useState<Category[]>(initialCategories);
+
+  useEffect(() => {
+    async function loadCats() {
+      try {
+        const res = await fetch('/api/admin/categories');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.categories)) {
+          setCatList(data.categories);
+        }
+      } catch (err) {
+        console.error('Error fetching categories in ProductForm:', err);
+      }
+    }
+    loadCats();
+  }, []);
 
   const [primaryImage, setPrimaryImage] = useState<string>(
     initialData?.image ||
@@ -153,13 +169,20 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     setStatusMessage(null);
 
     // Compute category slug
-    const selectedCatObj = categories.find((c) => c.name === category);
+    const selectedCatObj = catList.find((c) => c.name === category);
     const categorySlug =
       selectedCatObj?.slug ||
       category
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
+
+    const isBestSelling =
+      category.toLowerCase() === 'best selling' ||
+      categorySlug === 'best-selling' ||
+      bestSeller;
+    const finalCategorySlug =
+      category.toLowerCase() === 'best selling' ? 'best-selling' : categorySlug;
 
     const minPrice = variations.length > 0 ? Math.min(...variations.map((v) => v.price)) : price;
     const maxPrice = variations.length > 0 ? Math.max(...variations.map((v) => v.price)) : price;
@@ -173,7 +196,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       title,
       slug,
       category,
-      categorySlug,
+      categorySlug: finalCategorySlug,
       price: minPrice,
       regularPrice,
       priceRange,
@@ -181,7 +204,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       galleryImages,
       sale,
       featured,
-      bestSeller,
+      bestSeller: isBestSelling,
       shortDescription,
       description,
       variations,
@@ -245,9 +268,9 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         </Link>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          {initialData?.slug && (
+          {(slug || initialData?.slug) && (
             <Link
-              href={`/product/${initialData.slug}`}
+              href={`/product/${slug || initialData?.slug}`}
               target="_blank"
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl transition-colors"
             >
@@ -323,8 +346,8 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
               onChange={(e) => setCategory(e.target.value)}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black bg-white"
             >
-              {categories.map((cat) => (
-                <option key={cat.slug} value={cat.name}>
+              {catList.map((cat) => (
+                <option key={cat.slug || cat.name} value={cat.name}>
                   {cat.name}
                 </option>
               ))}
