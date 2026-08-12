@@ -103,19 +103,21 @@ export default function FileUploadBox({
 
       {/* Preview if image exists */}
       {value ? (
-        <div className="relative rounded-2xl overflow-hidden border-2 border-gray-200 bg-gray-50 group">
-          <div className={`relative w-full ${aspectClass}`}>
-            <Image src={value} alt="Uploaded preview" fill className="object-contain" />
-          </div>
+        <div className="relative rounded-2xl overflow-hidden border-2 border-gray-200 bg-gray-50 group flex items-center justify-center p-2">
+          <img
+            src={value}
+            alt="Uploaded preview"
+            className="max-h-80 w-auto max-w-full object-contain rounded-xl"
+          />
           <button
             type="button"
             onClick={() => onChange('')}
-            className="absolute top-2 right-2 p-1.5 bg-black/80 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+            className="absolute top-3 right-3 p-1.5 bg-black/80 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
             title="Remove Photo"
           >
             <X className="w-4 h-4" />
           </button>
-          <div className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/70 backdrop-blur-sm text-white text-[10px] font-semibold rounded-lg flex items-center gap-1">
+          <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-black/70 backdrop-blur-sm text-white text-[10px] font-semibold rounded-lg flex items-center gap-1">
             <Check className="w-3 h-3 text-emerald-400" /> Photo Attached
           </div>
         </div>
