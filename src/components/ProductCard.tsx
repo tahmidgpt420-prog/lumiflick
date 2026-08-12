@@ -20,17 +20,26 @@ export default function ProductCard({ product }: ProductCardProps) {
     addItem(product, product.variations?.[0], 'Matte Black', 1);
   };
 
-  const hasMultipleOptions = (product.variations?.length || 0) > 1;
+  const productSlug =
+    product.slug ||
+    product.id ||
+    product.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ||
+    'frame';
+
+  const categorySlug =
+    product.categorySlug ||
+    product.category?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ||
+    'best-selling';
 
   return (
     <div className="group flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-gray-200 hover:shadow-xl transition-all duration-300">
       
       {/* Thumbnail Wrap */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-50">
-        <Link href={`/product/${product.slug}`} className="block w-full h-full">
+        <Link href={`/product/${productSlug}`} className="block w-full h-full">
           <Image
-            src={product.image}
-            alt={product.title}
+            src={product.image || '/logo.png'}
+            alt={product.title || 'LUMIFLICK Frame'}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -55,7 +64,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <ShoppingBag className="w-4 h-4" />
           </button>
           <Link
-            href={`/product/${product.slug}`}
+            href={`/product/${productSlug}`}
             className="w-10 h-10 rounded-full bg-white text-black hover:bg-gray-100 flex items-center justify-center shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0"
             title="View Details"
           >
@@ -69,15 +78,15 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div>
           {/* Category */}
           <Link
-            href={`/product-category/${product.categorySlug}`}
+            href={`/product-category/${categorySlug}`}
             className="text-[11px] font-medium text-gray-400 hover:text-black uppercase tracking-wider block mb-1"
           >
-            {product.category}
+            {product.category || 'Wall Frame'}
           </Link>
 
           {/* Title */}
           <Link
-            href={`/product/${product.slug}`}
+            href={`/product/${productSlug}`}
             className="text-sm sm:text-base font-semibold text-gray-900 hover:text-black line-clamp-1 block transition-colors"
           >
             {product.title}
@@ -106,13 +115,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           <Link
-            href={`/product/${product.slug}`}
-            className="text-[11px] font-bold text-gray-900 hover:text-amber-700 underline underline-offset-4"
+            href={`/product/${productSlug}`}
+            className="text-xs font-semibold text-gray-900 hover:text-amber-600 underline underline-offset-4"
           >
-            {hasMultipleOptions ? 'Select Options' : 'View Details'}
+            Select Options
           </Link>
         </div>
-
       </div>
 
     </div>

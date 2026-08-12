@@ -1,13 +1,12 @@
-import React from 'react';
-import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { categories, getCategoryBySlug } from '@/data/categories';
-import { getProductsByCategory } from '@/data/products';
-import ProductCard from '@/components/ProductCard';
+'use client';
 
-export const dynamic = 'force-dynamic';
-export const dynamicParams = true;
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { categories as initialCategories, getCategoryBySlug } from '@/data/categories';
+import { products as initialProducts } from '@/data/products';
+import ProductCard from '@/components/ProductCard';
+import { Category, Product } from '@/types';
+import { Sparkles, ArrowLeft } from 'lucide-react';
 
 interface CategoryPageProps {
   params: {
@@ -15,31 +14,74 @@ interface CategoryPageProps {
   };
 }
 
-export async function generateMetadata({
-  params,
-}: CategoryPageProps): Promise<Metadata> {
-  const category = getCategoryBySlug(params.slug);
-
-  if (!category) {
-    return {
-      title: 'Category Not Found | LUMIFLICK',
-    };
-  }
-
-  return {
-    title: `${category.name} | LUMIFLICK Wall Art Collections`,
-    description: category.description || `Browse the best ${category.name} handcrafted wall frames in Bangladesh. Cash on delivery available.`,
-  };
-}
-
 export default function CategoryPage({ params }: CategoryPageProps) {
-  const category = getCategoryBySlug(params.slug);
+  const slug = decodeURIComponent(params.slug).toLowerCase().trim();
 
-  if (!category) {
-    notFound();
-  }
+  const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
+  const [productsList, setProductsList] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState(true);
 
-  const categoryProducts = getProductsByCategory(category.slug);
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [pRes, cRes] = await Promise.all([
+          fetch('/api/admin/products'),
+          fetch('/api/admin/categories'),
+        ]);
+        const pData = await pRes.json();
+        const cData = await cRes.json();
+        if (pData.success && Array.isArray(pData.products)) {
+          setProductsList(pData.products);
+        }
+        if (cData.success && Array.isArray(cData.categories)) {
+          setCategoriesList(cData.categories);
+        }
+      } catch (err) {
+        console.error('Failed to load dynamic category data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  // Find category object
+  const category =
+    categoriesList.find(
+      (c) =>
+        c.slug.toLowerCase() === slug ||
+        c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === slug
+    ) ||
+    getCategoryBySlug(slug) || {
+      name: slug
+        .split('-')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' '),
+      slug,
+      image: '/logo.png',
+      description: `Explore our collection of handcrafted ${slug.replace(/-/g, ' ')} frames at LUMIFLICK.`,
+    };
+
+  // Filter products for this category
+  const categoryProducts = productsList.filter((p) => {
+    if (!p) return false;
+    if (slug === 'best-selling') {
+      return (
+        p.bestSeller ||
+        p.categorySlug?.toLowerCase() === 'best-selling' ||
+        p.category?.toLowerCase() === 'best selling'
+      );
+    }
+
+    const pCatSlug = (p.categorySlug || '').toLowerCase().trim();
+    const pCatNameSlug = (p.category || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+      .trim();
+
+    return pCatSlug === slug || pCatNameSlug === slug;
+  });
 
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -57,35 +99,38 @@ export default function CategoryPage({ params }: CategoryPageProps) {
       </nav>
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+      <div className="mb-8 border-b border-gray-100 pb-6">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold mb-2">
+          <Sparkles className="w-3 h-3 text-amber-600" /> Collection
+        </div>
+        <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
           {category.name}
         </h1>
         {category.description && (
-          <p className="mt-2 text-xs sm:text-sm text-gray-600 max-w-3xl">
+          <p className="mt-2 text-xs sm:text-sm text-gray-600 max-w-3xl leading-relaxed">
             {category.description}
           </p>
         )}
-        <p className="mt-1 text-xs text-gray-400">
-          Showing {categoryProducts.length} premium art frames
+        <p className="mt-2 text-xs text-gray-400 font-medium">
+          Showing {categoryProducts.length} handcrafted wall frame{categoryProducts.length === 1 ? '' : 's'}
         </p>
       </div>
 
       {/* Products Grid */}
       {categoryProducts.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-2xl border border-gray-200">
-          <p className="text-gray-500 text-sm">
-            No frames currently listed in this category yet.
+        <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200 space-y-4">
+          <p className="text-gray-600 text-sm font-medium">
+            No frames currently listed under &ldquo;{category.name}&rdquo; yet.
           </p>
           <Link
             href="/shop"
-            className="inline-block mt-4 px-6 py-2.5 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors shadow-sm"
           >
-            Explore Other Collections
+            <ArrowLeft className="w-3.5 h-3.5" /> Explore All Collections
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {categoryProducts.map((product) => (
             <ProductCard key={product.id || product.slug} product={product} />
           ))}
