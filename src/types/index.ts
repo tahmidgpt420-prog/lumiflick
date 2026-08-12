@@ -37,10 +37,12 @@ export interface Product {
 }
 
 export interface Category {
+  id?: string;
   name: string;
   slug: string;
   image: string;
   itemCount?: number;
+  count?: number;
   description?: string;
 }
 
