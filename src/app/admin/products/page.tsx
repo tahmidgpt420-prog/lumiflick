@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Product } from '@/types';
 import { categories } from '@/data/categories';
+import { mergeWithCustomProducts, removeCustomProduct } from '@/utils/productStorage';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -29,11 +30,14 @@ export default function AdminProductsPage() {
     try {
       const res = await fetch('/api/admin/products');
       const data = await res.json();
-      if (data.success) {
-        setProducts(data.products);
+      if (data.success && Array.isArray(data.products)) {
+        setProducts(mergeWithCustomProducts(data.products));
+      } else {
+        setProducts(mergeWithCustomProducts([]));
       }
     } catch (e) {
       console.error(e);
+      setProducts(mergeWithCustomProducts([]));
     } finally {
       setLoading(false);
     }
@@ -46,16 +50,18 @@ export default function AdminProductsPage() {
   const handleDelete = async (id: string, title: string) => {
     if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
     setDeletingId(id);
+    removeCustomProduct(id);
     try {
       const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
       } else {
-        alert(data.error || 'Failed to delete');
+        setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
       }
     } catch (e) {
       console.error(e);
+      setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
     } finally {
       setDeletingId(null);
     }

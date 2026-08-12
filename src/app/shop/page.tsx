@@ -7,9 +7,10 @@ import { categories as initialCategories } from '@/data/categories';
 import ProductCard from '@/components/ProductCard';
 import { SlidersHorizontal, Grid, ListFilter } from 'lucide-react';
 import { Category, Product } from '@/types';
+import { mergeWithCustomProducts } from '@/utils/productStorage';
 
 export default function ShopPage() {
-  const [productsList, setProductsList] = useState<Product[]>(initialProducts);
+  const [productsList, setProductsList] = useState<Product[]>(() => mergeWithCustomProducts(initialProducts));
   const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
@@ -23,10 +24,15 @@ export default function ShopPage() {
         ]);
         const pData = await pRes.json();
         const cData = await cRes.json();
-        if (pData.success && Array.isArray(pData.products)) setProductsList(pData.products);
-        if (cData.success && Array.isArray(cData.categories)) setCategoriesList(cData.categories);
+        if (pData.success && Array.isArray(pData.products)) {
+          setProductsList(mergeWithCustomProducts(pData.products));
+        }
+        if (cData.success && Array.isArray(cData.categories)) {
+          setCategoriesList(cData.categories);
+        }
       } catch (err) {
         console.error(err);
+        setProductsList(mergeWithCustomProducts(initialProducts));
       }
     }
     loadData();

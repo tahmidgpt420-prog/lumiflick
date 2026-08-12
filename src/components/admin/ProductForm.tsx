@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, ProductVariation, Category } from '@/types';
 import { categories as initialCategories } from '@/data/categories';
+import { saveCustomProduct } from '@/utils/productStorage';
 import ImageGalleryPicker from './ImageGalleryPicker';
 import {
   Save,
@@ -233,6 +234,9 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
 
       const data = await res.json();
       if (data.success) {
+        const savedProd = data.product || ({ ...payload, id: payload.id || `prod_${Date.now()}` } as Product);
+        saveCustomProduct(savedProd);
+
         setStatusMessage({
           type: 'success',
           text: isEditing

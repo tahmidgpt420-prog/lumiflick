@@ -6,6 +6,7 @@ import { products as initialProducts } from '@/data/products';
 import { Product } from '@/types';
 import ProductDetailView from '@/components/ProductDetailView';
 import { ArrowLeft, Loader2, PackageX } from 'lucide-react';
+import { mergeWithCustomProducts } from '@/utils/productStorage';
 
 interface ProductPageProps {
   params: {
@@ -17,35 +18,49 @@ export default function ProductPage({ params }: ProductPageProps) {
   const rawSlug = decodeURIComponent(params.slug).trim();
   const normalizedSlug = rawSlug.toLowerCase();
 
-  // 1. Initial product search from bundled data
-  const staticFound = initialProducts.find(
-    (p) =>
-      p.slug.toLowerCase() === normalizedSlug ||
-      p.id.toLowerCase() === normalizedSlug
+  const [allProducts, setAllProducts] = useState<Product[]>(() =>
+    mergeWithCustomProducts(initialProducts)
   );
 
-  const [product, setProduct] = useState<Product | null>(staticFound || null);
-  const [allProducts, setAllProducts] = useState<Product[]>(initialProducts);
-  const [loading, setLoading] = useState(!staticFound);
+  const [product, setProduct] = useState<Product | null>(() => {
+    const list = mergeWithCustomProducts(initialProducts);
+    return (
+      list.find(
+        (p) =>
+          p.slug.toLowerCase() === normalizedSlug ||
+          p.id.toLowerCase() === normalizedSlug ||
+          (p.title &&
+            p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ===
+              normalizedSlug)
+      ) || null
+    );
+  });
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function loadLatestProduct() {
       try {
         const res = await fetch('/api/admin/products');
         const data = await res.json();
-        if (data.success && Array.isArray(data.products)) {
-          setAllProducts(data.products);
-          const found = data.products.find(
-            (p: Product) =>
-              p.slug.toLowerCase() === normalizedSlug ||
-              p.id.toLowerCase() === normalizedSlug ||
-              (p.title &&
-                p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ===
-                  normalizedSlug)
-          );
-          if (found) {
-            setProduct(found);
-          }
+        const rawList =
+          data.success && Array.isArray(data.products)
+            ? data.products
+            : initialProducts;
+
+        const merged = mergeWithCustomProducts(rawList);
+        setAllProducts(merged);
+
+        const found = merged.find(
+          (p: Product) =>
+            p.slug.toLowerCase() === normalizedSlug ||
+            p.id.toLowerCase() === normalizedSlug ||
+            (p.title &&
+              p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ===
+                normalizedSlug)
+        );
+        if (found) {
+          setProduct(found);
         }
       } catch (err) {
         console.error('Error loading dynamic product:', err);

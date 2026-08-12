@@ -7,6 +7,7 @@ import { products as initialProducts } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 import { Category, Product } from '@/types';
 import { Sparkles, ArrowLeft } from 'lucide-react';
+import { mergeWithCustomProducts } from '@/utils/productStorage';
 
 interface CategoryPageProps {
   params: {
@@ -18,7 +19,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   const slug = decodeURIComponent(params.slug).toLowerCase().trim();
 
   const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
-  const [productsList, setProductsList] = useState<Product[]>(initialProducts);
+  const [productsList, setProductsList] = useState<Product[]>(() => mergeWithCustomProducts(initialProducts));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,13 +32,14 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         const pData = await pRes.json();
         const cData = await cRes.json();
         if (pData.success && Array.isArray(pData.products)) {
-          setProductsList(pData.products);
+          setProductsList(mergeWithCustomProducts(pData.products));
         }
         if (cData.success && Array.isArray(cData.categories)) {
           setCategoriesList(cData.categories);
         }
       } catch (err) {
         console.error('Failed to load dynamic category data:', err);
+        setProductsList(mergeWithCustomProducts(initialProducts));
       } finally {
         setLoading(false);
       }
