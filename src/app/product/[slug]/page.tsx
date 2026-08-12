@@ -6,7 +6,7 @@ import { products as initialProducts } from '@/data/products';
 import { Product } from '@/types';
 import ProductDetailView from '@/components/ProductDetailView';
 import { ArrowLeft, Loader2, PackageX } from 'lucide-react';
-import { mergeWithCustomProducts } from '@/utils/productStorage';
+import { getCustomProducts, mergeWithCustomProducts } from '@/utils/productStorage';
 
 interface ProductPageProps {
   params: {
@@ -14,65 +14,96 @@ interface ProductPageProps {
   };
 }
 
+function findInList(list: Product[], normalizedSlug: string): Product | null {
+  return (
+    list.find(
+      (p) =>
+        p.slug?.toLowerCase() === normalizedSlug ||
+        p.id?.toLowerCase() === normalizedSlug ||
+        (p.title &&
+          p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ===
+            normalizedSlug)
+    ) || null
+  );
+}
+
 export default function ProductPage({ params }: ProductPageProps) {
   const rawSlug = decodeURIComponent(params.slug).trim();
   const normalizedSlug = rawSlug.toLowerCase();
 
-  const [allProducts, setAllProducts] = useState<Product[]>(() =>
-    mergeWithCustomProducts(initialProducts)
-  );
-
-  const [product, setProduct] = useState<Product | null>(() => {
-    const list = mergeWithCustomProducts(initialProducts);
-    return (
-      list.find(
-        (p) =>
-          p.slug.toLowerCase() === normalizedSlug ||
-          p.id.toLowerCase() === normalizedSlug ||
-          (p.title &&
-            p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ===
-              normalizedSlug)
-      ) || null
-    );
-  });
-
-  const [loading, setLoading] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadLatestProduct() {
+    async function loadProduct() {
+      // 1. Check localStorage first — this has the most up-to-date admin edits
+      const localProducts = getCustomProducts();
+      const localFound = findInList(localProducts, normalizedSlug);
+
+      if (localFound) {
+        // Found in localStorage — use it immediately as source of truth
+        const merged = mergeWithCustomProducts(initialProducts as Product[]);
+        setProduct(localFound);
+        setAllProducts(merged);
+        setLoading(false);
+        return; // No need to call API
+      }
+
+      // 2. Check static bundled products
+      const staticFound = findInList(initialProducts as Product[], normalizedSlug);
+      if (staticFound) {
+        setProduct(staticFound);
+        const merged = mergeWithCustomProducts(initialProducts as Product[]);
+        setAllProducts(merged);
+        setLoading(false);
+        return;
+      }
+
+      // 3. Fall back to API for server-side products
       try {
         const res = await fetch('/api/admin/products');
         const data = await res.json();
         const rawList =
           data.success && Array.isArray(data.products)
             ? data.products
-            : initialProducts;
+            : (initialProducts as Product[]);
 
+        // Merge with localStorage — localStorage values override server values
         const merged = mergeWithCustomProducts(rawList);
         setAllProducts(merged);
 
-        const found = merged.find(
-          (p: Product) =>
-            p.slug.toLowerCase() === normalizedSlug ||
-            p.id.toLowerCase() === normalizedSlug ||
-            (p.title &&
-              p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') ===
-                normalizedSlug)
-        );
+        const found = findInList(merged, normalizedSlug);
         if (found) {
           setProduct(found);
         }
       } catch (err) {
-        console.error('Error loading dynamic product:', err);
+        console.error('Error loading product from API:', err);
+        // Still try static products as last resort
+        const merged = mergeWithCustomProducts(initialProducts as Product[]);
+        setAllProducts(merged);
+        const found = findInList(merged, normalizedSlug);
+        if (found) setProduct(found);
       } finally {
         setLoading(false);
       }
     }
 
-    loadLatestProduct();
+    loadProduct();
+
+    // Also listen for live updates when admin saves a product
+    const handleUpdate = () => {
+      const localProducts = getCustomProducts();
+      const localFound = findInList(localProducts, normalizedSlug);
+      if (localFound) {
+        setProduct(localFound);
+      }
+    };
+    window.addEventListener('lumiflick_products_updated', handleUpdate);
+    return () => window.removeEventListener('lumiflick_products_updated', handleUpdate);
   }, [normalizedSlug]);
 
-  if (loading && !product) {
+  if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
         <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
