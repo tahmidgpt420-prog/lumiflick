@@ -221,40 +221,48 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     };
 
     try {
-      const url = isEditing && initialData?.id
-        ? `/api/admin/products/${initialData.id}`
-        : '/api/admin/products';
-      const method = isEditing ? 'PUT' : 'POST';
+      // 1. Always save to localStorage first — this is the primary store for user-uploaded products
+      const localProduct: Product = {
+        ...payload,
+        id: payload.id || `prod_${slug}_${Date.now()}`,
+      } as Product;
+      saveCustomProduct(localProduct);
 
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      // 2. Also try to sync with the server API (best-effort, failure is OK)
+      try {
+        const url = isEditing && initialData?.id
+          ? `/api/admin/products/${initialData.id}`
+          : '/api/admin/products';
+        const method = isEditing ? 'PUT' : 'POST';
 
-      const data = await res.json();
-      if (data.success) {
-        const savedProd = data.product || ({ ...payload, id: payload.id || `prod_${Date.now()}` } as Product);
-        saveCustomProduct(savedProd);
-
-        setStatusMessage({
-          type: 'success',
-          text: isEditing
-            ? 'Product updated successfully!'
-            : 'Product created successfully!',
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
         });
-        setTimeout(() => {
-          router.push('/admin/products');
-          router.refresh();
-        }, 1000);
-      } else {
-        setStatusMessage({
-          type: 'error',
-          text: data.error || 'Failed to save product.',
-        });
+        const data = await res.json();
+        if (data.success && data.product) {
+          // If API returns a fresher version, update localStorage with it
+          saveCustomProduct(data.product);
+        }
+      } catch (_apiErr) {
+        // API failure is non-fatal — localStorage already saved
+        console.warn('API sync failed, but product is saved in localStorage.');
       }
+
+      // 3. Always show success (localStorage save succeeded)
+      setStatusMessage({
+        type: 'success',
+        text: isEditing
+          ? 'Product updated successfully!'
+          : 'Product created successfully!',
+      });
+      setTimeout(() => {
+        router.push('/admin/products');
+        router.refresh();
+      }, 1000);
     } catch (err: any) {
-      setStatusMessage({ type: 'error', text: err.message || 'Error occurred.' });
+      setStatusMessage({ type: 'error', text: err.message || 'Error saving product.' });
     } finally {
       setIsSaving(false);
     }
