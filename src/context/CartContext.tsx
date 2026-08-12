@@ -5,7 +5,7 @@ import { CartItem, Product, ProductVariation } from '@/types';
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product, variation?: ProductVariation, frameColor?: string, quantity?: number) => void;
+  addItem: (product: Product, variation?: ProductVariation, frameColor?: string, quantity?: number, selectedPieces?: number) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -55,14 +55,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     product: Product,
     variation?: ProductVariation,
     frameColor: string = 'Matte Black',
-    quantity: number = 1
+    quantity: number = 1,
+    selectedPieces: number = 1
   ) => {
     const selectedSize = variation ? variation.size : (product.variations?.[0]?.size || 'Standard');
-    const price = variation ? variation.price : product.price;
-    const regularPrice = variation ? variation.regularPrice : product.regularPrice;
-    
-    // Unique ID for item variant
-    const itemId = `${product.slug}_${selectedSize.replace(/\s+/g, '-')}_${frameColor.replace(/\s+/g, '-')}`;
+    const basePrice = variation ? variation.price : product.price;
+    const baseRegularPrice = variation ? variation.regularPrice : product.regularPrice;
+    // Multiply price by pieces selected
+    const price = basePrice * selectedPieces;
+    const regularPrice = baseRegularPrice ? baseRegularPrice * selectedPieces : undefined;
+
+    // Unique ID includes pieces so 1-piece and 2-piece are separate cart items
+    const itemId = `${product.slug}_${selectedSize.replace(/\s+/g, '-')}_${frameColor.replace(/\s+/g, '-')}_${selectedPieces}pc`;
 
     setItems(prevItems => {
       const existing = prevItems.find(item => item.id === itemId);
@@ -86,6 +90,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             quantity: quantity,
             selectedSize: selectedSize,
             selectedFrameColor: frameColor,
+            selectedPieces: selectedPieces > 1 ? selectedPieces : undefined,
           },
         ];
       }

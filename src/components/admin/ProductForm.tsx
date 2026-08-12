@@ -37,6 +37,8 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [sale, setSale] = useState<boolean>(initialData?.sale ?? true);
   const [featured, setFeatured] = useState<boolean>(initialData?.featured ?? false);
   const [bestSeller, setBestSeller] = useState<boolean>(initialData?.bestSeller ?? false);
+  const [pieceSelectionEnabled, setPieceSelectionEnabled] = useState<boolean>(initialData?.pieceSelectionEnabled ?? false);
+  const [maxPieces, setMaxPieces] = useState<number>(initialData?.maxPieces ?? 3);
   const [catList, setCatList] = useState<Category[]>(initialCategories);
 
   useEffect(() => {
@@ -209,6 +211,8 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       shortDescription,
       description,
       variations,
+      pieceSelectionEnabled,
+      maxPieces: pieceSelectionEnabled ? maxPieces : undefined,
       specifications: {
         ...specifications,
         frameColorOptions: [
@@ -437,6 +441,41 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             />
             Featured Product
           </label>
+
+          {/* Piece Selection Toggle */}
+          <div className="w-full pt-3 border-t border-gray-100 mt-1">
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+              <input
+                type="checkbox"
+                checked={pieceSelectionEnabled}
+                onChange={(e) => setPieceSelectionEnabled(e.target.checked)}
+                className="w-4 h-4 accent-black rounded"
+              />
+              Allow Piece Selection (customer picks 1, 2, or 3 pieces)
+            </label>
+            {pieceSelectionEnabled && (
+              <div className="mt-3 flex items-center gap-3">
+                <label className="text-xs font-semibold text-gray-600">Max pieces customer can select:</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setMaxPieces(n)}
+                      className={`w-9 h-9 rounded-lg border text-xs font-bold transition-all ${
+                        maxPieces === n
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-gray-500'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[11px] text-gray-400">piece{maxPieces > 1 ? 's' : ''} max</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

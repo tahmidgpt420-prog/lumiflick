@@ -53,6 +53,7 @@ export default function ProductDetailView({
     variations[0]
   );
   const [selectedColor, setSelectedColor] = useState<string>(frameColors[0]);
+  const [selectedPieces, setSelectedPieces] = useState<number>(1);
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedImage, setSelectedImage] = useState<string>(
     product.galleryImages?.[0] || product.image
@@ -60,23 +61,29 @@ export default function ProductDetailView({
   const [activeTab, setActiveTab] = useState<'desc' | 'specs' | 'reviews'>('desc');
   const [addedToast, setAddedToast] = useState(false);
 
+  const pieceEnabled = product.pieceSelectionEnabled === true;
+  const maxPieces = product.maxPieces || 3;
+  const pieceOptions = Array.from({ length: maxPieces }, (_, i) => i + 1);
+  const effectivePrice = selectedVariation.price * selectedPieces;
+  const effectiveRegularPrice = selectedVariation.regularPrice * selectedPieces;
+
   const images = product.galleryImages && product.galleryImages.length > 0
     ? product.galleryImages
     : [product.image];
 
   const handleAddToCart = () => {
-    addItem(product, selectedVariation, selectedColor, quantity);
+    addItem(product, selectedVariation, selectedColor, quantity, selectedPieces);
     setAddedToast(true);
     setTimeout(() => setAddedToast(false), 3000);
   };
 
   const handleBuyNow = () => {
-    addItem(product, selectedVariation, selectedColor, quantity);
+    addItem(product, selectedVariation, selectedColor, quantity, selectedPieces);
     router.push('/checkout');
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hello LUMIFLICK! I want to order/inquire about this frame:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}\n• Frame Color: ${selectedColor}\n• Quantity: ${quantity}\n• Total Price: ৳ ${(selectedVariation.price * quantity).toLocaleString()}\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`
+    `Hello LUMIFLICK! I want to order/inquire about this frame:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}\n• Frame Color: ${selectedColor}${pieceEnabled ? `\n• Pieces: ${selectedPieces} piece${selectedPieces > 1 ? 's' : ''}` : ''}\n• Quantity: ${quantity}\n• Total Price: ৳ ${(effectivePrice * quantity).toLocaleString()}\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`
   );
 
   return (
@@ -174,16 +181,18 @@ export default function ProductDetailView({
           {/* Price Block */}
           <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex items-baseline gap-3">
             <span className="text-2xl sm:text-3xl font-black text-gray-900">
-              ৳ {selectedVariation.price.toLocaleString()}
+              ৳ {effectivePrice.toLocaleString()}
             </span>
-            {selectedVariation.regularPrice > selectedVariation.price && (
+            {effectiveRegularPrice > effectivePrice && (
               <span className="text-sm sm:text-base text-gray-400 line-through">
-                ৳ {selectedVariation.regularPrice.toLocaleString()}
+                ৳ {effectiveRegularPrice.toLocaleString()}
               </span>
             )}
-            <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded ml-auto">
-              Save ৳ {(selectedVariation.regularPrice - selectedVariation.price).toLocaleString()}
-            </span>
+            {effectiveRegularPrice > effectivePrice && (
+              <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded ml-auto">
+                Save ৳ {(effectiveRegularPrice - effectivePrice).toLocaleString()}
+              </span>
+            )}
           </div>
 
           {/* Short Description */}
@@ -250,6 +259,37 @@ export default function ProductDetailView({
               })}
             </div>
           </div>
+
+          {/* Piece Selector — shown only when admin enables it */}
+          {pieceEnabled && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block">
+                How Many Pieces?
+                <span className="ml-2 text-[11px] text-gray-400 font-normal normal-case">
+                  ৳ {selectedVariation.price.toLocaleString()} per piece
+                </span>
+              </label>
+              <div className="flex gap-2">
+                {pieceOptions.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setSelectedPieces(n)}
+                    className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${
+                      selectedPieces === n
+                        ? 'border-black bg-black text-white shadow-md'
+                        : 'border-gray-200 bg-white text-gray-800 hover:border-gray-400'
+                    }`}
+                  >
+                    {n} {n === 1 ? 'Piece' : 'Pieces'}
+                    <span className="block text-[10px] font-normal mt-0.5 opacity-70">
+                      ৳ {(selectedVariation.price * n).toLocaleString()}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quantity & Actions */}
           <div className="space-y-3 pt-2">

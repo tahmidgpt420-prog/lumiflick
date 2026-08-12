@@ -34,6 +34,9 @@ export interface Product {
   rating?: number;
   reviewCount?: number;
   tags?: string[];
+  // Piece selection: customer picks 1, 2, or 3 pieces from a set
+  pieceSelectionEnabled?: boolean;
+  maxPieces?: number; // default 3
 }
 
 export interface Category {
@@ -57,6 +60,7 @@ export interface CartItem {
   quantity: number;
   selectedSize?: string;
   selectedFrameColor?: string;
+  selectedPieces?: number; // how many pieces from a set
 }
 
 export interface CustomerReview {

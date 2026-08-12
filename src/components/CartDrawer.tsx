@@ -103,6 +103,7 @@ export default function CartDrawer() {
                       <p className="text-[11px] text-gray-500 mt-0.5">
                         {item.selectedSize}
                         {item.selectedFrameColor ? ` • ${item.selectedFrameColor}` : ''}
+                        {item.selectedPieces ? ` • ${item.selectedPieces} piece${item.selectedPieces > 1 ? 's' : ''}` : ''}
                       </p>
                     </div>
 
