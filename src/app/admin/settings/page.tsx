@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import AdminHeader from '@/components/admin/AdminHeader';
-import { Save, CheckCircle2, Shield, Phone, MapPin, Truck } from 'lucide-react';
+import { Save, CheckCircle2, Shield, Phone, MapPin, Truck, Code2, EyeOff, Activity, HelpCircle } from 'lucide-react';
 import { StoreSettings } from '@/data/db';
 
 export default function AdminSettingsPage() {
@@ -15,6 +15,9 @@ export default function AdminSettingsPage() {
     outsideDhakaDelivery: 130,
     promoNotice: '🎁 Upto 35% Off— Biggest Sale of the Year',
     adminPin: 'lumiflick2026',
+    headerScripts: '',
+    bodyScripts: '',
+    footerScripts: '',
   });
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -180,6 +183,83 @@ export default function AdminSettingsPage() {
                 value={settings.promoNotice}
                 onChange={(e) => setSettings({ ...settings, promoNotice: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
+              />
+            </div>
+          </div>
+
+          {/* Tracking & Analytics Scripts (GTM, Meta Pixel, TikTok, Analytics) */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <Code2 className="w-4 h-4 text-indigo-600" />
+                  Analytics & Tracking Software Integration
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Embed Google Tag Manager (GTM), Meta Pixel, TikTok Pixel, Google Analytics (GA4), and custom scripts.
+                </p>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-full border border-emerald-200">
+                <EyeOff className="w-3.5 h-3.5" />
+                Excluded from Admin Portal
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-amber-50/60 border border-amber-200/80 rounded-xl text-xs text-amber-900 flex items-start gap-2.5">
+              <Activity className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+              <div>
+                <strong>Strict Admin Isolation:</strong> All scripts placed here will only trigger for store visitors and shoppers. They are <strong>never loaded inside the admin portal</strong>, keeping your conversion metrics, pixels, and traffic analytics 100% accurate.
+              </div>
+            </div>
+
+            {/* 1. Header Scripts (<head>) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                  <span className="px-2 py-0.5 bg-gray-100 text-gray-800 text-[10px] font-mono rounded font-semibold">&lt;head&gt;</span>
+                  Header Scripts (Meta Pixel base, GTM Head, Google Analytics)
+                </label>
+              </div>
+              <textarea
+                rows={5}
+                value={settings.headerScripts || ''}
+                onChange={(e) => setSettings({ ...settings, headerScripts: e.target.value })}
+                placeholder={'<!-- Paste Google Tag Manager <script> or Meta Pixel code here -->\n<script>\n  // Your tracking snippet\n</script>'}
+                className="w-full p-3.5 bg-gray-900 text-emerald-400 font-mono text-xs rounded-xl border border-gray-800 outline-none focus:border-indigo-500 transition-all placeholder:text-gray-600"
+              />
+            </div>
+
+            {/* 2. Body Open Scripts (<body>) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                  <span className="px-2 py-0.5 bg-gray-100 text-gray-800 text-[10px] font-mono rounded font-semibold">&lt;body&gt;</span>
+                  Body Scripts (GTM &lt;noscript&gt; fallback iframe)
+                </label>
+              </div>
+              <textarea
+                rows={4}
+                value={settings.bodyScripts || ''}
+                onChange={(e) => setSettings({ ...settings, bodyScripts: e.target.value })}
+                placeholder={'<!-- Google Tag Manager (noscript) -->\n<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXX"\nheight="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>'}
+                className="w-full p-3.5 bg-gray-900 text-emerald-400 font-mono text-xs rounded-xl border border-gray-800 outline-none focus:border-indigo-500 transition-all placeholder:text-gray-600"
+              />
+            </div>
+
+            {/* 3. Footer Scripts (</body>) */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                  <span className="px-2 py-0.5 bg-gray-100 text-gray-800 text-[10px] font-mono rounded font-semibold">&lt;/body&gt;</span>
+                  Footer / Body Bottom Scripts (External Chat, Conversion Tags)
+                </label>
+              </div>
+              <textarea
+                rows={4}
+                value={settings.footerScripts || ''}
+                onChange={(e) => setSettings({ ...settings, footerScripts: e.target.value })}
+                placeholder={'<!-- Custom live chat widgets, remarketing tags, or third party widgets -->\n<script>\n  // Footer scripts\n</script>'}
+                className="w-full p-3.5 bg-gray-900 text-emerald-400 font-mono text-xs rounded-xl border border-gray-800 outline-none focus:border-indigo-500 transition-all placeholder:text-gray-600"
               />
             </div>
           </div>

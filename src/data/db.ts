@@ -18,6 +18,9 @@ export interface StoreSettings {
   outsideDhakaDelivery: number;
   promoNotice: string;
   adminPin: string;
+  headerScripts?: string;
+  bodyScripts?: string;
+  footerScripts?: string;
 }
 
 export interface StoreData {
@@ -37,6 +40,9 @@ const defaultSettings: StoreSettings = {
   outsideDhakaDelivery: 130,
   promoNotice: '🎁 Upto 35% Off— Biggest Sale of the Year',
   adminPin: 'lumiflick2026',
+  headerScripts: '',
+  bodyScripts: '',
+  footerScripts: '',
 };
 
 // Retrieve store data with serverless fallback

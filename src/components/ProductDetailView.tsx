@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ShoppingBag,
-  Zap,
   MessageCircle,
   Truck,
   ShieldCheck,
@@ -285,15 +284,18 @@ export default function ProductDetailView({
               </button>
             </div>
 
-            {/* Buy Now Express Button */}
-            <button
-              type="button"
-              onClick={handleBuyNow}
-              className="w-full h-12 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-600/20 active:scale-[0.98]"
+            {/* Chat on Messenger Button */}
+            <a
+              href="https://www.m.me/LumiFlick"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full h-12 rounded-xl bg-[#0084FF] hover:bg-[#0073E6] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#0084FF]/20 active:scale-[0.98]"
             >
-              <Zap className="w-4 h-4 fill-white" />
-              Order Now (Cash On Delivery)
-            </button>
+              <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
+                <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.2 5.51 3.24 7.34-.17 1.05-.62 2.7-1.78 3.84 0 0 2.5-.2 4.46-1.55.67.19 1.38.29 2.08.29 5.64 0 10-4.13 10-9.7S17.64 2 12 2zm1.09 13.06l-2.73-2.91-5.33 2.91 5.86-6.22 2.8 2.91 5.26-2.91-5.86 6.22z" />
+              </svg>
+              Chat on Messenger
+            </a>
 
             {/* WhatsApp Order Button */}
             <a

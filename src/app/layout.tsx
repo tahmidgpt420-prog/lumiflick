@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import StorefrontShell from '@/components/StorefrontShell';
+import TrackingScripts from '@/components/TrackingScripts';
 
 export const metadata: Metadata = {
   title: 'LUMIFLICK | Premium Handcrafted Wall Art & Frames in Bangladesh',
@@ -46,6 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased selection:bg-black selection:text-white">
+        <TrackingScripts />
         <CartProvider>
           <StorefrontShell>{children}</StorefrontShell>
         </CartProvider>
