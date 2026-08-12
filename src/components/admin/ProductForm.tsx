@@ -369,26 +369,38 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
           <div>
             <label className="text-xs font-semibold text-gray-700 block mb-1">
               Base Price (৳ BDT) <span className="text-red-500">*</span>
+              <span className="ml-1 text-[10px] text-gray-400 font-normal">(syncs to Size Options below)</span>
             </label>
             <input
               type="number"
               required
               min={1}
               value={price}
-              onChange={(e) => setPrice(Number(e.target.value))}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setPrice(val);
+                // Sync all variations price proportionally (replace uniform ones)
+                setVariations((prev) => prev.map((v) => ({ ...v, price: val })));
+              }}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black font-bold"
             />
           </div>
 
           <div>
             <label className="text-xs font-semibold text-gray-700 block mb-1">
-              Regular Price (৳ BDT - Strike-through)
+              Regular Price (৳ BDT — Strike-through shown on page)
+              <span className="ml-1 text-[10px] text-gray-400 font-normal">(syncs to Size Options below)</span>
             </label>
             <input
               type="number"
               min={1}
               value={regularPrice}
-              onChange={(e) => setRegularPrice(Number(e.target.value))}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setRegularPrice(val);
+                // Sync all variations regularPrice so the live page shows updated strike-through
+                setVariations((prev) => prev.map((v) => ({ ...v, regularPrice: val })));
+              }}
               className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black text-gray-500"
             />
           </div>
