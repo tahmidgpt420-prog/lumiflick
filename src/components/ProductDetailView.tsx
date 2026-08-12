@@ -77,7 +77,7 @@ export default function ProductDetailView({
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hello LUMIFLICK, I want to order: ${product.title}\nSize: ${selectedVariation.label}\nFrame Color: ${selectedColor}\nQuantity: ${quantity}\nPrice: ৳ ${(selectedVariation.price * quantity).toLocaleString()}\nLink: https://lumiflick.shop/product/${product.slug}`
+    `Hello LUMIFLICK! I want to order/inquire about this frame:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}\n• Frame Color: ${selectedColor}\n• Quantity: ${quantity}\n• Total Price: ৳ ${(selectedVariation.price * quantity).toLocaleString()}\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`
   );
 
   return (
@@ -297,7 +297,7 @@ export default function ProductDetailView({
 
             {/* WhatsApp Order Button */}
             <a
-              href={`https://wa.me/8801886670211?text=${whatsappMessage}`}
+              href={`https://wa.me/8801400307299?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full h-12 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-md shadow-[#25D366]/20"

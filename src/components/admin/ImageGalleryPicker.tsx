@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Plus, Trash2, Image as ImageIcon, UploadCloud, Loader2 } from 'lucide-react';
 import FileUploadBox from './FileUploadBox';
+import { formatImageUrl } from '@/utils/driveUrl';
 
 interface ImageGalleryPickerProps {
   primaryImage: string;
@@ -23,9 +24,10 @@ export default function ImageGalleryPicker({
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddGalleryImage = () => {
-    if (!newGalleryUrl.trim()) return;
-    if (!galleryImages.includes(newGalleryUrl.trim())) {
-      onGalleryChange([...galleryImages, newGalleryUrl.trim()]);
+    const formatted = formatImageUrl(newGalleryUrl.trim());
+    if (!formatted) return;
+    if (!galleryImages.includes(formatted)) {
+      onGalleryChange([...galleryImages, formatted]);
     }
     setNewGalleryUrl('');
   };

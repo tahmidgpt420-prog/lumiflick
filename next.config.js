@@ -12,8 +12,12 @@ const nextConfig = {
         hostname: 'images.unsplash.com',
       },
       {
-        protocol: 'http',
-        hostname: 'kaminioutfit.com',
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'drive.google.com',
       },
     ],
   },

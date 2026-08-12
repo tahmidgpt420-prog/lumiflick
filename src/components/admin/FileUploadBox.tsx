@@ -3,6 +3,7 @@
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import { UploadCloud, Image as ImageIcon, X, Link as LinkIcon, Check, Loader2 } from 'lucide-react';
+import { formatImageUrl } from '@/utils/driveUrl';
 
 interface FileUploadBoxProps {
   value: string;
@@ -178,13 +179,13 @@ export default function FileUploadBox({
         <div className="space-y-1.5">
           <input
             type="url"
-            placeholder="Paste image link: https://example.com/photo.jpg"
+            placeholder="Paste image link or Google Drive link (e.g. https://drive.google.com/...)"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => onChange(formatImageUrl(e.target.value))}
             className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
           />
           <p className="text-[11px] text-gray-400">
-            Paste any direct image link from Facebook, WhatsApp, or image hosting.
+            Paste any direct image link or Google Drive link (make sure sharing is set to &ldquo;Anyone with the link&rdquo;).
           </p>
         </div>
       )}

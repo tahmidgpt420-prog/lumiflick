@@ -35,7 +35,7 @@ export default function TermsConditionsPage() {
         <section className="space-y-2">
           <h2 className="text-base font-bold text-gray-900">3. Cancellation Policy</h2>
           <p>
-            Orders can be cancelled before dispatch by calling our customer service hotline at +8801886670211 or texting on WhatsApp.
+            Orders can be cancelled before dispatch by calling our customer service hotline at +8801400307299 or texting on WhatsApp.
           </p>
         </section>
       </div>

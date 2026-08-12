@@ -147,7 +147,7 @@ export default function OrderSuccessPage() {
             <Printer className="w-4 h-4" /> Print Invoice
           </button>
           <a
-            href={`https://wa.me/8801886670211?text=${whatsappMessage}`}
+            href={`https://wa.me/8801400307299?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1 py-3 px-4 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2"

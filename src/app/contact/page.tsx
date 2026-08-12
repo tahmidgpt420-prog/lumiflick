@@ -47,7 +47,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900">Helpline / WhatsApp</h4>
-                  <p className="mt-0.5">+8801886670211</p>
+                  <p className="mt-0.5">+8801400307299</p>
                   <p className="text-gray-500 text-[11px]">Daily: 10:00 AM - 10:00 PM</p>
                 </div>
               </div>
@@ -86,7 +86,7 @@ export default function ContactPage() {
 
             <div className="pt-2">
               <a
-                href="https://wa.me/8801886670211"
+                href="https://wa.me/8801400307299?text=Hello%20LUMIFLICK!%20I%20would%20like%20to%20inquire%20about%20your%20products."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-3 px-4 bg-[#25D366] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#1EBE5D] transition-colors"

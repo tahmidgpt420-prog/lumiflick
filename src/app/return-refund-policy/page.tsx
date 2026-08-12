@@ -26,7 +26,7 @@ export default function ReturnRefundPolicyPage() {
           </p>
           <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
             <li>Please record an unboxing video or take clear photos of the defect immediately upon delivery.</li>
-            <li>Contact our customer support hotline at <strong>+8801886670211</strong> or message us on WhatsApp within 24 hours.</li>
+            <li>Contact our customer support hotline at <strong>+8801400307299</strong> or message us on WhatsApp within 24 hours.</li>
             <li>We will send a <strong>brand new free replacement</strong> immediately without charging any additional shipping fees.</li>
           </ul>
         </section>

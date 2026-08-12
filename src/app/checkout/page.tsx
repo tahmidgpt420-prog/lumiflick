@@ -44,7 +44,7 @@ export default function CheckoutPage() {
     }
 
     if (!formData.phone.trim() || formData.phone.length < 11) {
-      setErrorMessage('Please enter a valid 11-digit Bangladeshi phone number (e.g. 01886670211).');
+      setErrorMessage('Please enter a valid 11-digit Bangladeshi phone number (e.g. 01400307299).');
       return;
     }
 
@@ -355,7 +355,7 @@ export default function CheckoutPage() {
                       bKash / Nagad Advance Payment
                     </span>
                     <span className="text-xs text-gray-500">
-                      Send money to Merchant number 01886670211.
+                      Send money to Merchant number 01400307299.
                     </span>
                   </div>
                 </div>

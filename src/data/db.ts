@@ -30,7 +30,7 @@ export interface StoreData {
 
 const defaultSettings: StoreSettings = {
   storeName: 'LUMIFLICK',
-  phone: '+8801886670211',
+  phone: '+8801400307299',
   email: 'info@lumiflick.shop',
   address: 'Matbor bari, Baunia, Uttara, Dhaka, Bangladesh',
   insideDhakaDelivery: 70,
@@ -75,7 +75,7 @@ export function getStoreData(): StoreData {
       {
         orderId: 'LF-982314',
         customerName: 'Md. Rakib Hasan',
-        phone: '01886670211',
+        phone: '01400307299',
         email: 'rakib@gmail.com',
         address: 'House 12, Road 4, Sector 7, Uttara, Dhaka',
         city: 'Dhaka',

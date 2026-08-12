@@ -8,7 +8,7 @@ import { StoreSettings } from '@/data/db';
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<StoreSettings>({
     storeName: 'LUMIFLICK',
-    phone: '+8801886670211',
+    phone: '+8801400307299',
     email: 'info@lumiflick.shop',
     address: 'Matbor bari, Baunia, Uttara, Dhaka, Bangladesh',
     insideDhakaDelivery: 70,
