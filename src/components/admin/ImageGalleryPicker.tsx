@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Plus, Trash2, Image as ImageIcon, Check } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, UploadCloud, Loader2 } from 'lucide-react';
+import FileUploadBox from './FileUploadBox';
 
 interface ImageGalleryPickerProps {
   primaryImage: string;
@@ -18,7 +19,8 @@ export default function ImageGalleryPicker({
   onGalleryChange,
 }: ImageGalleryPickerProps) {
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
-  const [imageError, setImageError] = useState(false);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const galleryFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddGalleryImage = () => {
     if (!newGalleryUrl.trim()) return;
@@ -32,94 +34,37 @@ export default function ImageGalleryPicker({
     onGalleryChange(galleryImages.filter((_, i) => i !== index));
   };
 
-  const sampleStockPhotos = [
-    { label: 'Noore Duo Frame', url: 'https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg' },
-    { label: 'Porsche 911 GT3', url: 'https://genuinetask.com.bd/wp-content/uploads/2026/07/df22dd6878b688b871860f01e0537f47_67a337a6-7950-491c-bf04-0b964eb43912-300x225.webp' },
-    { label: 'Progress Mindset', url: 'https://genuinetask.com.bd/wp-content/uploads/2026/04/21_043bc097-849b-4b09-96c4-02ce2b6309e1-300x225.webp' },
-    { label: 'Ayat-ul-Qursi Set', url: 'https://genuinetask.com.bd/wp-content/uploads/2026/04/634ec5f7-3bad-4e14-8a67-59efdfc99a99-300x225.webp' },
-    { label: 'Blue Ocean Frame', url: 'https://genuinetask.com.bd/wp-content/uploads/2026/03/FB_IMG_1723449864046-300x225.webp' },
-  ];
+  const handleGalleryFileUpload = async (file: File) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    setIsUploadingGallery(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        onGalleryChange([...galleryImages, data.url]);
+      }
+    } catch (err) {
+      console.error('Upload error:', err);
+    } finally {
+      setIsUploadingGallery(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Primary Thumbnail Image */}
+      {/* Primary Thumbnail Image with Upload & Link */}
       <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-        <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-          <ImageIcon className="w-4 h-4 text-amber-600" />
-          Primary Product Image
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-          {/* Image Preview Box */}
-          <div className="md:col-span-4">
-            <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
-              {primaryImage && !imageError ? (
-                <Image
-                  src={primaryImage}
-                  alt="Product Thumbnail Preview"
-                  fill
-                  className="object-cover"
-                  onError={() => setImageError(true)}
-                  onLoad={() => setImageError(false)}
-                />
-              ) : (
-                <div className="text-center p-4 text-gray-400 text-xs">
-                  <ImageIcon className="w-8 h-8 mx-auto mb-1 opacity-50" />
-                  <span>No image URL / Invalid</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Image URL Input & Presets */}
-          <div className="md:col-span-8 space-y-3">
-            <div>
-              <label className="text-xs font-semibold text-gray-700 block mb-1">
-                Main Image Direct URL <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="url"
-                required
-                placeholder="https://example.com/image.jpg"
-                value={primaryImage}
-                onChange={(e) => {
-                  setImageError(false);
-                  onPrimaryChange(e.target.value);
-                }}
-                className="w-full px-3.5 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-              />
-              <p className="text-[11px] text-gray-400 mt-1">
-                Paste direct URL to JPEG, WebP, or PNG image.
-              </p>
-            </div>
-
-            {/* Quick Sample Presets */}
-            <div>
-              <span className="text-[11px] font-semibold text-gray-500 block mb-1.5">
-                Or pick a quick genuine sample photo:
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {sampleStockPhotos.map((sample) => (
-                  <button
-                    key={sample.label}
-                    type="button"
-                    onClick={() => {
-                      setImageError(false);
-                      onPrimaryChange(sample.url);
-                    }}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors ${
-                      primaryImage === sample.url
-                        ? 'bg-black text-white border-black'
-                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200'
-                    }`}
-                  >
-                    {sample.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <FileUploadBox
+          label="Primary Product Image (Main Display & Catalog Thumbnail)"
+          value={primaryImage}
+          onChange={onPrimaryChange}
+          aspectRatio="wide"
+        />
       </div>
 
       {/* Multi-Photo Gallery Manager */}
@@ -154,22 +99,50 @@ export default function ImageGalleryPicker({
           ))}
         </div>
 
-        {/* Add Gallery Photo Input */}
-        <div className="flex gap-2 pt-2">
+        {/* Upload or Link to Gallery */}
+        <div className="flex flex-col sm:flex-row gap-2 pt-2">
           <input
-            type="url"
-            placeholder="Paste additional image URL (e.g. https://...)"
-            value={newGalleryUrl}
-            onChange={(e) => setNewGalleryUrl(e.target.value)}
-            className="flex-1 px-3.5 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
+            ref={galleryFileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                handleGalleryFileUpload(e.target.files[0]);
+              }
+            }}
           />
+
           <button
             type="button"
-            onClick={handleAddGalleryImage}
-            className="px-4 py-2 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shrink-0"
+            onClick={() => galleryFileInputRef.current?.click()}
+            disabled={isUploadingGallery}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 shrink-0"
           >
-            <Plus className="w-3.5 h-3.5" /> Add to Gallery
+            {isUploadingGallery ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <UploadCloud className="w-3.5 h-3.5" />
+            )}
+            Upload Photo to Gallery
           </button>
+
+          <div className="flex-1 flex gap-2">
+            <input
+              type="url"
+              placeholder="Or paste image URL: https://..."
+              value={newGalleryUrl}
+              onChange={(e) => setNewGalleryUrl(e.target.value)}
+              className="flex-1 px-3.5 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
+            />
+            <button
+              type="button"
+              onClick={handleAddGalleryImage}
+              className="px-4 py-2 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add URL
+            </button>
+          </div>
         </div>
       </div>
     </div>

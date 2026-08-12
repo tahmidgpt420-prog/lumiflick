@@ -3,16 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import AdminHeader from '@/components/admin/AdminHeader';
+import FileUploadBox from '@/components/admin/FileUploadBox';
 import {
   Star,
   Plus,
   Trash2,
   Edit2,
   Image as ImageIcon,
-  MessageSquare,
   CheckCircle,
   ExternalLink,
-  ShieldCheck,
   X,
 } from 'lucide-react';
 import { CustomerReview } from '@/types';
@@ -59,7 +58,7 @@ export default function AdminReviewsPage() {
     setLocation('Dhaka, Bangladesh');
     setProductName('Porsche 911 GT3 RS Edition');
     setComment('');
-    setScreenshotImage('https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg');
+    setScreenshotImage('');
     setIsModalOpen(true);
   };
 
@@ -131,13 +130,6 @@ export default function AdminReviewsPage() {
     }
   };
 
-  const sampleScreenshots = [
-    { label: 'Room Wall Decor Photo', url: 'https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg' },
-    { label: 'Porsche Wall Setup', url: 'https://genuinetask.com.bd/wp-content/uploads/2026/07/df22dd6878b688b871860f01e0537f47_67a337a6-7950-491c-bf04-0b964eb43912-300x225.webp' },
-    { label: 'Motivational Wall Proof', url: 'https://genuinetask.com.bd/wp-content/uploads/2026/04/21_043bc097-849b-4b09-96c4-02ce2b6309e1-300x225.webp' },
-    { label: 'Delivered Frame Package', url: 'https://genuinetask.com.bd/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-02-at-2.46.39-AM.webp' },
-  ];
-
   return (
     <div className="space-y-6">
       <AdminHeader
@@ -145,7 +137,7 @@ export default function AdminReviewsPage() {
         description="Upload customer feedback screenshots, inbox reviews, and testimonials to display on the public /reviews page"
       />
 
-      <div className="p-6 max-w-7xl mx-auto space-y-6">
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
         
         {/* Action Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
@@ -158,33 +150,33 @@ export default function AdminReviewsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
             <Link
               href="/reviews"
               target="_blank"
-              className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors"
+              className="flex-1 sm:flex-initial text-center px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors"
             >
-              <ExternalLink className="w-3.5 h-3.5" /> View Public Reviews Page
+              <ExternalLink className="w-3.5 h-3.5" /> View Public Page
             </Link>
 
             <button
               onClick={handleOpenAdd}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md transition-colors"
+              className="flex-1 sm:flex-initial px-4 py-2 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-md transition-colors"
             >
-              <Plus className="w-4 h-4" /> Add Review Screenshot
+              <Plus className="w-4 h-4" /> Add Review Photo
             </button>
           </div>
         </div>
 
         {/* Reviews Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {loading ? (
             <div className="col-span-full py-16 text-center text-xs text-gray-400">
               Loading reviews...
             </div>
           ) : reviews.length === 0 ? (
             <div className="col-span-full py-16 text-center text-xs text-gray-500">
-              No customer reviews added yet. Click &quot;Add Review Screenshot&quot; above to create one.
+              No customer reviews added yet. Click &quot;Add Review Photo&quot; above to create one.
             </div>
           ) : (
             reviews.map((r) => (
@@ -203,7 +195,7 @@ export default function AdminReviewsPage() {
                       sizes="(max-width: 768px) 100vw, 33vw"
                     />
                     <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/70 text-white text-[10px] font-bold backdrop-blur-sm">
-                      Proof Screenshot
+                      Proof Photo
                     </div>
                   </div>
                 )}
@@ -274,14 +266,14 @@ export default function AdminReviewsPage() {
               className="fixed inset-0 bg-black/60 backdrop-blur-sm"
               onClick={() => setIsModalOpen(false)}
             />
-            <div className="relative min-h-screen flex items-center justify-center p-4">
+            <div className="relative min-h-screen flex items-center justify-center p-3 sm:p-4">
               <form
                 onSubmit={handleSave}
-                className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 sm:p-8 space-y-4 animate-slide-up"
+                className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-5 sm:p-8 space-y-4 animate-slide-up"
               >
                 <div className="flex justify-between items-center border-b border-gray-100 pb-3">
                   <h3 className="text-base font-bold text-gray-900">
-                    {editingReview ? 'Edit Review / Screenshot' : 'Add Customer Review & Screenshot'}
+                    {editingReview ? 'Edit Review & Photo' : 'Upload Customer Review & Screenshot'}
                   </h3>
                   <button
                     type="button"
@@ -292,31 +284,13 @@ export default function AdminReviewsPage() {
                   </button>
                 </div>
 
-                {/* Screenshot URL */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    Customer Screenshot / Wall Photo URL
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://example.com/screenshot.jpg"
-                    value={screenshotImage}
-                    onChange={(e) => setScreenshotImage(e.target.value)}
-                    className="w-full px-3.5 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-                  />
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {sampleScreenshots.map((sample) => (
-                      <button
-                        key={sample.label}
-                        type="button"
-                        onClick={() => setScreenshotImage(sample.url)}
-                        className="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 hover:bg-gray-200 text-gray-700"
-                      >
-                        {sample.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {/* Direct Photo Upload or Link */}
+                <FileUploadBox
+                  label="Customer Review Screenshot / Wall Photo"
+                  value={screenshotImage}
+                  onChange={setScreenshotImage}
+                  aspectRatio="wide"
+                />
 
                 {/* Customer Name & Location */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

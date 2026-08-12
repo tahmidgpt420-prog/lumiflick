@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import AdminHeader from '@/components/admin/AdminHeader';
+import FileUploadBox from '@/components/admin/FileUploadBox';
 import { Plus, Edit2, Layers, Check, ExternalLink } from 'lucide-react';
 import { Category } from '@/types';
 import Link from 'next/link';
@@ -174,18 +175,12 @@ export default function AdminCategoriesPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    Banner / Thumbnail Image URL
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
-                    className="w-full px-3.5 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-                  />
-                </div>
+                <FileUploadBox
+                  label="Category Thumbnail / Banner Image"
+                  value={image}
+                  onChange={setImage}
+                  aspectRatio="square"
+                />
 
                 <div>
                   <label className="text-xs font-semibold text-gray-700 block mb-1">
