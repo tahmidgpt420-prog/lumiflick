@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ExternalLink, Menu } from 'lucide-react';
-import { useAdmin } from '@/app/admin/layout';
+import { useAdmin } from '@/context/AdminContext';
 
 interface AdminHeaderProps {
   title: string;
