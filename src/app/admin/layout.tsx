@@ -1,13 +1,26 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, createContext, useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+
+interface AdminContextType {
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+}
+
+export const AdminContext = createContext<AdminContextType>({
+  sidebarOpen: false,
+  setSidebarOpen: () => {},
+});
+
+export const useAdmin = () => useContext(AdminContext);
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     // Skip auth check on login page
@@ -24,6 +37,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       router.push('/admin/login');
     }
   }, [pathname, router]);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   if (pathname === '/admin/login') {
     return <>{children}</>;
@@ -45,11 +63,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-100 text-gray-900 font-sans">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <main className="flex-1">{children}</main>
+    <AdminContext.Provider value={{ sidebarOpen, setSidebarOpen }}>
+      <div className="min-h-screen flex bg-gray-100 text-gray-900 font-sans relative overflow-x-hidden">
+        <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="flex-1 flex flex-col min-w-0 overflow-y-auto w-full">
+          <main className="flex-1">{children}</main>
+        </div>
       </div>
-    </div>
+    </AdminContext.Provider>
   );
 }

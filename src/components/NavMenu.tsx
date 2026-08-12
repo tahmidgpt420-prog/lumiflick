@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { categories as initialCategories } from '@/data/categories';
@@ -11,7 +11,6 @@ import {
   Star,
   Flame,
   X,
-  MessageSquare,
 } from 'lucide-react';
 import { Category } from '@/types';
 
@@ -23,6 +22,7 @@ interface NavMenuProps {
 export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
   const pathname = usePathname();
   const [catList, setCatList] = useState<Category[]>(initialCategories);
+  const scrollRef = useRef<HTMLUListElement>(null);
 
   useEffect(() => {
     async function loadDynamicCategories() {
@@ -47,62 +47,66 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
   return (
     <>
       {/* Desktop Horizontal Navigation */}
-      <nav className="hidden lg:block bg-white border-t border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4">
-          <ul className="flex items-center justify-center gap-1.5 overflow-x-auto py-2 text-[13px] font-medium tracking-tight text-gray-700 no-scrollbar whitespace-nowrap">
-            
-            {/* PINNED OPTION 1: Best Selling */}
-            <li>
+      <nav className="hidden lg:block bg-white border-t border-gray-100 shadow-sm relative">
+        <div className="max-w-7xl mx-auto px-4 relative flex items-center">
+          
+          {/* Scroll Track */}
+          <ul
+            ref={scrollRef}
+            className="flex items-center justify-start gap-1.5 overflow-x-auto py-2 text-[13px] font-medium tracking-tight text-gray-700 no-scrollbar whitespace-nowrap w-full scroll-smooth"
+          >
+            {/* PINNED OPTION 1: Best Selling (Clean neutral styling) */}
+            <li className="shrink-0">
               <Link
                 href="/product-category/best-selling"
-                className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 hover:text-black hover:bg-amber-50 ${
+                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
                   pathname === '/product-category/best-selling'
-                    ? 'font-bold text-black bg-amber-100 border border-amber-300 shadow-sm'
-                    : 'font-semibold text-gray-900'
+                    ? 'font-bold text-black bg-gray-100'
+                    : 'font-semibold text-gray-800'
                 }`}
               >
-                <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-                Best Selling
+                <Flame className="w-3.5 h-3.5 text-gray-700" />
+                <span>Best Selling</span>
               </Link>
             </li>
 
-            {/* PINNED OPTION 2: Customer Reviews */}
-            <li>
+            {/* PINNED OPTION 2: Customer Reviews (Clean neutral styling) */}
+            <li className="shrink-0">
               <Link
                 href="/reviews"
-                className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 hover:text-black hover:bg-yellow-50 ${
+                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
                   pathname === '/reviews'
-                    ? 'font-bold text-black bg-yellow-100 border border-yellow-300 shadow-sm'
-                    : 'font-semibold text-gray-900'
+                    ? 'font-bold text-black bg-gray-100'
+                    : 'font-semibold text-gray-800'
                 }`}
               >
-                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
-                Reviews
-                <span className="text-[10px] font-extrabold bg-amber-500 text-black px-1.5 py-0.2 rounded-full">
-                  4.9★
-                </span>
+                <Star className="w-3.5 h-3.5 text-gray-700" />
+                <span>Reviews</span>
               </Link>
             </li>
 
-            {/* All Collections Link */}
-            <li>
+            {/* PINNED OPTION 3: All Products */}
+            <li className="shrink-0">
               <Link
                 href="/shop"
                 className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
                   pathname === '/shop' ? 'font-bold text-black bg-gray-100' : ''
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                All Products
+                <Sparkles className="w-3.5 h-3.5 text-gray-500" />
+                <span>All Products</span>
               </Link>
             </li>
+
+            {/* Separator */}
+            <li className="h-3.5 w-px bg-gray-200 shrink-0 mx-1" aria-hidden="true" />
 
             {/* Remaining Dynamic Categories */}
             {remainingCategories.map((cat) => {
               const href = `/product-category/${cat.slug}`;
               const isActive = pathname === href;
               return (
-                <li key={cat.slug}>
+                <li key={cat.slug} className="shrink-0">
                   <Link
                     href={href}
                     className={`px-3 py-1.5 rounded-full transition-all block hover:text-black hover:bg-gray-100 ${
@@ -115,6 +119,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               );
             })}
           </ul>
+
         </div>
       </nav>
 
@@ -164,30 +169,26 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               <Link
                 href="/product-category/best-selling"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-black font-bold border border-amber-200"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-900 font-semibold"
               >
                 <div className="flex items-center gap-3">
-                  <Flame className="w-4 h-4 text-amber-500 fill-amber-400" />
-                  <span>Best Selling Frames</span>
+                  <Flame className="w-4 h-4 text-gray-700" />
+                  <span>Best Selling</span>
                 </div>
-                <span className="text-[10px] bg-amber-500 text-black font-extrabold px-2 py-0.5 rounded-full">
-                  HOT
-                </span>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
               </Link>
 
               {/* PINNED OPTION 2: Reviews (Mobile) */}
               <Link
                 href="/reviews"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl bg-yellow-50 hover:bg-yellow-100 text-black font-bold border border-yellow-200"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-900 font-semibold"
               >
                 <div className="flex items-center gap-3">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
-                  <span>Customer Reviews & Proofs</span>
+                  <Star className="w-4 h-4 text-gray-700" />
+                  <span>Reviews & Customer Proofs</span>
                 </div>
-                <span className="text-[10px] bg-black text-white font-bold px-2 py-0.5 rounded-full">
-                  4.9★
-                </span>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
               </Link>
 
               <Link
@@ -196,7 +197,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                 className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-800 font-medium"
               >
                 <div className="flex items-center gap-3">
-                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <Sparkles className="w-4 h-4 text-gray-500" />
                   <span>All Products</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
@@ -204,7 +205,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
 
               <div className="pt-3 pb-1">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3">
-                  Categories
+                  All Collections
                 </p>
               </div>
 

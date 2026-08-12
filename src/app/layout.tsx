@@ -1,12 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
-import PromoBar from '@/components/PromoBar';
-import Header from '@/components/Header';
-import SearchModal from '@/components/SearchModal';
-import CartDrawer from '@/components/CartDrawer';
-import FloatingWhatsApp from '@/components/FloatingWhatsApp';
-import Footer from '@/components/Footer';
+import StorefrontShell from '@/components/StorefrontShell';
 
 export const metadata: Metadata = {
   title: 'GenuineTask | Premium Handcrafted Wall Art & Frames in Bangladesh',
@@ -47,13 +42,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased selection:bg-black selection:text-white">
         <CartProvider>
-          <PromoBar />
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <SearchModal />
-          <CartDrawer />
-          <FloatingWhatsApp />
+          <StorefrontShell>{children}</StorefrontShell>
         </CartProvider>
       </body>
     </html>
