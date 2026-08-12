@@ -150,7 +150,16 @@ export function getProductById(id: string): Product | undefined {
 }
 
 export function getProductByIdOrSlug(idOrSlug: string): Product | undefined {
-  return getStoreData().products.find((p) => p.id === idOrSlug || p.slug === idOrSlug);
+  if (!idOrSlug) return undefined;
+  const decoded = decodeURIComponent(idOrSlug).toLowerCase().trim();
+  const products = getStoreData().products;
+  return products.find(
+    (p) =>
+      p.id?.toLowerCase() === decoded ||
+      p.slug?.toLowerCase() === decoded ||
+      (p.title &&
+        p.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === decoded)
+  );
 }
 
 export function saveProduct(productData: Partial<Product>): Product {
