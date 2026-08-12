@@ -23,15 +23,15 @@ export async function generateMetadata({
 
   if (!product) {
     return {
-      title: 'Product Not Found | GenuineTask',
+      title: 'Product Not Found | LUMIFLICK',
     };
   }
 
   return {
-    title: `${product.title} | GenuineTask Bangladesh`,
+    title: `${product.title} | LUMIFLICK Bangladesh`,
     description: product.shortDescription || `Buy ${product.title} premium wall frame in Bangladesh. High quality matte finish with Cash on delivery.`,
     openGraph: {
-      title: `${product.title} | GenuineTask`,
+      title: `${product.title} | LUMIFLICK`,
       description: product.shortDescription,
       images: [
         {

@@ -22,12 +22,12 @@ export async function generateMetadata({
 
   if (!category) {
     return {
-      title: 'Category Not Found | GenuineTask',
+      title: 'Category Not Found | LUMIFLICK',
     };
   }
 
   return {
-    title: `${category.name} | GenuineTask Wall Art Collections`,
+    title: `${category.name} | LUMIFLICK Wall Art Collections`,
     description: category.description || `Browse the best ${category.name} handcrafted wall frames in Bangladesh. Cash on delivery available.`,
   };
 }

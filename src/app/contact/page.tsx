@@ -58,7 +58,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900">Email Support</h4>
-                  <p className="mt-0.5">info@genuinetask.com.bd</p>
+                  <p className="mt-0.5">info@lumiflick.shop</p>
                   <p className="text-gray-500 text-[11px]">We reply within 24 hours</p>
                 </div>
               </div>
@@ -109,7 +109,7 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-base font-bold text-emerald-900">Message Received!</h3>
                 <p className="text-xs text-emerald-700">
-                  Thank you for contacting GenuineTask. Our representative will contact you shortly.
+                  Thank you for contacting LUMIFLICK. Our representative will contact you shortly.
                 </p>
               </div>
             ) : (

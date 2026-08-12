@@ -21,7 +21,7 @@ export default function TermsConditionsPage() {
         <section className="space-y-2">
           <h2 className="text-base font-bold text-gray-900">1. Order Confirmation</h2>
           <p>
-            All orders placed on genuinetask.com.bd are subject to availability and phone verification by our customer team.
+            All orders placed on lumiflick.shop are subject to availability and phone verification by our customer team.
           </p>
         </section>
 

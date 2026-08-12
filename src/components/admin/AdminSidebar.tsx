@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -63,11 +64,11 @@ export default function AdminSidebar({ isOpen = false, onClose }: AdminSidebarPr
         {/* Brand Header */}
         <div className="p-5 border-b border-gray-800/80 flex items-center justify-between">
           <Link href="/admin" onClick={handleItemClick} className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white text-black font-extrabold flex items-center justify-center text-sm shadow-md">
-              GT
+            <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-700">
+              <Image src="/logo.png" alt="LUMIFLICK Logo" fill className="object-cover" />
             </div>
             <div>
-              <h1 className="text-white font-bold text-xs tracking-wider uppercase">GenuineTask</h1>
+              <h1 className="text-white font-bold text-xs tracking-wider uppercase font-serif">LUMIFLICK</h1>
               <span className="text-[10px] text-amber-400 font-semibold bg-amber-400/10 px-1.5 py-0.5 rounded">
                 Admin Panel
               </span>

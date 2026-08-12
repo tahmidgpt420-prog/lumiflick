@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Phone, Mail, MapPin, ShieldCheck, Truck, RefreshCw, Heart } from 'lucide-react';
 
 export default function Footer() {
@@ -25,7 +26,7 @@ export default function Footer() {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-white text-sm">100% Genuine Quality</h4>
+                <h4 className="font-bold text-white text-sm">Premium Quality</h4>
                 <p className="text-gray-400 mt-0.5 text-[11px]">Museum Grade UV Matte Art Prints</p>
               </div>
             </div>
@@ -59,12 +60,12 @@ export default function Footer() {
           
           {/* Column 1: Brand & Contact */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded bg-white text-black font-extrabold flex items-center justify-center text-sm">
-                GT
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 rounded-full overflow-hidden shrink-0 border border-gray-700">
+                <Image src="/logo.png" alt="LUMIFLICK Logo" fill className="object-cover" />
               </div>
-              <span className="text-lg font-bold text-white tracking-widest uppercase">
-                GenuineTask
+              <span className="text-xl font-bold text-white tracking-wider uppercase font-serif">
+                LUMIFLICK
               </span>
             </div>
             <p className="text-gray-400 leading-relaxed">
@@ -77,7 +78,7 @@ export default function Footer() {
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>Email : info@genuinetask.com.bd</span>
+                <span>Email : info@lumiflick.shop</span>
               </div>
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
@@ -214,9 +215,9 @@ export default function Footer() {
       {/* Copyright Bar */}
       <div className="border-t border-gray-800 py-6 text-center text-gray-500 text-[11px]">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© {new Date().getFullYear()} GenuineTask. All Rights Reserved.</p>
+          <p>© {new Date().getFullYear()} LUMIFLICK. All Rights Reserved.</p>
           <p className="text-gray-600">
-            Crafted with excellence in Dhaka, Bangladesh.
+            Handcrafted with excellence in Dhaka, Bangladesh.
           </p>
         </div>
       </div>

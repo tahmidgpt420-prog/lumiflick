@@ -77,7 +77,7 @@ export default function ProductDetailView({
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hello GenuineTask, I want to order: ${product.title}\nSize: ${selectedVariation.label}\nFrame Color: ${selectedColor}\nQuantity: ${quantity}\nPrice: ৳ ${(selectedVariation.price * quantity).toLocaleString()}\nLink: https://genuinetask.com.bd/product/${product.slug}`
+    `Hello LUMIFLICK, I want to order: ${product.title}\nSize: ${selectedVariation.label}\nFrame Color: ${selectedColor}\nQuantity: ${quantity}\nPrice: ৳ ${(selectedVariation.price * quantity).toLocaleString()}\nLink: https://lumiflick.shop/product/${product.slug}`
   );
 
   return (
@@ -426,7 +426,7 @@ export default function ProductDetailView({
                     ))}
                   </div>
                   <p className="text-xs sm:text-sm text-gray-600">
-                    The quality exceeded my expectations. Looked exactly like the photo on genuinetask. Delivery inside Dhaka took only 2 days.
+                    The quality exceeded my expectations. Looked exactly like the photo on LUMIFLICK. Delivery inside Dhaka took only 2 days.
                   </p>
                 </div>
 

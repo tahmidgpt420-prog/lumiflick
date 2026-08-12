@@ -39,13 +39,23 @@ export default function Header() {
 
           {/* Center: Brand Logo */}
           <div className="flex-1 flex justify-center">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex flex-col items-center">
-                {/* Logo Image or Authentic Stylized Logo */}
-                <div className="relative w-12 h-12 flex items-center justify-center rounded-lg bg-black text-white shadow-md">
-                  <span className="font-serif font-black text-2xl tracking-tighter">GT</span>
-                </div>
-                <span className="text-sm font-bold tracking-widest text-black uppercase mt-1">GenuineTask</span>
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden shadow-sm shrink-0 border border-gray-100 group-hover:scale-105 transition-transform">
+                <Image
+                  src="/logo.png"
+                  alt="LUMIFLICK Logo"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg sm:text-2xl font-black tracking-wider text-black uppercase font-serif leading-none">
+                  LUMIFLICK
+                </span>
+                <span className="text-[9px] sm:text-[10px] tracking-[0.25em] text-gray-500 font-semibold uppercase mt-0.5">
+                  Wall Art & Frames
+                </span>
               </div>
             </Link>
           </div>
@@ -62,21 +72,22 @@ export default function Header() {
 
             <button
               onClick={openCartDrawer}
-              className="relative p-2.5 rounded-full hover:bg-gray-100 transition-colors text-gray-800 group"
-              aria-label="Shopping Cart"
+              className="relative p-2.5 rounded-full hover:bg-gray-100 transition-colors text-gray-800"
+              aria-label="View Cart"
             >
-              <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <ShoppingBag className="w-5 h-5" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-black text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-scale">
+                <span className="absolute -top-0.5 -right-0.5 bg-black text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center animate-bounce-subtle">
                   {totalItems}
                 </span>
               )}
             </button>
           </div>
+
         </div>
       </div>
 
-      {/* Category Navigation Bar */}
+      {/* Navigation Sub-bar */}
       <NavMenu mobileOpen={mobileMenuOpen} setMobileOpen={setMobileMenuOpen} />
     </header>
   );

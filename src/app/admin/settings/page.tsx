@@ -7,14 +7,14 @@ import { StoreSettings } from '@/data/db';
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<StoreSettings>({
-    storeName: 'GenuineTask',
+    storeName: 'LUMIFLICK',
     phone: '+8801886670211',
-    email: 'info@genuinetask.com.bd',
+    email: 'info@lumiflick.shop',
     address: 'Matbor bari, Baunia, Uttara, Dhaka, Bangladesh',
     insideDhakaDelivery: 70,
     outsideDhakaDelivery: 130,
     promoNotice: '🎁 Upto 35% Off— Biggest Sale of the Year',
-    adminPin: 'genuine2026',
+    adminPin: 'lumiflick2026',
   });
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);

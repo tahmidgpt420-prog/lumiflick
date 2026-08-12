@@ -4,7 +4,7 @@ import React from 'react';
 import { MessageCircle } from 'lucide-react';
 
 export default function FloatingWhatsApp() {
-  const message = encodeURIComponent('Hello GenuineTask! I would like to inquire about your premium wall frames.');
+  const message = encodeURIComponent('Hello LUMIFLICK! I would like to inquire about your premium wall frames.');
 
   return (
     <a

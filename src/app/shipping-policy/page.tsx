@@ -22,7 +22,7 @@ export default function ShippingPolicyPage() {
         <section className="space-y-2">
           <h2 className="text-base font-bold text-gray-900">1. Delivery Timeframes</h2>
           <p>
-            At GenuineTask, every frame set is made to order to maintain strict quality standards before dispatch.
+            At LUMIFLICK, every frame set is made to order to maintain strict quality standards before dispatch.
           </p>
           <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
             <li><strong>Inside Dhaka City:</strong> Delivered within 2 to 3 working days (Delivery fee: ৳70).</li>

@@ -27,14 +27,14 @@ export interface StoreData {
 }
 
 const defaultSettings: StoreSettings = {
-  storeName: 'GenuineTask',
+  storeName: 'LUMIFLICK',
   phone: '+8801886670211',
-  email: 'info@genuinetask.com.bd',
+  email: 'info@lumiflick.shop',
   address: 'Matbor bari, Baunia, Uttara, Dhaka, Bangladesh',
   insideDhakaDelivery: 70,
   outsideDhakaDelivery: 130,
   promoNotice: '🎁 Upto 35% Off— Biggest Sale of the Year',
-  adminPin: 'genuine2026',
+  adminPin: 'lumiflick2026',
 };
 
 // Ensure store.json exists
@@ -239,7 +239,7 @@ export function saveReview(reviewData: Partial<CustomerReview>): CustomerReview 
   } else {
     const newReview: CustomerReview = {
       id: reviewData.id || `rev_${Date.now()}`,
-      author: reviewData.author || 'GenuineTask Customer',
+      author: reviewData.author || 'LUMIFLICK Customer',
       rating: reviewData.rating || 5,
       date: reviewData.date || new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       verified: reviewData.verified ?? true,

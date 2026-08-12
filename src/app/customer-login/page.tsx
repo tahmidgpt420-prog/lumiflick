@@ -12,7 +12,7 @@ export default function CustomerLoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(isRegister ? 'Account created successfully! Welcome to GenuineTask.' : 'Logged in successfully!');
+    alert(isRegister ? 'Account created successfully! Welcome to LUMIFLICK.' : 'Logged in successfully!');
   };
 
   return (
@@ -29,7 +29,7 @@ export default function CustomerLoginPage() {
           </h1>
           <p className="text-xs text-gray-500">
             {isRegister
-              ? 'Join GenuineTask to track your frame orders and wishlists'
+              ? 'Join LUMIFLICK to track your frame orders and wishlists'
               : 'Sign in to manage your orders & delivery addresses'}
           </p>
         </div>

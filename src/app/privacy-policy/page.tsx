@@ -21,7 +21,7 @@ export default function PrivacyPolicyPage() {
         <section className="space-y-2">
           <h2 className="text-base font-bold text-gray-900">1. Information We Collect</h2>
           <p>
-            When you place an order on GenuineTask, we collect necessary customer details including your name, contact phone number, delivery address, and optional email address.
+            When you place an order on LUMIFLICK, we collect necessary customer details including your name, contact phone number, delivery address, and optional email address.
           </p>
         </section>
 

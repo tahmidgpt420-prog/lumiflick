@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { categories as initialCategories } from '@/data/categories';
 import {
@@ -136,11 +137,11 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
           <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white shadow-2xl z-10 flex flex-col">
             {/* Drawer Header */}
             <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded bg-black text-white flex items-center justify-center font-bold text-sm">
-                  GT
+              <div className="flex items-center gap-2.5">
+                <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                  <Image src="/logo.png" alt="LUMIFLICK Logo" fill className="object-cover" />
                 </div>
-                <span className="font-bold tracking-wider text-black text-sm uppercase">GenuineTask</span>
+                <span className="font-bold tracking-wider text-black text-sm uppercase font-serif">LUMIFLICK</span>
               </div>
               <button
                 onClick={() => setMobileOpen(false)}
@@ -227,7 +228,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                   onClick={() => setMobileOpen(false)}
                   className="block p-3 text-sm text-gray-600 hover:text-black"
                 >
-                  About GenuineTask
+                  About LUMIFLICK
                 </Link>
                 <Link
                   href="/contact"

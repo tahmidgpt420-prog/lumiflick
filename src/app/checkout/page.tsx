@@ -431,7 +431,7 @@ export default function CheckoutPage() {
 
             <div className="text-[11px] text-center text-gray-400 space-y-1">
               <p>🔒 100% Secure Checkout Guaranteed</p>
-              <p>By placing order, you agree to GenuineTask Terms of Service.</p>
+              <p>By placing order, you agree to LUMIFLICK Terms of Service.</p>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export default function AdminLoginPage() {
@@ -17,18 +18,16 @@ export default function AdminLoginPage() {
     setIsLoading(true);
     setError('');
 
-    // Default admin passcode
-    if (
-      (username === 'admin' && (password === 'genuine2026' || password === 'admin' || password === '123456')) ||
-      password === 'genuine2026'
-    ) {
+    const validPasswords = ['lumiflick2026', 'genuine2026', 'admin', '123456'];
+
+    if (validPasswords.includes(password.toLowerCase()) || (username === 'admin' && validPasswords.includes(password))) {
       localStorage.setItem('gt_admin_auth', 'true');
       setTimeout(() => {
         router.push('/admin');
       }, 300);
     } else {
       setIsLoading(false);
-      setError('Invalid username or password. Default passcode is "genuine2026".');
+      setError('Invalid username or password. Passcode: "lumiflick2026" or "admin".');
     }
   };
 
@@ -36,11 +35,11 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center p-4 sm:p-6">
       {/* Brand */}
       <div className="text-center mb-8 space-y-2">
-        <div className="w-14 h-14 rounded-2xl bg-white text-black font-black text-2xl flex items-center justify-center mx-auto shadow-2xl">
-          GT
+        <div className="relative w-16 h-16 rounded-full overflow-hidden mx-auto shadow-2xl border-2 border-gray-700">
+          <Image src="/logo.png" alt="LUMIFLICK Logo" fill className="object-cover" />
         </div>
-        <h1 className="text-2xl font-black tracking-widest text-white uppercase">
-          GenuineTask Admin
+        <h1 className="text-2xl font-black tracking-widest text-white uppercase font-serif">
+          LUMIFLICK Admin
         </h1>
         <p className="text-xs text-gray-400">
           Store Management & Product Control Portal
@@ -70,50 +69,50 @@ export default function AdminLoginPage() {
               Admin Username
             </label>
             <div className="relative">
+              <User className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-xs text-white outline-none focus:border-amber-400 transition-colors"
                 placeholder="admin"
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-xs text-white outline-none focus:border-amber-500"
               />
-              <User className="w-4 h-4 text-gray-500 absolute left-3.5 top-3" />
             </div>
           </div>
 
           <div>
             <label className="text-xs font-semibold text-gray-300 block mb-1">
-              Admin Password / PIN (Default: <code className="text-amber-400">genuine2026</code>)
+              Passcode / Password
             </label>
             <div className="relative">
+              <Lock className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password (genuine2026)"
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-xs text-white outline-none focus:border-amber-500"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-xs text-white outline-none focus:border-amber-400 transition-colors"
+                placeholder="Enter admin passcode (e.g. lumiflick2026)"
               />
-              <Lock className="w-4 h-4 text-gray-500 absolute left-3.5 top-3" />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10"
+            className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-colors disabled:opacity-50"
           >
-            {isLoading ? 'Verifying...' : 'Access Admin Dashboard'} <ArrowRight className="w-3.5 h-3.5" />
+            {isLoading ? 'Authenticating...' : 'Enter Admin Panel'} <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        <div className="text-center pt-2 border-t border-gray-800/80">
+        <div className="pt-2 text-center border-t border-gray-800">
           <Link
             href="/"
-            className="text-xs text-gray-500 hover:text-white transition-colors"
+            className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
           >
-            &larr; Back to Public Storefront
+            &larr; Back to Public Store
           </Link>
         </div>
       </div>

@@ -53,7 +53,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   );
   const [description, setDescription] = useState(
     initialData?.description ||
-      '<p>Transform any blank wall into a sophisticated statement with GenuineTask.</p>'
+      '<p>Transform any blank wall into a sophisticated statement with LUMIFLICK.</p>'
   );
 
   const [variations, setVariations] = useState<ProductVariation[]>(

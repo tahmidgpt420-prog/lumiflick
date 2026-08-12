@@ -30,7 +30,7 @@ export default function OrderSuccessPage() {
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hello GenuineTask, I placed order #${orderId}. Please let me know the tracking and delivery update.`
+    `Hello LUMIFLICK, I placed order #${orderId}. Please let me know the tracking and delivery update.`
   );
 
   return (
@@ -54,11 +54,11 @@ export default function OrderSuccessPage() {
         {/* Invoice Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-gray-200 gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded bg-black text-white font-bold flex items-center justify-center text-xs">
-                GT
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                <Image src="/logo.png" alt="LUMIFLICK Logo" fill className="object-cover" />
               </div>
-              <span className="font-bold uppercase tracking-wider text-black text-base">GenuineTask</span>
+              <span className="font-bold uppercase tracking-wider text-black text-base font-serif">LUMIFLICK</span>
             </div>
             <p className="text-xs text-gray-400 mt-1">Invoice #{orderId}</p>
           </div>
