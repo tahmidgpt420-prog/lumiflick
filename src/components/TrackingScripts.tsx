@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 interface TrackingScriptsProps {
@@ -25,6 +25,25 @@ export default function TrackingScripts({
   const isAdmin = Boolean(pathname && pathname.startsWith('/admin'));
 
   useEffect(() => {
+    // 1. Initial check from localStorage cache if available
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('lumiflick_store_settings_v1');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed) {
+            setScripts({
+              headerScripts: parsed.headerScripts || '',
+              bodyScripts: parsed.bodyScripts || '',
+              footerScripts: parsed.footerScripts || '',
+            });
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     let isMounted = true;
     async function loadLatestScripts() {
       try {
@@ -42,9 +61,31 @@ export default function TrackingScripts({
       }
     }
 
+    const handleSettingsUpdate = () => {
+      try {
+        const cached = localStorage.getItem('lumiflick_store_settings_v1');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed) {
+            setScripts({
+              headerScripts: parsed.headerScripts || '',
+              bodyScripts: parsed.bodyScripts || '',
+              footerScripts: parsed.footerScripts || '',
+            });
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      loadLatestScripts();
+    };
+
+    window.addEventListener('lumiflick_settings_updated', handleSettingsUpdate);
     loadLatestScripts();
+
     return () => {
       isMounted = false;
+      window.removeEventListener('lumiflick_settings_updated', handleSettingsUpdate);
     };
   }, []);
 
@@ -113,7 +154,7 @@ export default function TrackingScripts({
     }
 
     return () => {
-      // Cleanup on unmount or route change if navigating into admin
+      // Cleanup
     };
   }, [isAdmin, scripts, pathname]);
 

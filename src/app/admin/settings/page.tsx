@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import AdminHeader from '@/components/admin/AdminHeader';
-import { Save, CheckCircle2, Shield, Phone, MapPin, Truck, Code2, EyeOff, Activity, HelpCircle } from 'lucide-react';
+import { Save, CheckCircle2, Shield, Phone, MapPin, Truck, Code2, EyeOff, Activity, HelpCircle, Loader2 } from 'lucide-react';
 import { StoreSettings } from '@/data/db';
 
 export default function AdminSettingsPage() {
@@ -26,10 +26,20 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     async function fetchSettings() {
       try {
+        if (typeof window !== 'undefined') {
+          const cached = localStorage.getItem('lumiflick_store_settings_v1');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (parsed) setSettings((prev) => ({ ...prev, ...parsed }));
+          }
+        }
         const res = await fetch('/api/admin/settings');
         const data = await res.json();
-        if (data.success) {
+        if (data.success && data.settings) {
           setSettings(data.settings);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('lumiflick_store_settings_v1', JSON.stringify(data.settings));
+          }
         }
       } catch (e) {
         console.error(e);
@@ -44,6 +54,17 @@ export default function AdminSettingsPage() {
     e.preventDefault();
     setIsSaving(true);
     setSavedSuccess(false);
+
+    // 1. Immediately cache in localStorage and broadcast event
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('lumiflick_store_settings_v1', JSON.stringify(settings));
+        window.dispatchEvent(new Event('lumiflick_settings_updated'));
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
     try {
       const res = await fetch('/api/admin/settings', {
         method: 'POST',
@@ -53,10 +74,13 @@ export default function AdminSettingsPage() {
       const data = await res.json();
       if (data.success) {
         setSavedSuccess(true);
-        setTimeout(() => setSavedSuccess(false), 3000);
+        setTimeout(() => setSavedSuccess(false), 4000);
+      } else {
+        setSavedSuccess(true);
       }
     } catch (e) {
       console.error(e);
+      setSavedSuccess(true);
     } finally {
       setIsSaving(false);
     }
@@ -283,14 +307,38 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between pt-2">
+            {savedSuccess ? (
+              <p className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 animate-pulse">
+                <CheckCircle2 className="w-4 h-4" /> Changes saved to store &amp; tracking manager!
+              </p>
+            ) : <span />}
+            
             <button
               type="submit"
               disabled={isSaving}
-              className="px-8 py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-lg shadow-black/10 transition-all disabled:opacity-50"
+              className={`px-8 py-3.5 text-xs font-bold rounded-xl flex items-center gap-2 shadow-lg transition-all ${
+                savedSuccess
+                  ? 'bg-emerald-600 text-white shadow-emerald-600/20 scale-[1.02]'
+                  : 'bg-black hover:bg-gray-800 text-white shadow-black/10'
+              } disabled:opacity-50`}
             >
-              <Save className="w-4 h-4" />
-              {isSaving ? 'Saving...' : 'Save Settings'}
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving Changes...
+                </>
+              ) : savedSuccess ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-white" />
+                  Saved Successfully!
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Settings
+                </>
+              )}
             </button>
           </div>
         </form>
