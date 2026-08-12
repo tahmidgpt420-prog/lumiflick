@@ -35,7 +35,7 @@ export default function CheckoutPage() {
   const shippingCost = formData.zone === 'inside_dhaka' ? 70 : 130;
   const totalAmount = subtotal + shippingCost;
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
@@ -59,7 +59,7 @@ export default function CheckoutPage() {
     // Generate unique order ID
     const orderId = `GT-${Date.now().toString().slice(-6)}`;
 
-    // Store order in localStorage for confirmation screen
+    // Store order record
     const orderRecord = {
       orderId,
       customerName: formData.name,
@@ -82,13 +82,25 @@ export default function CheckoutPage() {
     };
 
     try {
+      // 1. Post to Server-Side API for Admin panel
+      await fetch('/api/admin/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderRecord),
+      });
+
+      // 2. Also save to localStorage for client receipt page
       localStorage.setItem(`gt_order_${orderId}`, JSON.stringify(orderRecord));
+
       clearCart();
-      setTimeout(() => {
-        router.push(`/order-success/${orderId}`);
-      }, 600);
+      router.push(`/order-success/${orderId}`);
     } catch (e) {
       console.error(e);
+      // Fallback
+      localStorage.setItem(`gt_order_${orderId}`, JSON.stringify(orderRecord));
+      clearCart();
+      router.push(`/order-success/${orderId}`);
+    } finally {
       setIsSubmitting(false);
     }
   };

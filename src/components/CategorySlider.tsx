@@ -1,13 +1,30 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
-import { categories } from '@/data/categories';
+import { categories as initialCategories } from '@/data/categories';
+import { Category } from '@/types';
 
 export default function CategorySlider() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/admin/categories');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.categories)) {
+          setCategoriesList(data.categories);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadCategories();
+  }, []);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -58,38 +75,27 @@ export default function CategorySlider() {
           ref={scrollRef}
           className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth pb-4"
         >
-          {categories.map((cat) => (
+          {categoriesList.map((category) => (
             <Link
-              key={cat.slug}
-              href={`/product-category/${cat.slug}`}
-              className="group shrink-0 w-[180px] sm:w-[220px] md:w-[250px] relative rounded-2xl overflow-hidden bg-gray-800 border border-white/10 hover:border-amber-400/50 transition-all duration-300 hover:-translate-y-1.5 shadow-lg"
+              key={category.slug}
+              href={`/product-category/${category.slug}`}
+              className="group flex-shrink-0 w-44 sm:w-56 bg-white/5 rounded-2xl p-3 border border-white/10 hover:border-amber-400/50 hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1"
             >
-              {/* Image Container */}
-              <div className="relative aspect-[3/4] w-full overflow-hidden bg-gray-800">
+              <div className="relative aspect-square rounded-xl overflow-hidden mb-3 bg-gray-800">
                 <Image
-                  src={cat.image}
-                  alt={cat.name}
+                  src={category.image}
+                  alt={category.name}
                   fill
-                  className="object-cover group-hover:scale-108 transition-transform duration-500"
-                  sizes="(max-width: 768px) 180px, 250px"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  sizes="(max-width: 640px) 176px, 224px"
                 />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-
-              {/* Title & Arrow Badge */}
-              <div className="absolute bottom-0 inset-x-0 p-4 flex items-end justify-between gap-2">
-                <div>
-                  <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-amber-300 transition-colors line-clamp-1">
-                    {cat.name}
-                  </h3>
-                  <p className="text-[11px] text-gray-300 font-medium mt-0.5">
-                    View collection
-                  </p>
-                </div>
-                <div className="w-7 h-7 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-amber-400 group-hover:text-black transition-all shrink-0">
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </div>
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-xs sm:text-sm text-white group-hover:text-amber-400 transition-colors truncate">
+                  {category.name}
+                </h3>
+                <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-amber-400 transition-colors shrink-0" />
               </div>
             </Link>
           ))}

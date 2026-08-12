@@ -6,16 +6,13 @@ import { categories, getCategoryBySlug } from '@/data/categories';
 import { getProductsByCategory } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+
 interface CategoryPageProps {
   params: {
     slug: string;
   };
-}
-
-export async function generateStaticParams() {
-  return categories.map((cat) => ({
-    slug: cat.slug,
-  }));
 }
 
 export async function generateMetadata({
@@ -59,39 +56,39 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         <span className="text-gray-900 font-semibold">{category.name}</span>
       </nav>
 
-      {/* Category Header */}
-      <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
           {category.name}
         </h1>
         {category.description && (
-          <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+          <p className="mt-2 text-xs sm:text-sm text-gray-600 max-w-3xl">
             {category.description}
           </p>
         )}
-        <p className="text-xs text-gray-400 font-medium">
-          Showing {categoryProducts.length} premium frame designs
+        <p className="mt-1 text-xs text-gray-400">
+          Showing {categoryProducts.length} premium art frames
         </p>
       </div>
 
       {/* Products Grid */}
-      {categoryProducts.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {categoryProducts.map((product) => (
-            <ProductCard key={product.slug} product={product} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16 bg-gray-50 rounded-2xl border border-gray-100">
-          <p className="text-gray-600 font-medium text-sm">
-            New designs coming soon to this collection!
+      {categoryProducts.length === 0 ? (
+        <div className="text-center py-16 bg-gray-50 rounded-2xl border border-gray-200">
+          <p className="text-gray-500 text-sm">
+            No frames currently listed in this category yet.
           </p>
           <Link
             href="/shop"
-            className="mt-4 inline-block px-6 py-2.5 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800"
+            className="inline-block mt-4 px-6 py-2.5 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors"
           >
             Explore Other Collections
           </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          {categoryProducts.map((product) => (
+            <ProductCard key={product.id || product.slug} product={product} />
+          ))}
         </div>
       )}
     </div>

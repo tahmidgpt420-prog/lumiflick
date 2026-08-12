@@ -66,6 +66,8 @@ export interface CustomerReview {
   comment: string;
   productName?: string;
   location?: string;
+  screenshotImage?: string;
+  featured?: boolean;
 }
 
 export interface OrderDetails {

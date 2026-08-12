@@ -180,6 +180,11 @@ export default function Footer() {
                   My Account / Login
                 </Link>
               </li>
+              <li>
+                <Link href="/admin" className="text-amber-400 font-semibold hover:underline">
+                  ⚙️ Admin Portal / Product Manager
+                </Link>
+              </li>
             </ul>
 
             <div className="pt-4">

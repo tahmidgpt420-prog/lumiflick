@@ -69,6 +69,16 @@ export default function ReviewsCarousel() {
           ))}
         </div>
 
+        <div className="text-center mt-10">
+          <a
+            href="/reviews"
+            className="inline-flex items-center gap-2 px-8 py-3 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-full transition-all shadow-md shadow-black/10"
+          >
+            <span>Explore All 500+ Customer Reviews & Wall Photos</span>
+            <span>&rarr;</span>
+          </a>
+        </div>
+
       </div>
     </section>
   );

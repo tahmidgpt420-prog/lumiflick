@@ -1,18 +1,39 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import { products } from '@/data/products';
-import { categories } from '@/data/categories';
+import { products as initialProducts } from '@/data/products';
+import { categories as initialCategories } from '@/data/categories';
 import ProductCard from '@/components/ProductCard';
 import { SlidersHorizontal, Grid, ListFilter } from 'lucide-react';
+import { Category, Product } from '@/types';
 
 export default function ShopPage() {
+  const [productsList, setProductsList] = useState<Product[]>(initialProducts);
+  const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
 
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [pRes, cRes] = await Promise.all([
+          fetch('/api/admin/products'),
+          fetch('/api/admin/categories'),
+        ]);
+        const pData = await pRes.json();
+        const cData = await cRes.json();
+        if (pData.success && Array.isArray(pData.products)) setProductsList(pData.products);
+        if (cData.success && Array.isArray(cData.categories)) setCategoriesList(cData.categories);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadData();
+  }, []);
+
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    let result = [...productsList];
 
     if (selectedCategory !== 'all') {
       result = result.filter(
@@ -31,7 +52,7 @@ export default function ShopPage() {
     }
 
     return result;
-  }, [selectedCategory, sortBy]);
+  }, [productsList, selectedCategory, sortBy]);
 
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -66,9 +87,9 @@ export default function ShopPage() {
                 : 'bg-white text-gray-700 hover:bg-gray-200 border border-gray-200'
             }`}
           >
-            All Designs ({products.length})
+            All Designs ({productsList.length})
           </button>
-          {categories.map((cat) => (
+          {categoriesList.map((cat) => (
             <button
               key={cat.slug}
               onClick={() => setSelectedCategory(cat.slug)}
@@ -109,7 +130,7 @@ export default function ShopPage() {
       {/* Products Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
         {filteredProducts.map((product) => (
-          <ProductCard key={product.slug} product={product} />
+          <ProductCard key={product.id || product.slug} product={product} />
         ))}
       </div>
     </div>

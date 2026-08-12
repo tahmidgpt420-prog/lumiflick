@@ -1,0 +1,107 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingBag,
+  Layers,
+  Star,
+  Settings,
+  ExternalLink,
+  LogOut,
+  PlusCircle,
+} from 'lucide-react';
+
+export default function AdminSidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const navItems = [
+    { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, exact: true },
+    { label: 'Products', href: '/admin/products', icon: Package },
+    { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
+    { label: 'Reviews & Proofs', href: '/admin/reviews', icon: Star },
+    { label: 'Categories', href: '/admin/categories', icon: Layers },
+    { label: 'Store Settings', href: '/admin/settings', icon: Settings },
+  ];
+
+  const handleLogout = () => {
+    localStorage.removeItem('gt_admin_auth');
+    router.push('/admin/login');
+  };
+
+  return (
+    <aside className="w-64 bg-gray-950 text-gray-300 flex flex-col shrink-0 min-h-screen border-r border-gray-800">
+      {/* Brand Header */}
+      <div className="p-6 border-b border-gray-800/80 flex items-center justify-between">
+        <Link href="/admin" className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-white text-black font-extrabold flex items-center justify-center text-sm shadow-md">
+            GT
+          </div>
+          <div>
+            <h1 className="text-white font-bold text-sm tracking-wider uppercase">GenuineTask</h1>
+            <span className="text-[10px] text-amber-400 font-semibold bg-amber-400/10 px-1.5 py-0.5 rounded">Admin Panel</span>
+          </div>
+        </Link>
+      </div>
+
+      {/* Quick Action */}
+      <div className="px-4 pt-4">
+        <Link
+          href="/admin/products/new"
+          className="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-colors"
+        >
+          <PlusCircle className="w-4 h-4" /> Add New Product
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-4 space-y-1">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href);
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                isActive
+                  ? 'bg-white text-black shadow-md'
+                  : 'text-gray-400 hover:bg-gray-900 hover:text-white'
+              }`}
+            >
+              <Icon className={`w-4 h-4 ${isActive ? 'text-black' : 'text-gray-400'}`} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Bottom Shortcuts & Logout */}
+      <div className="p-4 border-t border-gray-800/80 space-y-2">
+        <Link
+          href="/"
+          target="_blank"
+          className="flex items-center justify-between px-3.5 py-2 rounded-xl text-xs text-gray-400 hover:bg-gray-900 hover:text-white transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <ExternalLink className="w-3.5 h-3.5" /> View Live Store
+          </span>
+        </Link>
+
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs text-red-400 hover:bg-red-500/10 transition-colors text-left"
+        >
+          <LogOut className="w-4 h-4" /> Sign Out
+        </button>
+      </div>
+    </aside>
+  );
+}
