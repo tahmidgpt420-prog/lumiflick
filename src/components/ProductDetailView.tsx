@@ -43,17 +43,9 @@ export default function ProductDetailView({
     },
   ];
 
-  const frameColors = product.specifications?.frameColorOptions || [
-    'Matte Black',
-    'Luxury Gold',
-    'Natural Walnut Wood',
-    'Minimalist White',
-  ];
-
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation>(
     variations[0]
   );
-  const [selectedColor, setSelectedColor] = useState<string>(frameColors[0]);
   const [selectedPiecesSet, setSelectedPiecesSet] = useState<Set<number>>(new Set([1]));
   const [quantity, setQuantity] = useState<number>(1);
   const rawPrimaryImage = formatImageUrl(product.galleryImages?.[0] || product.image || '/logo.png');
@@ -94,18 +86,18 @@ export default function ProductDetailView({
   ).map((url) => formatImageUrl(url));
 
   const handleAddToCart = () => {
-    addItem(product, selectedVariation, selectedColor, quantity, Math.max(1, selectedPieces));
+    addItem(product, selectedVariation, '', quantity, Math.max(1, selectedPieces));
     setAddedToast(true);
     setTimeout(() => setAddedToast(false), 3000);
   };
 
   const handleBuyNow = () => {
-    addItem(product, selectedVariation, selectedColor, quantity, Math.max(1, selectedPieces));
+    addItem(product, selectedVariation, '', quantity, Math.max(1, selectedPieces));
     router.push('/checkout');
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hello LUMIFLICK! I want to order/inquire about this frame:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}\n• Frame Color: ${selectedColor}${pieceEnabled ? `\n• Pieces: ${selectedPieces} piece${selectedPieces > 1 ? 's' : ''}` : ''}\n• Quantity: ${quantity}\n• Total Price: ৳ ${(effectivePrice * quantity).toLocaleString()}\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`
+    `Hello LUMIFLICK! I want to order/inquire about this frame:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}${pieceEnabled ? `\n• Pieces: ${selectedPieces} piece${selectedPieces > 1 ? 's' : ''}` : ''}\n• Quantity: ${quantity}\n• Total Price: ৳ ${(effectivePrice * quantity).toLocaleString()}\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`
   );
 
   return (
@@ -251,33 +243,6 @@ export default function ProductDetailView({
                     <span className="text-xs font-bold shrink-0 ml-2">
                       ৳ {v.price.toLocaleString()}
                     </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Variation Selector: Frame Border Color */}
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block">
-              Frame Finish / Border Color: <span className="font-normal text-gray-600">{selectedColor}</span>
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {frameColors.map((color) => {
-                const isSelected = selectedColor === color;
-                return (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setSelectedColor(color)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold border flex items-center gap-1.5 transition-all ${
-                      isSelected
-                        ? 'border-black bg-gray-900 text-white shadow-sm'
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400'
-                    }`}
-                  >
-                    {isSelected && <Check className="w-3.5 h-3.5" />}
-                    {color}
                   </button>
                 );
               })}
