@@ -9,11 +9,35 @@ import {
   getDeletedProductIdsFromFirestore,
 } from '@/lib/firestoreProducts';
 
+const CACHE_KEY = 'lumiflick_catalog_cache_v3';
+const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes cache freshness
+
+interface CatalogCache {
+  products: Product[];
+  categories: Category[];
+  savedAt: number;
+}
+
+function getInitialCache(): CatalogCache | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.products) && parsed.products.length > 0) {
+      return parsed as CatalogCache;
+    }
+  } catch {
+    // fallback
+  }
+  return null;
+}
+
 interface ProductContextType {
   products: Product[];
   categories: Category[];
   isLoaded: boolean;
-  refreshProducts: () => Promise<void>;
+  refreshProducts: (force?: boolean) => Promise<void>;
   getProductBySlug: (slug: string) => Product | undefined;
   getProductsByCategory: (categorySlug: string) => Product[];
   getBestSellingProducts: () => Product[];
@@ -22,12 +46,34 @@ interface ProductContextType {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export function ProductProvider({ children }: { children: React.ReactNode }) {
-  // Start with static products immediately for instant 0ms first paint
-  const [products, setProducts] = useState<Product[]>(staticProducts as Product[]);
-  const [categories, setCategories] = useState<Category[]>(staticCategories);
-  const [isLoaded, setIsLoaded] = useState(false);
+  // 1. Initialize immediately from browser cache if available (0 network requests on reload)
+  const [products, setProducts] = useState<Product[]>(() => {
+    const cache = getInitialCache();
+    return cache ? cache.products : (staticProducts as Product[]);
+  });
 
-  const fetchUniversalProducts = useCallback(async () => {
+  const [categories, setCategories] = useState<Category[]>(() => {
+    const cache = getInitialCache();
+    return cache && Array.isArray(cache.categories) ? cache.categories : staticCategories;
+  });
+
+  const [isLoaded, setIsLoaded] = useState<boolean>(() => {
+    return getInitialCache() !== null;
+  });
+
+  const fetchUniversalProducts = useCallback(async (force = false) => {
+    // Check if browser cache is fresh and we're not forcing a reload
+    if (!force) {
+      const cache = getInitialCache();
+      if (cache && Date.now() - cache.savedAt < CACHE_TTL_MS) {
+        // Cache is fresh — no network download needed!
+        setProducts(cache.products);
+        if (cache.categories) setCategories(cache.categories);
+        setIsLoaded(true);
+        return;
+      }
+    }
+
     try {
       const [firestoreProds, deletedIds, catRes] = await Promise.all([
         getAllProductsFromFirestore(),
@@ -52,23 +98,36 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       const mergedProducts = [...activeFirestore, ...activeStatic];
       setProducts(mergedProducts);
 
-      // Update categories if API returned fresh list
+      let updatedCategories = staticCategories;
       if (catRes && catRes.ok) {
         const catData = await catRes.json();
         if (catData.success && Array.isArray(catData.categories)) {
-          setCategories(catData.categories);
+          updatedCategories = catData.categories;
+          setCategories(updatedCategories);
         }
       }
+
+      // Save to browser cache
+      try {
+        const cachePayload: CatalogCache = {
+          products: mergedProducts,
+          categories: updatedCategories,
+          savedAt: Date.now(),
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cachePayload));
+      } catch (storageErr) {
+        console.warn('Unable to persist catalog to localStorage cache:', storageErr);
+      }
     } catch (err) {
-      console.error('Error prefetching products:', err);
+      console.error('Error fetching products from database:', err);
     } finally {
       setIsLoaded(true);
     }
   }, []);
 
-  // Fetch from database ONCE on website load
+  // On page mount / reload: check cache first, only fetch if stale or missing
   useEffect(() => {
-    fetchUniversalProducts();
+    fetchUniversalProducts(false);
   }, [fetchUniversalProducts]);
 
   const getProductBySlug = useCallback(
@@ -115,7 +174,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         products,
         categories,
         isLoaded,
-        refreshProducts: fetchUniversalProducts,
+        refreshProducts: () => fetchUniversalProducts(true),
         getProductBySlug,
         getProductsByCategory,
         getBestSellingProducts,
