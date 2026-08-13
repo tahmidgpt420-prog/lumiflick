@@ -78,6 +78,7 @@ export async function deleteProductFromFirestore(idOrSlug: string): Promise<void
 }
 
 // ─── Category Firestore helpers ───────────────────────────────────────
+const DELETED_CATEGORIES_COL = 'deleted_categories';
 
 /** Get all categories from Firestore */
 export async function getAllCategoriesFromFirestore(): Promise<Category[]> {
@@ -89,18 +90,45 @@ export async function getAllCategoriesFromFirestore(): Promise<Category[]> {
   }
 }
 
-/** Save or update a category in Firestore */
-export async function saveCategoryToFirestore(category: Category): Promise<void> {
+/** Get deleted category slugs from Firestore */
+export async function getDeletedCategorySlugsFromFirestore(): Promise<Set<string>> {
+  try {
+    const snap = await getDocs(collection(db, DELETED_CATEGORIES_COL));
+    return new Set(snap.docs.map((d) => d.id));
+  } catch {
+    return new Set();
+  }
+}
+
+/** Save or update a category in Firestore with optional oldSlug cleanup */
+export async function saveCategoryToFirestore(category: Category, oldSlug?: string): Promise<void> {
   const docId = category.slug || category.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  
+  // If slug was renamed during edit, clean up the old document
+  if (oldSlug && oldSlug !== docId) {
+    try {
+      await deleteDoc(doc(db, CATEGORIES_COL, oldSlug));
+      await setDoc(doc(db, DELETED_CATEGORIES_COL, oldSlug), { deletedAt: Date.now() });
+    } catch (e) {
+      console.warn('Error cleaning up old category slug:', e);
+    }
+  }
+
+  // Ensure this active slug is not in deleted_categories
+  try {
+    await deleteDoc(doc(db, DELETED_CATEGORIES_COL, docId));
+  } catch {}
+
   const ref = doc(db, CATEGORIES_COL, docId);
-  const data = sanitizeForFirestore({ ...category, updatedAt: Date.now() });
+  const data = sanitizeForFirestore({ ...category, slug: docId, updatedAt: Date.now() });
   await setDoc(ref, data, { merge: true });
 }
 
-/** Delete a category from Firestore */
+/** Delete a category from Firestore and blacklist its slug */
 export async function deleteCategoryFromFirestore(slug: string): Promise<void> {
   try {
     await deleteDoc(doc(db, CATEGORIES_COL, slug));
+    await setDoc(doc(db, DELETED_CATEGORIES_COL, slug), { deletedAt: Date.now() });
   } catch (err) {
     console.error('Error deleting category from Firestore:', err);
   }

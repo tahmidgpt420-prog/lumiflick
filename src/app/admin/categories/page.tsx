@@ -11,6 +11,7 @@ import { useProducts } from '@/context/ProductContext';
 import {
   saveCategoryToFirestore,
   getAllCategoriesFromFirestore,
+  getDeletedCategorySlugsFromFirestore,
   deleteCategoryFromFirestore,
 } from '@/lib/firestoreProducts';
 import { categories as staticCategories } from '@/data/categories';
@@ -31,14 +32,18 @@ export default function AdminCategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const firestoreCats = await getAllCategoriesFromFirestore();
-      if (firestoreCats && firestoreCats.length > 0) {
-        const firestoreSlugs = new Set(firestoreCats.map((c) => c.slug));
-        const staticOnly = staticCategories.filter((c) => !firestoreSlugs.has(c.slug));
-        setCategoriesList([...firestoreCats, ...staticOnly]);
-      } else {
-        setCategoriesList(staticCategories);
-      }
+      const [firestoreCats, deletedSlugs] = await Promise.all([
+        getAllCategoriesFromFirestore(),
+        getDeletedCategorySlugsFromFirestore(),
+      ]);
+
+      const activeFirestore = firestoreCats.filter((c) => !deletedSlugs.has(c.slug));
+      const firestoreSlugs = new Set(activeFirestore.map((c) => c.slug));
+      const activeStatic = staticCategories.filter(
+        (c) => !deletedSlugs.has(c.slug) && !firestoreSlugs.has(c.slug)
+      );
+
+      setCategoriesList([...activeFirestore, ...activeStatic]);
     } catch (e) {
       console.error('Error fetching categories from Firestore:', e);
       setCategoriesList(staticCategories);
@@ -99,8 +104,8 @@ export default function AdminCategoriesPage() {
         parentId: parentSlug.trim() || null,
       };
 
-      // 1. Direct Firestore write from client (fast & persistent)
-      await saveCategoryToFirestore(categoryData);
+      // 1. Direct Firestore write from client (fast & persistent with oldSlug cleanup)
+      await saveCategoryToFirestore(categoryData, editingCategory?.slug);
 
       // 2. Refresh global cache across the entire app
       try {
