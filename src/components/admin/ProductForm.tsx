@@ -238,8 +238,8 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       shortDescription,
       description,
       variations,
-      pieceSelectionEnabled,
-      maxPieces: pieceSelectionEnabled ? maxPieces : undefined,
+      pieceSelectionEnabled: Boolean(pieceSelectionEnabled),
+      maxPieces: Number(maxPieces) || 3,
       specifications: {
         ...specifications,
         frameColorOptions: [

@@ -14,11 +14,25 @@ import { Product } from '@/types';
 const COL = 'products';
 const DELETED_COL = 'deleted_products';
 
+/** Strip any undefined keys recursively before saving to Firestore */
+function sanitizeForFirestore(obj: any): any {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeForFirestore);
+  }
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      result[key] = sanitizeForFirestore(value);
+    }
+  }
+  return result;
+}
+
 /** Save or update a product in Firestore */
 export async function saveProductToFirestore(product: Product): Promise<void> {
   const ref = doc(db, COL, product.id);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = { ...product, updatedAt: Date.now() };
+  const data = sanitizeForFirestore({ ...product, updatedAt: Date.now() });
   await setDoc(ref, data, { merge: true });
 }
 
