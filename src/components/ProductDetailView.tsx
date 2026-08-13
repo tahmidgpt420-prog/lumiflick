@@ -129,12 +129,12 @@ export default function ProductDetailView({
       </nav>
 
       {/* Main Product Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         
         {/* Left: Interactive Image Gallery */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className="lg:col-span-6 space-y-4">
           {/* Main Zoomable Frame Container */}
-          <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-md">
+          <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-md">
             <Image
               src={selectedImage || '/logo.png'}
               alt={product.title}
@@ -142,7 +142,7 @@ export default function ProductDetailView({
               priority
               unoptimized
               className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 55vw"
+              sizes="(max-width: 1024px) 100vw, 50vw"
             />
             {product.sale && <span className="badge-sale">Sale!</span>}
           </div>
@@ -175,7 +175,7 @@ export default function ProductDetailView({
         </div>
 
         {/* Right: Product Details & Purchase Form */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="lg:col-span-6 space-y-6">
           <div>
             <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider block mb-1">
               {product.category}
