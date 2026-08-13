@@ -29,37 +29,48 @@ const INACTIVITY_TIMEOUT_MS = 60 * 60 * 1000; // 1 Hour (3,600,000 ms)
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isChecking, setIsChecking] = useState<boolean>(true);
 
   useEffect(() => {
     // Skip auth check on login page
     if (pathname === '/jw8yenjnkanhr823/login') {
       setIsAuthenticated(true);
+      setIsChecking(false);
       return;
     }
 
     const checkAuthAndActivity = () => {
       const auth = localStorage.getItem('gt_admin_auth');
       const lastActiveStr = localStorage.getItem('gt_admin_last_active');
-      const lastActive = lastActiveStr ? parseInt(lastActiveStr, 10) : 0;
       const now = Date.now();
 
       if (auth !== 'true') {
         setIsAuthenticated(false);
+        setIsChecking(false);
         router.push('/jw8yenjnkanhr823/login');
         return false;
       }
 
+      // If lastActive was not set yet, set it now
+      let lastActive = lastActiveStr ? parseInt(lastActiveStr, 10) : 0;
+      if (!lastActive) {
+        lastActive = now;
+        localStorage.setItem('gt_admin_last_active', now.toString());
+      }
+
       // Check if 1 hour has elapsed since last recorded activity
-      if (!lastActive || now - lastActive > INACTIVITY_TIMEOUT_MS) {
+      if (now - lastActive > INACTIVITY_TIMEOUT_MS) {
         localStorage.removeItem('gt_admin_auth');
         localStorage.removeItem('gt_admin_last_active');
         setIsAuthenticated(false);
+        setIsChecking(false);
         router.push('/jw8yenjnkanhr823/login?expired=1');
         return false;
       }
 
       setIsAuthenticated(true);
+      setIsChecking(false);
       return true;
     };
 
@@ -95,7 +106,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  if (isAuthenticated === null) {
+  if (isChecking) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">
         <div className="flex items-center gap-3">

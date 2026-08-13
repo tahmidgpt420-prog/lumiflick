@@ -95,3 +95,15 @@ export interface OrderDetails {
   orderDate: string;
   notes?: string;
 }
+
+export interface HeroBanner {
+  id: string;
+  image: string;
+  link: string;
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  badge?: string;
+  order?: number;
+  isActive?: boolean;
+}

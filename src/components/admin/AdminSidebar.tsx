@@ -15,6 +15,7 @@ import {
   LogOut,
   PlusCircle,
   X,
+  Sliders,
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -30,6 +31,7 @@ export default function AdminSidebar({ isOpen = false, onClose }: AdminSidebarPr
     { label: 'Dashboard', href: '/jw8yenjnkanhr823', icon: LayoutDashboard, exact: true },
     { label: 'Products', href: '/jw8yenjnkanhr823/products', icon: Package },
     { label: 'Orders', href: '/jw8yenjnkanhr823/orders', icon: ShoppingBag },
+    { label: 'Banners', href: '/jw8yenjnkanhr823/banners', icon: Sliders },
     { label: 'Reviews & Proofs', href: '/jw8yenjnkanhr823/reviews', icon: Star },
     { label: 'Categories', href: '/jw8yenjnkanhr823/categories', icon: Layers },
     { label: 'Store Settings', href: '/jw8yenjnkanhr823/settings', icon: Settings },
