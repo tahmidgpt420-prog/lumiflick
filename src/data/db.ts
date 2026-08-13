@@ -17,7 +17,8 @@ export interface StoreSettings {
   insideDhakaDelivery: number;
   outsideDhakaDelivery: number;
   promoNotice: string;
-  adminPin: string;
+  /** @deprecated unused — real admin auth lives in ADMIN_USERNAME/ADMIN_PASSWORD_HASH env vars */
+  adminPin?: string;
   headerScripts?: string;
   bodyScripts?: string;
   footerScripts?: string;
@@ -81,10 +82,10 @@ export function getStoreData(): StoreData {
     orders: [
       {
         orderId: 'LF-982314',
-        customerName: 'Md. Rakib Hasan',
-        phone: '01400307299',
-        email: 'rakib@gmail.com',
-        address: 'House 12, Road 4, Sector 7, Uttara, Dhaka',
+        customerName: 'Sample Customer',
+        phone: '01000000000',
+        email: 'sample@example.com',
+        address: 'Sample Address, Dhaka',
         city: 'Dhaka',
         deliveryZone: 'inside_dhaka',
         shippingCost: 70,
@@ -254,9 +255,10 @@ export function getCategoryBySlug(slug: string): Category | undefined {
   return getStoreData().categories.find((c) => c.slug === slug);
 }
 
-export function saveCategory(categoryData: Partial<Category>): Category {
+export function saveCategory(categoryData: Partial<Category>, oldSlug?: string): Category {
   const store = getStoreData();
-  const existingIndex = store.categories.findIndex((c) => c.slug === categoryData.slug);
+  const lookupSlug = oldSlug || categoryData.slug;
+  const existingIndex = store.categories.findIndex((c) => c.slug === lookupSlug);
 
   if (existingIndex >= 0) {
     const updated: Category = {
@@ -281,12 +283,25 @@ export function saveCategory(categoryData: Partial<Category>): Category {
       image: categoryData.image || '/logo.png',
       count: 0,
       description: categoryData.description || `Explore ${categoryData.name} collection at LUMIFLICK.`,
+      parentSlug: categoryData.parentSlug ?? null,
+      parentId: categoryData.parentId ?? null,
     };
 
     store.categories.push(newCat);
     saveStoreData(store);
     return newCat;
   }
+}
+
+export function deleteCategory(slug: string): boolean {
+  const store = getStoreData();
+  const initialLength = store.categories.length;
+  store.categories = store.categories.filter((c) => c.slug !== slug);
+  if (store.categories.length !== initialLength) {
+    saveStoreData(store);
+    return true;
+  }
+  return false;
 }
 
 // Order helpers

@@ -24,80 +24,46 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   );
 }
 
-const INACTIVITY_TIMEOUT_MS = 60 * 60 * 1000; // 1 Hour (3,600,000 ms)
+// Actual access control lives in middleware.ts, which runs on every request
+// before this component ever mounts — a request without a valid session
+// cookie never reaches this code. This effect is UX only: it polls the
+// session endpoint so an admin sitting on a page past the 1-hour timeout
+// gets redirected without needing to trigger a fresh server request first.
+const SESSION_POLL_MS = 30 * 1000;
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isChecking, setIsChecking] = useState<boolean>(true);
+  const [ready, setReady] = useState(pathname === '/jw8yenjnkanhr823/login');
 
   useEffect(() => {
-    // Skip auth check on login page
     if (pathname === '/jw8yenjnkanhr823/login') {
-      setIsAuthenticated(true);
-      setIsChecking(false);
+      setReady(true);
       return;
     }
 
-    const checkAuthAndActivity = () => {
-      const auth = localStorage.getItem('gt_admin_auth');
-      const lastActiveStr = localStorage.getItem('gt_admin_last_active');
-      const now = Date.now();
+    let cancelled = false;
 
-      if (auth !== 'true') {
-        setIsAuthenticated(false);
-        setIsChecking(false);
-        router.push('/jw8yenjnkanhr823/login');
-        return false;
-      }
-
-      // If lastActive was not set yet, set it now
-      let lastActive = lastActiveStr ? parseInt(lastActiveStr, 10) : 0;
-      if (!lastActive) {
-        lastActive = now;
-        localStorage.setItem('gt_admin_last_active', now.toString());
-      }
-
-      // Check if 1 hour has elapsed since last recorded activity
-      if (now - lastActive > INACTIVITY_TIMEOUT_MS) {
-        localStorage.removeItem('gt_admin_auth');
-        localStorage.removeItem('gt_admin_last_active');
-        setIsAuthenticated(false);
-        setIsChecking(false);
-        router.push('/jw8yenjnkanhr823/login?expired=1');
-        return false;
-      }
-
-      setIsAuthenticated(true);
-      setIsChecking(false);
-      return true;
-    };
-
-    const isAuthed = checkAuthAndActivity();
-    if (!isAuthed) return;
-
-    // Track user activity to refresh 1-hour timer
-    let lastUpdate = Date.now();
-    const updateActivity = () => {
-      const now = Date.now();
-      // Throttle localStorage updates to once every 15 seconds
-      if (now - lastUpdate > 15000) {
-        lastUpdate = now;
-        localStorage.setItem('gt_admin_last_active', now.toString());
+    const checkSession = async () => {
+      try {
+        const res = await fetch('/api/admin/session', { cache: 'no-store' });
+        const data = await res.json();
+        if (cancelled) return;
+        if (!data.authenticated) {
+          router.push('/jw8yenjnkanhr823/login?expired=1');
+          return;
+        }
+        setReady(true);
+      } catch {
+        // Network hiccup — don't boot the admin out; middleware still guards actual requests.
+        if (!cancelled) setReady(true);
       }
     };
 
-    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
-    events.forEach((event) => window.addEventListener(event, updateActivity, { passive: true }));
-
-    // Periodic check every 30 seconds for inactivity expiration
-    const interval = setInterval(() => {
-      checkAuthAndActivity();
-    }, 30000);
-
+    checkSession();
+    const interval = setInterval(checkSession, SESSION_POLL_MS);
     return () => {
-      events.forEach((event) => window.removeEventListener(event, updateActivity));
+      cancelled = true;
       clearInterval(interval);
     };
   }, [pathname, router]);
@@ -106,7 +72,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  if (isChecking) {
+  if (!ready) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white">
         <div className="flex items-center gap-3">
@@ -115,10 +81,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (

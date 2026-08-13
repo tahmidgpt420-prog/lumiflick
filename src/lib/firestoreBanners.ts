@@ -195,6 +195,26 @@ export async function saveBannerToFirestore(banner: HeroBanner): Promise<void> {
   }
 }
 
+/**
+ * Server-only: write a banner straight to Firestore, no localStorage/fetch
+ * side effects. Used by /api/admin/banners after the JSON store write
+ * succeeds — safe to call from a route handler without recursing back into
+ * that same route.
+ */
+export async function writeBannerToFirestore(banner: HeroBanner): Promise<void> {
+  const data = sanitizeForFirestore({ ...banner, updatedAt: Date.now() });
+  try {
+    await deleteDoc(doc(db, DELETED_BANNERS_COL, banner.id));
+  } catch {}
+  await setDoc(doc(db, BANNERS_COL, banner.id), data, { merge: true });
+}
+
+/** Server-only: delete a banner straight from Firestore. */
+export async function removeBannerFromFirestore(bannerId: string): Promise<void> {
+  await deleteDoc(doc(db, BANNERS_COL, bannerId));
+  await setDoc(doc(db, DELETED_BANNERS_COL, bannerId), { deletedAt: Date.now() });
+}
+
 /** Delete a banner with guaranteed multi-layer persistence */
 export async function deleteBannerFromFirestore(bannerId: string): Promise<void> {
   // 1. Update localStorage

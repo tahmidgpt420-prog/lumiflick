@@ -20,12 +20,24 @@ import {
   Sliders,
 } from 'lucide-react';
 import { HeroBanner } from '@/types';
-import {
-  getAllBannersFromFirestore,
-  saveBannerToFirestore,
-  deleteBannerFromFirestore,
-  DEFAULT_HERO_BANNERS,
-} from '@/lib/firestoreBanners';
+import { getAllBannersFromFirestore, DEFAULT_HERO_BANNERS } from '@/lib/firestoreBanners';
+
+async function saveBannerViaApi(banner: HeroBanner) {
+  const res = await fetch('/api/admin/banners', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(banner),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save banner');
+  return data.banner as HeroBanner;
+}
+
+async function deleteBannerViaApi(id: string) {
+  const res = await fetch(`/api/admin/banners/${id}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (!res.ok || !data.success) throw new Error(data.error || 'Failed to delete banner');
+}
 
 export default function AdminBannersPage() {
   const [banners, setBanners] = useState<HeroBanner[]>([]);
@@ -126,7 +138,7 @@ export default function AdminBannersPage() {
         return updated.sort((a, b) => (a.order || 0) - (b.order || 0));
       });
 
-      await saveBannerToFirestore(bannerData);
+      await saveBannerViaApi(bannerData);
 
       setSuccessMsg(editingBanner ? 'Banner updated successfully!' : 'New banner added successfully!');
       setTimeout(() => setSuccessMsg(''), 3500);
@@ -134,9 +146,7 @@ export default function AdminBannersPage() {
       resetForm();
     } catch (err: any) {
       console.error('Error saving banner:', err);
-      setSuccessMsg('Banner saved to local session!');
-      setTimeout(() => setSuccessMsg(''), 3500);
-      resetForm();
+      alert('Failed to save banner: ' + (err?.message || 'Unknown error'));
     } finally {
       setIsSaving(false);
     }
@@ -145,15 +155,18 @@ export default function AdminBannersPage() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this banner?')) return;
 
+    const previous = banners;
     try {
       setDeletingId(id);
       setBanners((prev) => prev.filter((b) => b.id !== id));
       if (editingBanner?.id === id) {
         resetForm();
       }
-      await deleteBannerFromFirestore(id);
-    } catch (err) {
+      await deleteBannerViaApi(id);
+    } catch (err: any) {
       console.error('Error deleting banner:', err);
+      setBanners(previous);
+      alert('Failed to delete banner: ' + (err?.message || 'Unknown error'));
     } finally {
       setDeletingId(null);
     }
@@ -174,7 +187,7 @@ export default function AdminBannersPage() {
 
     // Save updated orders
     try {
-      await Promise.all(newOrdered.map((b) => saveBannerToFirestore(b)));
+      await Promise.all(newOrdered.map((b) => saveBannerViaApi(b)));
     } catch (e) {
       console.error('Error updating banner order:', e);
     }

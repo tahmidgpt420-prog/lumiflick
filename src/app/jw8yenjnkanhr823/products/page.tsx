@@ -21,7 +21,6 @@ import { products as staticProducts } from '@/data/products';
 import {
   getAllProductsFromFirestore,
   getDeletedProductIdsFromFirestore,
-  deleteProductFromFirestore,
 } from '@/lib/firestoreProducts';
 import { useProducts } from '@/context/ProductContext';
 
@@ -66,14 +65,12 @@ export default function AdminProductsPage() {
     setDeletingId(id);
 
     try {
-      await deleteProductFromFirestore(id);
-      // Also try API fallback
-      fetch(`/api/admin/products/${id}`, { method: 'DELETE' }).catch(() => {});
+      await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
       try {
         await refreshProducts();
       } catch {}
     } catch (e) {
-      console.error('Error deleting from Firestore:', e);
+      console.error('Error deleting product:', e);
     } finally {
       setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
       setDeletingId(null);

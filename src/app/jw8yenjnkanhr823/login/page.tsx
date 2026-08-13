@@ -6,9 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Lock, User, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 
-const REQUIRED_USERNAME = 'taian.admin@lumiflick';
-const REQUIRED_PASSWORD = 'iukaghskjd367@7i62*&t872';
-
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -19,20 +16,29 @@ function LoginFormContent() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    if (username.trim() === REQUIRED_USERNAME && password === REQUIRED_PASSWORD) {
-      localStorage.setItem('gt_admin_auth', 'true');
-      localStorage.setItem('gt_admin_last_active', Date.now().toString());
-      setTimeout(() => {
+    try {
+      const res = await fetch('/api/admin/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
         router.push('/jw8yenjnkanhr823');
-      }, 300);
-    } else {
+        router.refresh();
+      } else {
+        setIsLoading(false);
+        setError(data.error || 'Invalid username or password. Access denied.');
+      }
+    } catch {
       setIsLoading(false);
-      setError('Invalid username or password. Access denied.');
+      setError('Could not reach the server. Please try again.');
     }
   };
 
@@ -74,6 +80,7 @@ function LoginFormContent() {
               onChange={(e) => setUsername(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-xs text-white outline-none focus:border-amber-400 transition-colors"
               placeholder="Enter username"
+              autoComplete="username"
             />
           </div>
         </div>
@@ -91,6 +98,7 @@ function LoginFormContent() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-xs text-white outline-none focus:border-amber-400 transition-colors"
               placeholder="Enter password"
+              autoComplete="current-password"
             />
           </div>
         </div>

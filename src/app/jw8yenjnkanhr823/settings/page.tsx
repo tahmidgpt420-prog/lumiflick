@@ -14,7 +14,6 @@ export default function AdminSettingsPage() {
     insideDhakaDelivery: 70,
     outsideDhakaDelivery: 130,
     promoNotice: '🎁 Upto 35% Off— Biggest Sale of the Year',
-    adminPin: 'lumiflick2026',
     headerScripts: '',
     bodyScripts: '',
     footerScripts: '',
@@ -289,22 +288,20 @@ export default function AdminSettingsPage() {
           </div>
 
           {/* Admin Security */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-3">
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
               <Shield className="w-4 h-4 text-amber-600" />
-              Admin Password / PIN
+              Admin Login Credentials
             </h3>
-            <div className="max-w-xs">
-              <label className="text-xs font-semibold text-gray-700 block mb-1">
-                Dashboard Passcode
-              </label>
-              <input
-                type="text"
-                value={settings.adminPin}
-                onChange={(e) => setSettings({ ...settings, adminPin: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-              />
-            </div>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Your dashboard username &amp; password now live server-side (env vars), not here —
+              this form field was never actually checked against your login and has been removed.
+              To change your password, run{' '}
+              <code className="px-1.5 py-0.5 bg-gray-100 rounded text-[11px] font-mono text-gray-700">
+                node scripts/hash-admin-password.mjs &quot;new-password&quot;
+              </code>{' '}
+              and update <code className="px-1.5 py-0.5 bg-gray-100 rounded text-[11px] font-mono text-gray-700">ADMIN_PASSWORD_HASH</code> in your environment config.
+            </p>
           </div>
 
           <div className="flex items-center justify-between pt-2">

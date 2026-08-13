@@ -3743,10 +3743,10 @@
   "orders": [
     {
       "orderId": "GT-982314",
-      "customerName": "Md. Rakib Hasan",
-      "phone": "01400307299",
-      "email": "rakib@gmail.com",
-      "address": "House 12, Road 4, Sector 7, Uttara, Dhaka",
+      "customerName": "REDACTED",
+      "phone": "REDACTED",
+      "email": "redacted@example.com",
+      "address": "REDACTED",
       "city": "Dhaka",
       "deliveryZone": "inside_dhaka",
       "shippingCost": 70,
@@ -3865,9 +3865,54 @@
     "insideDhakaDelivery": 70,
     "outsideDhakaDelivery": 130,
     "promoNotice": "🎁 Upto 35% Off— Biggest Sale of the Year",
-    "adminPin": "lumiflick2026",
     "headerScripts": "",
     "bodyScripts": "",
     "footerScripts": ""
-  }
+  },
+  "banners": [
+    {
+      "id": "banner-1",
+      "image": "https://genuinetask.com.bd/wp-content/uploads/2026/06/130840.png",
+      "title": "Transform Your Empty Walls Into Living Art",
+      "subtitle": "Handcrafted luxury canvas & textured wooden frames tailored for modern homes.",
+      "link": "/product-category/best-selling",
+      "buttonText": "Shop Best Sellers",
+      "badge": "Premium Collection",
+      "order": 1,
+      "isActive": true
+    },
+    {
+      "id": "banner-2",
+      "image": "https://genuinetask.com.bd/wp-content/uploads/2026/06/130838.png",
+      "title": "Porsche & Supercars Enthusiast Series",
+      "subtitle": "High-octane automotive wall prints in museum quality matte finish.",
+      "link": "/product-category/cars-frame-collection",
+      "buttonText": "Explore Cars Series",
+      "badge": "Automotive Art",
+      "order": 2,
+      "isActive": true
+    },
+    {
+      "id": "banner-3",
+      "image": "https://genuinetask.com.bd/wp-content/uploads/2026/06/130839.png",
+      "title": "Sacred Calligraphy & Spiritual Elegance",
+      "subtitle": "Ayat-ul-Kursi and 4 Quls masterworks with golden accent foil effects.",
+      "link": "/product-category/religious-luxury-frame",
+      "buttonText": "View Religious Frames",
+      "badge": "Islamic Art",
+      "order": 3,
+      "isActive": true
+    },
+    {
+      "id": "banner-4",
+      "image": "https://genuinetask.com.bd/wp-content/uploads/2026/06/130837.png",
+      "title": "5 Frames Signature Gallery Sets",
+      "subtitle": "Complete room transformation bundles for master bedrooms and living rooms.",
+      "link": "/product-category/5-frames-set",
+      "buttonText": "Discover 5-Frame Sets",
+      "badge": "Gallery Sets",
+      "order": 4,
+      "isActive": true
+    }
+  ]
 }

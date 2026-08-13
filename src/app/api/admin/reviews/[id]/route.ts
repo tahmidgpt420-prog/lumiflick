@@ -14,8 +14,9 @@ export async function PUT(request: Request, { params }: RouteProps) {
     const body = await request.json();
     const updated = saveReview({ ...body, id: params.id });
     return NextResponse.json({ success: true, review: updated });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('PUT /api/admin/reviews/[id] error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to update review' }, { status: 500 });
   }
 }
 
@@ -26,7 +27,8 @@ export async function DELETE(request: Request, { params }: RouteProps) {
       return NextResponse.json({ success: false, error: 'Review not found' }, { status: 404 });
     }
     return NextResponse.json({ success: true, message: 'Review deleted successfully' });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('DELETE /api/admin/reviews/[id] error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to delete review' }, { status: 500 });
   }
 }

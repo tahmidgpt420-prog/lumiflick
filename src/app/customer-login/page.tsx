@@ -12,7 +12,12 @@ export default function CustomerLoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(isRegister ? 'Account created successfully! Welcome to LUMIFLICK.' : 'Logged in successfully!');
+    // Customer accounts aren't implemented yet — this used to fake a
+    // successful login/signup with no backend behind it, which told
+    // shoppers they had an account and a session when neither existed.
+    alert(
+      'Customer accounts are coming soon! For now, orders are placed via WhatsApp/checkout — no login needed.'
+    );
   };
 
   return (

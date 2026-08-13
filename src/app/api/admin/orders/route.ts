@@ -7,8 +7,9 @@ export async function GET() {
   try {
     const orders = getAllOrders();
     return NextResponse.json({ success: true, orders });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('GET /api/admin/orders error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to load orders' }, { status: 500 });
   }
 }
 
@@ -17,8 +18,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const order = createOrder(body);
     return NextResponse.json({ success: true, order }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('POST /api/admin/orders error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to create order' }, { status: 500 });
   }
 }
 
@@ -30,7 +32,8 @@ export async function PUT(request: Request) {
     }
     const updated = updateOrderStatus(orderId, status);
     return NextResponse.json({ success: updated });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    console.error('PUT /api/admin/orders error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to update order' }, { status: 500 });
   }
 }

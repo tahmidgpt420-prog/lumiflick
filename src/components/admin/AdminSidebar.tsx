@@ -37,10 +37,13 @@ export default function AdminSidebar({ isOpen = false, onClose }: AdminSidebarPr
     { label: 'Store Settings', href: '/jw8yenjnkanhr823/settings', icon: Settings },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem('gt_admin_auth');
-    localStorage.removeItem('gt_admin_last_active');
-    router.push('/jw8yenjnkanhr823/login');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/session', { method: 'DELETE' });
+    } finally {
+      router.push('/jw8yenjnkanhr823/login');
+      router.refresh();
+    }
   };
 
   const handleItemClick = () => {

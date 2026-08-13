@@ -9,10 +9,8 @@ import { Category } from '@/types';
 import Link from 'next/link';
 import { useProducts } from '@/context/ProductContext';
 import {
-  saveCategoryToFirestore,
   getAllCategoriesFromFirestore,
   getDeletedCategorySlugsFromFirestore,
-  deleteCategoryFromFirestore,
 } from '@/lib/firestoreProducts';
 import { categories as staticCategories } from '@/data/categories';
 
@@ -78,7 +76,13 @@ export default function AdminCategoriesPage() {
     if (!confirm(`Are you sure you want to delete category "${catSlug}"?`)) return;
     setDeletingSlug(catSlug);
     try {
-      await deleteCategoryFromFirestore(catSlug);
+      const res = await fetch('/api/admin/categories', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: catSlug }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to delete category');
       try {
         await refreshProducts();
       } catch {}
@@ -104,8 +108,14 @@ export default function AdminCategoriesPage() {
         parentId: parentSlug.trim() || null,
       };
 
-      // 1. Direct Firestore write from client (fast & persistent with oldSlug cleanup)
-      await saveCategoryToFirestore(categoryData, editingCategory?.slug);
+      // 1. Save via the authenticated admin API (JSON store + Firestore mirror server-side)
+      const res = await fetch('/api/admin/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...categoryData, oldSlug: editingCategory?.slug }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save category');
 
       // 2. Refresh global cache across the entire app
       try {

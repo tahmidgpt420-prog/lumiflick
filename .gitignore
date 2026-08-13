@@ -31,3 +31,6 @@ next-env.d.ts
 # OS generated files
 .DS_Store
 *.pem
+
+# Unrelated tool clone, not part of this project
+/caveman/

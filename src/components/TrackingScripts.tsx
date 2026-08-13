@@ -129,9 +129,22 @@ export default function TrackingScripts({
 
             targetContainer.appendChild(newScript);
           } else {
-            // For noscript, meta, style, img, iframe, or div tags
+            // For noscript, meta, style, img, iframe, or div tags.
+            // Strip inline event-handler attributes (onerror, onload, ...) —
+            // this snippet now requires an authenticated admin session to
+            // set (see /api/admin/settings), but stripping them is cheap
+            // defense-in-depth against a compromised session or stale data.
             const clone = originalEl.cloneNode(true) as HTMLElement;
             clone.setAttribute('data-lumiflick-tracker', sectionId);
+            const stripHandlers = (el: Element) => {
+              Array.from(el.attributes).forEach((attr) => {
+                if (attr.name.toLowerCase().startsWith('on')) {
+                  el.removeAttribute(attr.name);
+                }
+              });
+              Array.from(el.children).forEach(stripHandlers);
+            };
+            stripHandlers(clone);
             targetContainer.appendChild(clone);
           }
         }

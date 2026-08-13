@@ -1,14 +1,56 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Catalog data is meant to be publicly visible — reads stay open.
+    // Writes are restricted to the app server's dedicated Firebase Auth
+    // identity (ADMIN_FIREBASE_EMAIL in .env.local). The app's own
+    // admin-panel login (ADMIN_USERNAME/ADMIN_PASSWORD_HASH) is a separate,
+    // unrelated check enforced by middleware.ts before any request reaches
+    // a route that touches Firestore.
+    //
+    // ⚠️ DEPLOY STEP REQUIRED — editing this file does NOT change the live
+    // rules. Either:
+    //   a) Firebase Console → Firestore Database → Rules → paste this file → Publish, or
+    //   b) `npx firebase-tools login && npx firebase-tools deploy --only firestore:rules`
+    //
+    // ⚠️ Also requires: Firebase Console → Authentication → Sign-in method →
+    // enable "Email/Password" (currently NOT enabled on this project — the
+    // setup script fails with auth/configuration-not-found until you do this),
+    // then run: node --env-file=.env.local scripts/create-firebase-admin-user.mjs
+    //
+    // Until both of those are done, leave this file as `allow write: if true;`
+    // in the LIVE console (this file being stricter in the repo is harmless —
+    // it just isn't enforced yet) — the app's real protection in the
+    // meantime is that every write now goes through the authenticated
+    // /api/admin/* routes rather than being reachable directly from the browser.
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.email == 'lumiflick.admin@lumiflick-50f06.local';
+    }
+
     match /products/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
     match /deleted_products/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
     match /categories/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /deleted_categories/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /hero_banners/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /deleted_hero_banners/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

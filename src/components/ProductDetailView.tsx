@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import DOMPurify from 'isomorphic-dompurify';
 import { useRouter } from 'next/navigation';
 import {
   ShoppingBag,
@@ -429,7 +430,7 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
           {activeTab === 'desc' && (
             <div
               className="prose prose-sm sm:prose-base max-w-none text-gray-700 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: product.description || '' }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description || '') }}
             />
           )}
 

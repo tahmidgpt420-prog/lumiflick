@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, ProductVariation, Category } from '@/types';
 import { categories as initialCategories } from '@/data/categories';
-import { saveProductToFirestore, getAllCategoriesFromFirestore } from '@/lib/firestoreProducts';
+import { getAllCategoriesFromFirestore } from '@/lib/firestoreProducts';
 import { useProducts } from '@/context/ProductContext';
 import ImageGalleryPicker from './ImageGalleryPicker';
 import {
@@ -295,28 +295,25 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         id: payload.id || `prod_${slug}_${Date.now()}`,
       } as Product;
 
-      // 1. Save to Firestore (universal source of truth)
-      await saveProductToFirestore(localProduct);
+      // Save via the authenticated admin API (writes the reliable JSON store,
+      // then mirrors to Firestore server-side — see /api/admin/products).
+      const url = isEditing && initialData?.id
+        ? `/api/admin/products/${initialData.id}`
+        : '/api/admin/products';
+      const method = isEditing ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(localProduct),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to save product');
+      }
 
-      // 2. Refresh client cache
       try {
         await refreshProducts();
       } catch {}
-
-      // 3. Best-effort API sync (non-fatal)
-      try {
-        const url = isEditing && initialData?.id
-          ? `/api/admin/products/${initialData.id}`
-          : '/api/admin/products';
-        const method = isEditing ? 'PUT' : 'POST';
-        await fetch(url, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(localProduct),
-        });
-      } catch (_apiErr) {
-        // Silently ignore — Firestore is the source of truth
-      }
 
       setStatusMessage({
         type: 'success',
