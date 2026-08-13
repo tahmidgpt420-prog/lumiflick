@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, ProductVariation, Category } from '@/types';
 import { categories as initialCategories } from '@/data/categories';
-import { saveProductToFirestore } from '@/lib/firestoreProducts';
+import { saveProductToFirestore, getAllCategoriesFromFirestore } from '@/lib/firestoreProducts';
 import { useProducts } from '@/context/ProductContext';
 import ImageGalleryPicker from './ImageGalleryPicker';
 import {
@@ -32,6 +32,8 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [title, setTitle] = useState(initialData?.title || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [category, setCategory] = useState(initialData?.category || 'Best Selling');
+  const [mainCategory, setMainCategory] = useState<string>('');
+  const [subCategory, setSubCategory] = useState<string>('');
   const [price, setPrice] = useState<number>(initialData?.price || 1250);
   const [regularPrice, setRegularPrice] = useState<number>(
     initialData?.regularPrice || 1650
@@ -46,10 +48,11 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   useEffect(() => {
     async function loadCats() {
       try {
-        const res = await fetch('/api/admin/categories');
-        const data = await res.json();
-        if (data.success && Array.isArray(data.categories)) {
-          setCatList(data.categories);
+        const firestoreCats = await getAllCategoriesFromFirestore();
+        if (firestoreCats && firestoreCats.length > 0) {
+          const firestoreSlugs = new Set(firestoreCats.map((c) => c.slug));
+          const staticOnly = initialCategories.filter((c) => !firestoreSlugs.has(c.slug));
+          setCatList([...firestoreCats, ...staticOnly]);
         }
       } catch (err) {
         console.error('Error fetching categories in ProductForm:', err);
@@ -57,6 +60,9 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     }
     loadCats();
   }, []);
+
+  // Helper to split main / sub categories
+  const mainCategories = catList.filter((c) => !c.parentSlug && !c.parentId);
 
   useEffect(() => {
     if (initialData) {
@@ -82,6 +88,37 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       }
     }
   }, [initialData]);
+
+  // Sync main & sub categories when catList or initialData is ready
+  useEffect(() => {
+    if (catList.length === 0) return;
+    const currentCatName = initialData?.category || category || '';
+    const currentCatSlug = initialData?.categorySlug || '';
+
+    const foundCat = catList.find(
+      (c) =>
+        (currentCatName && c.name.toLowerCase() === currentCatName.toLowerCase()) ||
+        (currentCatSlug && c.slug.toLowerCase() === currentCatSlug.toLowerCase())
+    );
+
+    if (foundCat) {
+      if (foundCat.parentSlug || foundCat.parentId) {
+        const parent = catList.find(
+          (c) => c.slug === foundCat.parentSlug || c.slug === foundCat.parentId
+        );
+        if (parent) {
+          setMainCategory(parent.name);
+          setSubCategory(foundCat.name);
+          return;
+        }
+      }
+      setMainCategory(foundCat.name);
+      setSubCategory('');
+    } else if (!mainCategory && mainCategories.length > 0) {
+      setMainCategory(mainCategories[0].name);
+      setSubCategory('');
+    }
+  }, [catList, initialData]);
 
   const [primaryImage, setPrimaryImage] = useState<string>(
     initialData?.image ||
@@ -198,21 +235,22 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     setIsSaving(true);
     setStatusMessage(null);
 
-    // Compute category slug
-    const selectedCatObj = catList.find((c) => c.name === category);
+    // Compute category and slug from subCategory if chosen, otherwise mainCategory
+    const effectiveCategoryName = subCategory || mainCategory || category || 'Best Selling';
+    const selectedCatObj = catList.find((c) => c.name.toLowerCase() === effectiveCategoryName.toLowerCase());
     const categorySlug =
       selectedCatObj?.slug ||
-      category
+      effectiveCategoryName
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
 
     const isBestSelling =
-      category.toLowerCase() === 'best selling' ||
+      effectiveCategoryName.toLowerCase() === 'best selling' ||
       categorySlug === 'best-selling' ||
       bestSeller;
     const finalCategorySlug =
-      category.toLowerCase() === 'best selling' ? 'best-selling' : categorySlug;
+      effectiveCategoryName.toLowerCase() === 'best selling' ? 'best-selling' : categorySlug;
 
     const minPrice = variations.length > 0 ? Math.min(...variations.map((v) => v.price)) : price;
     const maxPrice = variations.length > 0 ? Math.max(...variations.map((v) => v.price)) : price;
@@ -225,7 +263,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       id: initialData?.id,
       title,
       slug,
-      category,
+      category: effectiveCategoryName,
       categorySlug: finalCategorySlug,
       price: minPrice,
       regularPrice,
@@ -376,22 +414,77 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             />
           </div>
 
+          {/* Main Category */}
           <div>
             <label className="text-xs font-semibold text-gray-700 block mb-1">
-              Category <span className="text-red-500">*</span>
+              Main Category <span className="text-red-500">*</span>
             </label>
             <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black bg-white"
+              value={mainCategory}
+              onChange={(e) => {
+                const newMain = e.target.value;
+                setMainCategory(newMain);
+                setSubCategory('');
+                setCategory(newMain);
+              }}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black bg-white font-medium text-gray-900"
             >
-              {catList.map((cat) => (
+              {mainCategories.map((cat) => (
                 <option key={cat.slug || cat.name} value={cat.name}>
                   {cat.name}
                 </option>
               ))}
             </select>
           </div>
+
+          {/* Sub-Category (Connected Dropdown) */}
+          {(() => {
+            const selectedMainObj = catList.find(
+              (c) =>
+                c.name.toLowerCase() === mainCategory.toLowerCase() ||
+                c.slug.toLowerCase() === mainCategory.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+            );
+            const currentSubCats = selectedMainObj
+              ? catList.filter(
+                  (c) =>
+                    c.parentSlug === selectedMainObj.slug ||
+                    c.parentId === selectedMainObj.slug
+                )
+              : [];
+
+            return (
+              <div>
+                <label className="text-xs font-semibold text-gray-700 block mb-1 flex items-center justify-between">
+                  <span>Sub-Category</span>
+                  <span className="text-[10px] text-gray-400 font-normal">
+                    {currentSubCats.length > 0
+                      ? `${currentSubCats.length} option${currentSubCats.length > 1 ? 's' : ''}`
+                      : 'Optional (None available)'}
+                  </span>
+                </label>
+                <select
+                  disabled={currentSubCats.length === 0}
+                  value={subCategory}
+                  onChange={(e) => {
+                    setSubCategory(e.target.value);
+                    setCategory(e.target.value || mainCategory);
+                  }}
+                  className={`w-full px-4 py-2.5 border rounded-xl text-xs outline-none focus:border-black font-medium ${
+                    currentSubCats.length > 0
+                      ? 'border-gray-300 bg-white text-gray-900'
+                      : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <option value="">-- No Sub-Category (General) --</option>
+                  {currentSubCats.map((sub) => (
+                    <option key={sub.slug || sub.name} value={sub.name}>
+                      {sub.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            );
+          })()}
 
           <div>
             <label className="text-xs font-semibold text-gray-700 block mb-1">

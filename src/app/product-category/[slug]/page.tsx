@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { getCategoryBySlug } from '@/data/categories';
 import ProductCard from '@/components/ProductCard';
-import { Sparkles, ArrowLeft } from 'lucide-react';
+import { Sparkles, ArrowLeft, Layers } from 'lucide-react';
 import { useProducts } from '@/context/ProductContext';
 
 interface CategoryPageProps {
@@ -37,10 +37,23 @@ export default function CategoryPage({ params }: CategoryPageProps) {
       description: `Explore our collection of handcrafted ${slug.replace(/-/g, ' ')} frames at LUMIFLICK.`,
     };
 
+  // Find parent category if this is a subcategory
+  const parentCategory =
+    category.parentSlug || category.parentId
+      ? categories.find(
+          (c) => c.slug === category.parentSlug || c.slug === category.parentId
+        )
+      : null;
+
+  // Find child sub-categories if this is a parent category
+  const childSubcategories = categories.filter(
+    (c) => c.parentSlug === category.slug || c.parentId === category.slug
+  );
+
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Breadcrumb */}
-      <nav className="text-xs text-gray-500 mb-6 flex items-center gap-1.5">
+      <nav className="text-xs text-gray-500 mb-6 flex items-center gap-1.5 flex-wrap">
         <Link href="/" className="hover:text-black">
           Home
         </Link>
@@ -48,14 +61,26 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         <Link href="/shop" className="hover:text-black">
           Collections
         </Link>
+        {parentCategory && (
+          <>
+            <span>/</span>
+            <Link
+              href={`/product-category/${parentCategory.slug}`}
+              className="hover:text-black"
+            >
+              {parentCategory.name}
+            </Link>
+          </>
+        )}
         <span>/</span>
         <span className="text-gray-900 font-semibold">{category.name}</span>
       </nav>
 
       {/* Header */}
-      <div className="mb-8 border-b border-gray-100 pb-6">
+      <div className="mb-6 border-b border-gray-100 pb-6">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold mb-2">
-          <Sparkles className="w-3 h-3 text-amber-600" /> Collection
+          <Sparkles className="w-3 h-3 text-amber-600" />{' '}
+          {parentCategory ? `Sub-category of ${parentCategory.name}` : 'Collection'}
         </div>
         <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
           {category.name}
@@ -68,6 +93,27 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         <p className="mt-2 text-xs text-gray-400 font-medium">
           Showing {categoryProducts.length} handcrafted wall frame{categoryProducts.length === 1 ? '' : 's'}
         </p>
+
+        {/* Sub-category Pills (if this is a parent category with subcategories) */}
+        {childSubcategories.length > 0 && (
+          <div className="mt-5 flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+            <span className="text-xs text-gray-400 font-semibold shrink-0 flex items-center gap-1">
+              <Layers className="w-3 h-3" /> Sub-categories:
+            </span>
+            <span className="px-3 py-1.5 rounded-full bg-black text-white text-xs font-bold shrink-0">
+              All {category.name} ({categoryProducts.length})
+            </span>
+            {childSubcategories.map((sub) => (
+              <Link
+                key={sub.slug}
+                href={`/product-category/${sub.slug}`}
+                className="px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold shrink-0 transition-colors hover:text-black"
+              >
+                {sub.name}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Products Grid */}

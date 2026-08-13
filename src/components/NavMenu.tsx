@@ -1,17 +1,19 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
 import {
   ChevronRight,
+  ChevronDown,
   Home,
   Sparkles,
   Star,
   Flame,
   X,
+  CornerDownRight,
 } from 'lucide-react';
 
 interface NavMenuProps {
@@ -23,11 +25,27 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
   const pathname = usePathname();
   const { categories } = useProducts();
   const scrollRef = useRef<HTMLUListElement>(null);
+  const [openMobileAccordions, setOpenMobileAccordions] = useState<Record<string, boolean>>({});
 
-  // Filter out 'best-selling' from the remaining categories loop since it is pinned at position 1
-  const remainingCategories = categories.filter(
-    (c) => c.slug !== 'best-selling' && c.name.toLowerCase() !== 'best selling'
+  const toggleMobileAccordion = (slug: string) => {
+    setOpenMobileAccordions((prev) => ({
+      ...prev,
+      [slug]: !prev[slug],
+    }));
+  };
+
+  // Main Categories (those with NO parent, excluding pinned 'best-selling')
+  const mainCategories = categories.filter(
+    (c) =>
+      !c.parentSlug &&
+      !c.parentId &&
+      c.slug !== 'best-selling' &&
+      c.name.toLowerCase() !== 'best selling'
   );
+
+  // Helper to find sub-categories for a parent category
+  const getSubcategories = (parentSlug: string) =>
+    categories.filter((c) => c.parentSlug === parentSlug || c.parentId === parentSlug);
 
   return (
     <>
@@ -38,9 +56,9 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
           {/* Scroll Track */}
           <ul
             ref={scrollRef}
-            className="flex items-center justify-start gap-1.5 overflow-x-auto py-2 text-[13px] font-medium tracking-tight text-gray-700 no-scrollbar whitespace-nowrap w-full scroll-smooth"
+            className="flex items-center justify-start gap-1.5 overflow-visible py-2 text-[13px] font-medium tracking-tight text-gray-700 no-scrollbar whitespace-nowrap w-full"
           >
-            {/* PINNED OPTION 1: Best Selling (Clean neutral styling) */}
+            {/* PINNED OPTION 1: Best Selling */}
             <li className="shrink-0">
               <Link
                 href="/product-category/best-selling"
@@ -55,7 +73,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               </Link>
             </li>
 
-            {/* PINNED OPTION 2: Customer Reviews (Clean neutral styling) */}
+            {/* PINNED OPTION 2: Reviews */}
             <li className="shrink-0">
               <Link
                 href="/reviews"
@@ -86,10 +104,54 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             {/* Separator */}
             <li className="h-3.5 w-px bg-gray-200 shrink-0 mx-1" aria-hidden="true" />
 
-            {/* Remaining Dynamic Categories */}
-            {remainingCategories.map((cat) => {
+            {/* Dynamic Main Categories with Sub-Category Dropdowns */}
+            {mainCategories.map((cat) => {
               const href = `/product-category/${cat.slug}`;
               const isActive = pathname === href;
+              const subs = getSubcategories(cat.slug);
+
+              if (subs.length > 0) {
+                return (
+                  <li key={cat.slug} className="shrink-0 relative group">
+                    <Link
+                      href={href}
+                      className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
+                        isActive ? 'font-bold text-black bg-gray-100' : ''
+                      }`}
+                    >
+                      <span>{cat.name}</span>
+                      <ChevronDown className="w-3 h-3 text-gray-400 group-hover:text-black group-hover:rotate-180 transition-transform duration-200" />
+                    </Link>
+
+                    {/* Sub-categories Dropdown Menu */}
+                    <div className="absolute top-full left-0 pt-1.5 hidden group-hover:block z-50 min-w-[210px] animate-in fade-in-50 duration-150">
+                      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-2 space-y-0.5">
+                        <Link
+                          href={href}
+                          className="block px-3 py-1.5 text-xs font-bold text-gray-900 rounded-xl hover:bg-gray-100 transition-colors"
+                        >
+                          All {cat.name}
+                        </Link>
+                        <div className="h-px bg-gray-100 my-1" />
+                        {subs.map((sub) => (
+                          <Link
+                            key={sub.slug}
+                            href={`/product-category/${sub.slug}`}
+                            className={`block px-3 py-1.5 text-xs rounded-lg transition-colors font-medium ${
+                              pathname === `/product-category/${sub.slug}`
+                                ? 'text-black font-bold bg-gray-100'
+                                : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                            }`}
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </li>
+                );
+              }
+
               return (
                 <li key={cat.slug} className="shrink-0">
                   <Link
@@ -171,7 +233,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               >
                 <div className="flex items-center gap-3">
                   <Star className="w-4 h-4 text-gray-700" />
-                  <span>Reviews & Customer Proofs</span>
+                  <span>Reviews &amp; Customer Proofs</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </Link>
@@ -190,21 +252,77 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
 
               <div className="pt-3 pb-1">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3">
-                  All Collections
+                  Collections &amp; Categories
                 </p>
               </div>
 
-              {remainingCategories.map((cat) => (
-                <Link
-                  key={cat.slug}
-                  href={`/product-category/${cat.slug}`}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-700 font-normal text-sm"
-                >
-                  <span>{cat.name}</span>
-                  <ChevronRight className="w-4 h-4 text-gray-300" />
-                </Link>
-              ))}
+              {mainCategories.map((cat) => {
+                const subs = getSubcategories(cat.slug);
+                const isExpanded = openMobileAccordions[cat.slug];
+
+                if (subs.length > 0) {
+                  return (
+                    <div key={cat.slug} className="rounded-xl overflow-hidden bg-gray-50/70 border border-gray-100">
+                      <div className="flex items-center justify-between p-3">
+                        <Link
+                          href={`/product-category/${cat.slug}`}
+                          onClick={() => setMobileOpen(false)}
+                          className="flex-1 text-gray-800 font-semibold text-sm hover:text-black"
+                        >
+                          {cat.name}
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => toggleMobileAccordion(cat.slug)}
+                          className="p-1 rounded-lg hover:bg-gray-200 text-gray-500"
+                          aria-label={`Toggle ${cat.name} sub-categories`}
+                        >
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform duration-200 ${
+                              isExpanded ? 'rotate-180 text-black' : ''
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="pl-4 pr-3 pb-2 pt-1 space-y-1 bg-white border-t border-gray-100">
+                          <Link
+                            href={`/product-category/${cat.slug}`}
+                            onClick={() => setMobileOpen(false)}
+                            className="block py-1.5 px-2 text-xs font-bold text-gray-900 rounded hover:bg-gray-50"
+                          >
+                            All {cat.name}
+                          </Link>
+                          {subs.map((sub) => (
+                            <Link
+                              key={sub.slug}
+                              href={`/product-category/${sub.slug}`}
+                              onClick={() => setMobileOpen(false)}
+                              className="flex items-center gap-1.5 py-1.5 px-2 text-xs text-gray-600 hover:text-black rounded hover:bg-gray-50 font-medium"
+                            >
+                              <CornerDownRight className="w-3 h-3 text-gray-400" />
+                              <span>{sub.name}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={cat.slug}
+                    href={`/product-category/${cat.slug}`}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-700 font-normal text-sm"
+                  >
+                    <span>{cat.name}</span>
+                    <ChevronRight className="w-4 h-4 text-gray-300" />
+                  </Link>
+                );
+              })}
 
               <div className="pt-4 border-t border-gray-100 mt-4 space-y-1">
                 <Link
@@ -226,7 +344,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                   onClick={() => setMobileOpen(false)}
                   className="block p-3 text-sm text-gray-600 hover:text-black"
                 >
-                  Delivery & Shipping
+                  Delivery &amp; Shipping
                 </Link>
               </div>
             </div>

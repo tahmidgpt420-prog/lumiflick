@@ -47,6 +47,8 @@ export interface Category {
   itemCount?: number;
   count?: number;
   description?: string;
+  parentId?: string | null;
+  parentSlug?: string | null;
 }
 
 export interface CartItem {
