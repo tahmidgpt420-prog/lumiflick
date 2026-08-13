@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useProducts } from '@/context/ProductContext';
 import {
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   Home,
   Sparkles,
@@ -26,6 +27,16 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
   const { categories } = useProducts();
   const scrollRef = useRef<HTMLUListElement>(null);
   const [openMobileAccordions, setOpenMobileAccordions] = useState<Record<string, boolean>>({});
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 250;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   const toggleMobileAccordion = (slug: string) => {
     setOpenMobileAccordions((prev) => ({
@@ -51,12 +62,21 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
     <>
       {/* Desktop Horizontal Navigation */}
       <nav className="hidden lg:block bg-white border-t border-gray-100 shadow-sm relative">
-        <div className="max-w-7xl mx-auto px-4 relative flex items-center">
-          
-          {/* Nav Items (Flex wrap within max container) */}
+        <div className="max-w-7xl mx-auto px-4 relative flex items-center group/nav">
+          {/* Left Scroll Button */}
+          <button
+            type="button"
+            onClick={() => scroll('left')}
+            className="absolute left-1 z-20 p-1.5 rounded-full bg-white/95 shadow-md border border-gray-200 text-gray-700 hover:text-black hover:bg-gray-100 transition-all opacity-0 group-hover/nav:opacity-100 focus:opacity-100"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
+          {/* Scroll Track (Single-Line Horizontal Scrolling) */}
           <ul
             ref={scrollRef}
-            className="flex flex-wrap items-center justify-start gap-1.5 py-2 text-[13px] font-medium tracking-tight text-gray-700 w-full"
+            className="flex items-center justify-start gap-1.5 overflow-x-auto py-2 text-[13px] font-medium tracking-tight text-gray-700 no-scrollbar whitespace-nowrap w-full scroll-smooth"
           >
             {/* PINNED OPTION 1: Best Selling */}
             <li className="shrink-0">
@@ -167,6 +187,15 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             })}
           </ul>
 
+          {/* Right Scroll Button */}
+          <button
+            type="button"
+            onClick={() => scroll('right')}
+            className="absolute right-1 z-20 p-1.5 rounded-full bg-white/95 shadow-md border border-gray-200 text-gray-700 hover:text-black hover:bg-gray-100 transition-all opacity-0 group-hover/nav:opacity-100 focus:opacity-100"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </nav>
 
