@@ -53,7 +53,7 @@ export default function ProductDetailView({
     variations[0]
   );
   const [selectedColor, setSelectedColor] = useState<string>(frameColors[0]);
-  const [selectedPieces, setSelectedPieces] = useState<number>(1);
+  const [selectedPiecesSet, setSelectedPiecesSet] = useState<Set<number>>(new Set([1]));
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedImage, setSelectedImage] = useState<string>(
     product.galleryImages?.[0] || product.image
@@ -64,21 +64,36 @@ export default function ProductDetailView({
   const pieceEnabled = product.pieceSelectionEnabled === true;
   const maxPieces = product.maxPieces || 3;
   const pieceOptions = Array.from({ length: maxPieces }, (_, i) => i + 1);
-  const effectivePrice = selectedVariation.price * selectedPieces;
-  const effectiveRegularPrice = selectedVariation.regularPrice * selectedPieces;
+  const selectedPieces = selectedPiecesSet.size; // total pieces = count of selected buttons
+  const effectivePrice = selectedVariation.price * Math.max(1, selectedPieces);
+  const effectiveRegularPrice = selectedVariation.regularPrice * Math.max(1, selectedPieces);
+
+  const togglePiece = (n: number) => {
+    setSelectedPiecesSet(prev => {
+      const next = new Set(prev);
+      if (next.has(n)) {
+        // Don't allow deselecting last piece
+        if (next.size === 1) return prev;
+        next.delete(n);
+      } else {
+        next.add(n);
+      }
+      return next;
+    });
+  };
 
   const images = product.galleryImages && product.galleryImages.length > 0
     ? product.galleryImages
     : [product.image];
 
   const handleAddToCart = () => {
-    addItem(product, selectedVariation, selectedColor, quantity, selectedPieces);
+    addItem(product, selectedVariation, selectedColor, quantity, Math.max(1, selectedPieces));
     setAddedToast(true);
     setTimeout(() => setAddedToast(false), 3000);
   };
 
   const handleBuyNow = () => {
-    addItem(product, selectedVariation, selectedColor, quantity, selectedPieces);
+    addItem(product, selectedVariation, selectedColor, quantity, Math.max(1, selectedPieces));
     router.push('/checkout');
   };
 
@@ -260,33 +275,33 @@ export default function ProductDetailView({
             </div>
           </div>
 
-          {/* Piece Selector — shown only when admin enables it */}
+          {/* Piece Selector — compact multi-select toggle buttons */}
           {pieceEnabled && (
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block">
-                How Many Pieces?
+                Select Pieces
                 <span className="ml-2 text-[11px] text-gray-400 font-normal normal-case">
-                  ৳ {selectedVariation.price.toLocaleString()} per piece
+                  {selectedPieces} piece{selectedPieces !== 1 ? 's' : ''} selected &middot; ৳ {effectivePrice.toLocaleString()} total
                 </span>
               </label>
               <div className="flex gap-2">
-                {pieceOptions.map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setSelectedPieces(n)}
-                    className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${
-                      selectedPieces === n
-                        ? 'border-black bg-black text-white shadow-md'
-                        : 'border-gray-200 bg-white text-gray-800 hover:border-gray-400'
-                    }`}
-                  >
-                    {n} {n === 1 ? 'Piece' : 'Pieces'}
-                    <span className="block text-[10px] font-normal mt-0.5 opacity-70">
-                      ৳ {(selectedVariation.price * n).toLocaleString()}
-                    </span>
-                  </button>
-                ))}
+                {pieceOptions.map((n) => {
+                  const isOn = selectedPiecesSet.has(n);
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => togglePiece(n)}
+                      className={`w-12 h-12 rounded-xl border text-base font-bold transition-all ${
+                        isOn
+                          ? 'border-black bg-black text-white shadow-md'
+                          : 'border-gray-200 bg-white text-gray-800 hover:border-gray-400'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
