@@ -13,13 +13,13 @@ export function formatImageUrl(url: string): string {
   // e.g. https://drive.google.com/file/d/1A2B3C4D5E
   const driveFileMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
   if (driveFileMatch && driveFileMatch[1]) {
-    return `https://lh3.googleusercontent.com/d/${driveFileMatch[1]}`;
+    return `https://drive.google.com/thumbnail?id=${driveFileMatch[1]}&sz=w1600`;
   }
 
   // e.g. https://drive.google.com/open?id=1A2B3C4D5E or uc?id=...
   const driveIdMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
   if (driveIdMatch && driveIdMatch[1] && trimmed.includes('drive.google.com')) {
-    return `https://lh3.googleusercontent.com/d/${driveIdMatch[1]}`;
+    return `https://drive.google.com/thumbnail?id=${driveIdMatch[1]}&sz=w1600`;
   }
 
   // 2. Dropbox Links (change ?dl=0 to ?raw=1 for direct image display)

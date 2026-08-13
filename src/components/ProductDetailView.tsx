@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -19,6 +19,7 @@ import {
 import { Product, ProductVariation } from '@/types';
 import { useCart } from '@/context/CartContext';
 import ProductGridSection from './ProductGridSection';
+import { formatImageUrl } from '@/utils/driveUrl';
 
 interface ProductDetailViewProps {
   product: Product;
@@ -55,11 +56,15 @@ export default function ProductDetailView({
   const [selectedColor, setSelectedColor] = useState<string>(frameColors[0]);
   const [selectedPiecesSet, setSelectedPiecesSet] = useState<Set<number>>(new Set([1]));
   const [quantity, setQuantity] = useState<number>(1);
-  const [selectedImage, setSelectedImage] = useState<string>(
-    product.galleryImages?.[0] || product.image
-  );
+  const rawPrimaryImage = formatImageUrl(product.galleryImages?.[0] || product.image || '/logo.png');
+  const [selectedImage, setSelectedImage] = useState<string>(rawPrimaryImage);
   const [activeTab, setActiveTab] = useState<'desc' | 'specs' | 'reviews'>('desc');
   const [addedToast, setAddedToast] = useState(false);
+
+  useEffect(() => {
+    const updated = formatImageUrl(product.galleryImages?.[0] || product.image || '/logo.png');
+    setSelectedImage(updated);
+  }, [product.image, product.galleryImages]);
 
   const pieceEnabled = product.pieceSelectionEnabled === true;
   const maxPieces = product.maxPieces || 3;
@@ -82,9 +87,11 @@ export default function ProductDetailView({
     });
   };
 
-  const images = product.galleryImages && product.galleryImages.length > 0
-    ? product.galleryImages
-    : [product.image];
+  const images = (
+    product.galleryImages && product.galleryImages.length > 0
+      ? product.galleryImages
+      : [product.image || '/logo.png']
+  ).map((url) => formatImageUrl(url));
 
   const handleAddToCart = () => {
     addItem(product, selectedVariation, selectedColor, quantity, Math.max(1, selectedPieces));
@@ -129,10 +136,11 @@ export default function ProductDetailView({
           {/* Main Zoomable Frame Container */}
           <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-md">
             <Image
-              src={selectedImage}
+              src={selectedImage || '/logo.png'}
               alt={product.title}
               fill
               priority
+              unoptimized
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 55vw"
             />
@@ -156,6 +164,7 @@ export default function ProductDetailView({
                     src={img}
                     alt={`${product.title} thumbnail ${idx + 1}`}
                     fill
+                    unoptimized
                     className="object-cover"
                     sizes="80px"
                   />

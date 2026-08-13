@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ShoppingBag, Eye } from 'lucide-react';
 import { Product } from '@/types';
 import { useCart } from '@/context/CartContext';
+import { formatImageUrl } from '@/utils/driveUrl';
 
 interface ProductCardProps {
   product: Product;
@@ -38,9 +39,10 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-50">
         <Link href={`/product/${productSlug}`} className="block w-full h-full">
           <Image
-            src={product.image || '/logo.png'}
+            src={formatImageUrl(product.image || '/logo.png')}
             alt={product.title || 'LUMIFLICK Frame'}
             fill
+            unoptimized
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
