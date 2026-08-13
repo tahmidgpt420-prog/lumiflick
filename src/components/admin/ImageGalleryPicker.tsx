@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Plus, Trash2, Image as ImageIcon, UploadCloud, Loader2 } from 'lucide-react';
 import FileUploadBox from './FileUploadBox';
 import { formatImageUrl } from '@/utils/driveUrl';
+import { compressImage } from '@/utils/imageCompressor';
 
 interface ImageGalleryPickerProps {
   primaryImage: string;
@@ -40,8 +41,21 @@ export default function ImageGalleryPicker({
     if (!file || !file.type.startsWith('image/')) return;
     setIsUploadingGallery(true);
     try {
+      // 1. Compress image client-side before upload
+      const { compressedBase64 } = await compressImage(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.82,
+      });
+
+      const resBlob = await fetch(compressedBase64).then((r) => r.blob());
+      const compressedFile = new File([resBlob], file.name.replace(/\.[^/.]+$/, '') + '.webp', {
+        type: resBlob.type || 'image/webp',
+      });
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressedFile);
+
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
         body: formData,
@@ -49,6 +63,9 @@ export default function ImageGalleryPicker({
       const data = await res.json();
       if (data.success && data.url) {
         onGalleryChange([...galleryImages, data.url]);
+      } else {
+        // Fallback to compressed Base64 Data URL if server upload returns fallback
+        onGalleryChange([...galleryImages, compressedBase64]);
       }
     } catch (err) {
       console.error('Upload error:', err);

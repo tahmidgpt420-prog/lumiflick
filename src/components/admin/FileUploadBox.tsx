@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import { UploadCloud, Image as ImageIcon, X, Link as LinkIcon, Check, Loader2 } from 'lucide-react';
 import { formatImageUrl } from '@/utils/driveUrl';
+import { compressImage } from '@/utils/imageCompressor';
 
 interface FileUploadBoxProps {
   value: string;
@@ -32,18 +33,25 @@ export default function FileUploadBox({
     setIsUploading(true);
 
     try {
-      // 1. Instant local preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          onChange(e.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+      // 1. Client-side compression protocol (resizes & converts to WebP/JPEG ~100KB)
+      const { compressedBase64 } = await compressImage(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.82,
+      });
 
-      // 2. Upload to server
+      // Instant preview with compressed image
+      onChange(compressedBase64);
+
+      // 2. Upload to server (pass compressed base64 or blob)
       const formData = new FormData();
-      formData.append('file', file);
+      // Convert base64 back to Blob for FormData server upload
+      const resBlob = await fetch(compressedBase64).then((r) => r.blob());
+      const compressedFile = new File([resBlob], file.name.replace(/\.[^/.]+$/, '') + '.webp', {
+        type: resBlob.type || 'image/webp',
+      });
+
+      formData.append('file', compressedFile);
 
       const res = await fetch('/api/admin/upload', {
         method: 'POST',
