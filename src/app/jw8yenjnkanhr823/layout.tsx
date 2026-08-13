@@ -24,6 +24,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   );
 }
 
+const INACTIVITY_TIMEOUT_MS = 60 * 60 * 1000; // 1 Hour (3,600,000 ms)
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -36,13 +38,57 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
 
-    const auth = localStorage.getItem('gt_admin_auth');
-    if (auth === 'true') {
+    const checkAuthAndActivity = () => {
+      const auth = localStorage.getItem('gt_admin_auth');
+      const lastActiveStr = localStorage.getItem('gt_admin_last_active');
+      const lastActive = lastActiveStr ? parseInt(lastActiveStr, 10) : 0;
+      const now = Date.now();
+
+      if (auth !== 'true') {
+        setIsAuthenticated(false);
+        router.push('/jw8yenjnkanhr823/login');
+        return false;
+      }
+
+      // Check if 1 hour has elapsed since last recorded activity
+      if (!lastActive || now - lastActive > INACTIVITY_TIMEOUT_MS) {
+        localStorage.removeItem('gt_admin_auth');
+        localStorage.removeItem('gt_admin_last_active');
+        setIsAuthenticated(false);
+        router.push('/jw8yenjnkanhr823/login?expired=1');
+        return false;
+      }
+
       setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-      router.push('/jw8yenjnkanhr823/login');
-    }
+      return true;
+    };
+
+    const isAuthed = checkAuthAndActivity();
+    if (!isAuthed) return;
+
+    // Track user activity to refresh 1-hour timer
+    let lastUpdate = Date.now();
+    const updateActivity = () => {
+      const now = Date.now();
+      // Throttle localStorage updates to once every 15 seconds
+      if (now - lastUpdate > 15000) {
+        lastUpdate = now;
+        localStorage.setItem('gt_admin_last_active', now.toString());
+      }
+    };
+
+    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    events.forEach((event) => window.addEventListener(event, updateActivity, { passive: true }));
+
+    // Periodic check every 30 seconds for inactivity expiration
+    const interval = setInterval(() => {
+      checkAuthAndActivity();
+    }, 30000);
+
+    return () => {
+      events.forEach((event) => window.removeEventListener(event, updateActivity));
+      clearInterval(interval);
+    };
   }, [pathname, router]);
 
   if (pathname === '/jw8yenjnkanhr823/login') {

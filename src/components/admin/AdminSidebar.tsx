@@ -37,6 +37,7 @@ export default function AdminSidebar({ isOpen = false, onClose }: AdminSidebarPr
 
   const handleLogout = () => {
     localStorage.removeItem('gt_admin_auth');
+    localStorage.removeItem('gt_admin_last_active');
     router.push('/jw8yenjnkanhr823/login');
   };
 
