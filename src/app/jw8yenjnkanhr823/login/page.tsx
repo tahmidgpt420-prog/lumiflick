@@ -73,7 +73,7 @@ function LoginFormContent() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-xs text-white outline-none focus:border-amber-400 transition-colors"
-              placeholder="taian.admin@lumiflick"
+              placeholder="Enter username"
             />
           </div>
         </div>
@@ -90,7 +90,7 @@ function LoginFormContent() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-xs text-white outline-none focus:border-amber-400 transition-colors"
-              placeholder="Enter your admin password"
+              placeholder="Enter password"
             />
           </div>
         </div>
