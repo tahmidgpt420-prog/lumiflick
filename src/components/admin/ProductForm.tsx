@@ -34,9 +34,9 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [category, setCategory] = useState(initialData?.category || 'Best Selling');
   const [mainCategory, setMainCategory] = useState<string>('');
   const [subCategory, setSubCategory] = useState<string>('');
-  const [price, setPrice] = useState<number>(initialData?.price || 1250);
+  const [price, setPrice] = useState<number>(initialData?.price || 550);
   const [regularPrice, setRegularPrice] = useState<number>(
-    initialData?.regularPrice || 1650
+    initialData?.regularPrice || 650
   );
   const [sale, setSale] = useState<boolean>(initialData?.sale ?? true);
   const [featured, setFeatured] = useState<boolean>(initialData?.featured ?? false);
@@ -142,24 +142,24 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [variations, setVariations] = useState<ProductVariation[]>(
     initialData?.variations || [
       {
-        size: 'Small (Set of 3: 13″ x 9″ each)',
-        label: 'Small: 13″ x 9″ (each) – Set of 3',
-        price: 1250,
-        regularPrice: 1650,
+        size: 'Small (8" x 12")',
+        label: 'Small (8" x 12")',
+        price: 550,
+        regularPrice: 650,
         inStock: true,
       },
       {
-        size: 'Medium (Set of 3: 17″ x 13″ each)',
-        label: 'Medium: 17″ x 13″ (each) – Set of 3',
-        price: 2450,
-        regularPrice: 3200,
+        size: 'Medium (12" x 18")',
+        label: 'Medium (12" x 18")',
+        price: 850,
+        regularPrice: 1000,
         inStock: true,
       },
       {
-        size: 'Large (Set of 3: 25″ x 17″ each)',
-        label: 'Large: 25″ x 17″ (each) – Set of 3',
-        price: 3850,
-        regularPrice: 4800,
+        size: 'Large (18" x 24")',
+        label: 'Large (18" x 24")',
+        price: 1550,
+        regularPrice: 1780,
         inStock: true,
       },
     ]
@@ -168,17 +168,17 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [specifications, setSpecifications] = useState({
     material:
       initialData?.specifications?.material ||
-      'High-grade Korean Synthetic Wood Composite',
+      '2.5mm Original Clear Glass',
     finish:
       initialData?.specifications?.finish ||
-      'Anti-glare UV Textured Matte Lamination (No Glass break hazard)',
+      'Mirror like Glossy and Reflective Finishing',
     mounting:
       initialData?.specifications?.mounting ||
-      'Pre-installed heavy-duty sawtooth hanger + wall hooks included',
+      'Pre-installed Nano tape FREE with each poster',
     dimensions:
       initialData?.specifications?.dimensions ||
-      'Small: 13″ x 9″ | Medium: 17″ x 13″ | Large: 25″ x 17″',
-    weight: initialData?.specifications?.weight || '1.2 kg - 2.8 kg',
+      'Small (8" x 12") | Medium (12" x 18") | Large (18" x 24")',
+    weight: initialData?.specifications?.weight || '.8-6kg',
   });
 
   const [isSaving, setIsSaving] = useState(false);

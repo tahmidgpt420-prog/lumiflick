@@ -50,7 +50,7 @@ export default function ProductDetailView({
   const [quantity, setQuantity] = useState<number>(1);
   const rawPrimaryImage = formatImageUrl(product.galleryImages?.[0] || product.image || '/logo.png');
   const [selectedImage, setSelectedImage] = useState<string>(rawPrimaryImage);
-  const [activeTab, setActiveTab] = useState<'desc' | 'specs' | 'reviews'>('desc');
+  const [activeTab, setActiveTab] = useState<'desc' | 'specs'>('desc');
   const [addedToast, setAddedToast] = useState(false);
 
   useEffect(() => {
@@ -386,16 +386,6 @@ export default function ProductDetailView({
           >
             Specifications
           </button>
-          <button
-            onClick={() => setActiveTab('reviews')}
-            className={`pb-3 text-sm sm:text-base font-bold uppercase tracking-wider transition-colors border-b-2 ${
-              activeTab === 'reviews'
-                ? 'border-black text-black'
-                : 'border-transparent text-gray-400 hover:text-gray-700'
-            }`}
-          >
-            Reviews ({product.reviewCount || 18})
-          </button>
         </div>
 
         {/* Tab Contents */}
@@ -425,55 +415,6 @@ export default function ProductDetailView({
                 <div className="p-3 bg-white rounded-xl border border-gray-100">
                   <span className="text-gray-400 block text-[11px] uppercase font-bold">Package Weight</span>
                   <span className="font-semibold text-gray-800">{product.specifications?.weight}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'reviews' && (
-            <div className="space-y-6">
-              <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
-                <div>
-                  <h4 className="text-lg font-bold text-gray-900">5.0 Overall Rating</h4>
-                  <p className="text-xs text-gray-500">Based on 100% verified customer purchases</p>
-                </div>
-                <div className="flex items-center gap-1 text-amber-500">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-              </div>
-
-              {/* Sample Reviews */}
-              <div className="space-y-3">
-                <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-xs sm:text-sm text-gray-900">Tanvir Anam</span>
-                    <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold">Verified</span>
-                  </div>
-                  <div className="flex text-amber-500 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-xs sm:text-sm text-gray-600">
-                    The quality exceeded my expectations. Looked exactly like the photo on LUMIFLICK. Delivery inside Dhaka took only 2 days.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-bold text-xs sm:text-sm text-gray-900">Fariha Chowdhury</span>
-                    <span className="text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold">Verified</span>
-                  </div>
-                  <div className="flex text-amber-500 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-xs sm:text-sm text-gray-600">
-                    Extremely well packaged! The matte finish eliminates window glare. Highly recommended for home decor.
-                  </p>
                 </div>
               </div>
             </div>
