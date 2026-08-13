@@ -8,6 +8,7 @@ import ProductCard from '@/components/ProductCard';
 import { SlidersHorizontal, Grid, ListFilter } from 'lucide-react';
 import { Category, Product } from '@/types';
 import { mergeWithCustomProducts } from '@/utils/productStorage';
+import { getAllProductsFromFirestore } from '@/lib/firestoreProducts';
 
 export default function ShopPage() {
   const [productsList, setProductsList] = useState<Product[]>(() => mergeWithCustomProducts(initialProducts));
@@ -18,18 +19,26 @@ export default function ShopPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [pRes, cRes] = await Promise.all([
-          fetch('/api/admin/products'),
-          fetch('/api/admin/categories'),
-        ]);
-        const pData = await pRes.json();
-        const cData = await cRes.json();
-        if (pData.success && Array.isArray(pData.products)) {
-          setProductsList(mergeWithCustomProducts(pData.products));
+        // Load from Firestore first (universal — all admin uploads)
+        const firestoreProducts = await getAllProductsFromFirestore();
+        if (firestoreProducts.length > 0) {
+          const merged = [...firestoreProducts, ...initialProducts as Product[]].filter(
+            (p, i, arr) => arr.findIndex(x => x.slug === p.slug) === i
+          );
+          setProductsList(merged);
+        } else {
+          // Fallback: merge localStorage + static
+          setProductsList(mergeWithCustomProducts(initialProducts));
         }
-        if (cData.success && Array.isArray(cData.categories)) {
-          setCategoriesList(cData.categories);
-        }
+
+        // Also load categories
+        try {
+          const cRes = await fetch('/api/admin/categories');
+          const cData = await cRes.json();
+          if (cData.success && Array.isArray(cData.categories)) {
+            setCategoriesList(cData.categories);
+          }
+        } catch { /* use default categories */ }
       } catch (err) {
         console.error(err);
         setProductsList(mergeWithCustomProducts(initialProducts));

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Product, ProductVariation, Category } from '@/types';
 import { categories as initialCategories } from '@/data/categories';
 import { saveCustomProduct } from '@/utils/productStorage';
+import { saveProductToFirestore } from '@/lib/firestoreProducts';
 import ImageGalleryPicker from './ImageGalleryPicker';
 import {
   Save,
@@ -225,41 +226,40 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     };
 
     try {
-      // 1. Always save to localStorage first — this is the primary store for user-uploaded products
       const localProduct: Product = {
         ...payload,
         id: payload.id || `prod_${slug}_${Date.now()}`,
       } as Product;
+
+      // 1. Save to localStorage (instant local cache)
       saveCustomProduct(localProduct);
 
-      // 2. Also try to sync with the server API (best-effort, failure is OK)
+      // 2. Save to Firestore (universal — visible on ALL browsers/devices)
+      try {
+        await saveProductToFirestore(localProduct);
+      } catch (firestoreErr) {
+        console.warn('Firestore save failed:', firestoreErr);
+        // Non-fatal — localStorage still has it
+      }
+
+      // 3. Best-effort API sync (non-fatal)
       try {
         const url = isEditing && initialData?.id
           ? `/api/admin/products/${initialData.id}`
           : '/api/admin/products';
         const method = isEditing ? 'PUT' : 'POST';
-
-        const res = await fetch(url, {
+        await fetch(url, {
           method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(localProduct),
         });
-        const data = await res.json();
-        if (data.success && data.product) {
-          // If API returns a fresher version, update localStorage with it
-          saveCustomProduct(data.product);
-        }
       } catch (_apiErr) {
-        // API failure is non-fatal — localStorage already saved
-        console.warn('API sync failed, but product is saved in localStorage.');
+        // Silently ignore — Firestore is the source of truth
       }
 
-      // 3. Always show success (localStorage save succeeded)
       setStatusMessage({
         type: 'success',
-        text: isEditing
-          ? 'Product updated successfully!'
-          : 'Product created successfully!',
+        text: isEditing ? 'Product updated successfully!' : 'Product created successfully!',
       });
       setTimeout(() => {
         router.push('/admin/products');

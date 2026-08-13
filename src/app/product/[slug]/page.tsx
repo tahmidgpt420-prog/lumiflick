@@ -7,6 +7,7 @@ import { Product } from '@/types';
 import ProductDetailView from '@/components/ProductDetailView';
 import { ArrowLeft, Loader2, PackageX } from 'lucide-react';
 import { getCustomProducts, mergeWithCustomProducts } from '@/utils/productStorage';
+import { getProductBySlugFromFirestore, getAllProductsFromFirestore } from '@/lib/firestoreProducts';
 
 interface ProductPageProps {
   params: {
@@ -37,20 +38,39 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   useEffect(() => {
     async function loadProduct() {
-      // 1. Check localStorage first — this has the most up-to-date admin edits
+      // 1. Check Firestore first — universal source of truth for admin-uploaded products
+      try {
+        const firestoreProduct = await getProductBySlugFromFirestore(normalizedSlug);
+        if (firestoreProduct) {
+          // Also save to localStorage as cache for this browser
+          const { saveCustomProduct } = await import('@/utils/productStorage');
+          saveCustomProduct(firestoreProduct);
+
+          const allFirestore = await getAllProductsFromFirestore();
+          const merged = [...allFirestore, ...initialProducts as Product[]].filter(
+            (p, i, arr) => arr.findIndex(x => x.slug === p.slug) === i
+          );
+          setProduct(firestoreProduct);
+          setAllProducts(merged);
+          setLoading(false);
+          return;
+        }
+      } catch (fsErr) {
+        console.warn('Firestore lookup failed, falling back:', fsErr);
+      }
+
+      // 2. Check localStorage (local cache / offline fallback)
       const localProducts = getCustomProducts();
       const localFound = findInList(localProducts, normalizedSlug);
-
       if (localFound) {
-        // Found in localStorage — use it immediately as source of truth
         const merged = mergeWithCustomProducts(initialProducts as Product[]);
         setProduct(localFound);
         setAllProducts(merged);
         setLoading(false);
-        return; // No need to call API
+        return;
       }
 
-      // 2. Check static bundled products
+      // 3. Check static bundled products
       const staticFound = findInList(initialProducts as Product[], normalizedSlug);
       if (staticFound) {
         setProduct(staticFound);
@@ -60,44 +80,16 @@ export default function ProductPage({ params }: ProductPageProps) {
         return;
       }
 
-      // 3. Fall back to API for server-side products
-      try {
-        const res = await fetch('/api/admin/products');
-        const data = await res.json();
-        const rawList =
-          data.success && Array.isArray(data.products)
-            ? data.products
-            : (initialProducts as Product[]);
-
-        // Merge with localStorage — localStorage values override server values
-        const merged = mergeWithCustomProducts(rawList);
-        setAllProducts(merged);
-
-        const found = findInList(merged, normalizedSlug);
-        if (found) {
-          setProduct(found);
-        }
-      } catch (err) {
-        console.error('Error loading product from API:', err);
-        // Still try static products as last resort
-        const merged = mergeWithCustomProducts(initialProducts as Product[]);
-        setAllProducts(merged);
-        const found = findInList(merged, normalizedSlug);
-        if (found) setProduct(found);
-      } finally {
-        setLoading(false);
-      }
+      setLoading(false);
     }
 
     loadProduct();
 
-    // Also listen for live updates when admin saves a product
+    // Listen for live admin updates
     const handleUpdate = () => {
       const localProducts = getCustomProducts();
       const localFound = findInList(localProducts, normalizedSlug);
-      if (localFound) {
-        setProduct(localFound);
-      }
+      if (localFound) setProduct(localFound);
     };
     window.addEventListener('lumiflick_products_updated', handleUpdate);
     return () => window.removeEventListener('lumiflick_products_updated', handleUpdate);
@@ -132,7 +124,6 @@ export default function ProductPage({ params }: ProductPageProps) {
     );
   }
 
-  // Calculate related products
   const categorySlug = product.categorySlug || 'best-selling';
   const matching = allProducts.filter(
     (p) =>
