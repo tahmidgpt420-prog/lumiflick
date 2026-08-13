@@ -17,8 +17,12 @@ import {
 } from 'lucide-react';
 import { Product } from '@/types';
 import { categories } from '@/data/categories';
-import { mergeWithCustomProducts, removeCustomProduct } from '@/utils/productStorage';
-import { getUniversalProducts, deleteProductFromFirestore } from '@/lib/firestoreProducts';
+import { products as staticProducts } from '@/data/products';
+import {
+  getAllProductsFromFirestore,
+  getDeletedProductIdsFromFirestore,
+  deleteProductFromFirestore,
+} from '@/lib/firestoreProducts';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -29,11 +33,23 @@ export default function AdminProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const universalProds = await getUniversalProducts();
-      setProducts(mergeWithCustomProducts(universalProds));
+      const [firestoreProducts, deletedIds] = await Promise.all([
+        getAllProductsFromFirestore(),
+        getDeletedProductIdsFromFirestore(),
+      ]);
+
+      const activeStatic = (staticProducts as Product[]).filter(
+        (p) => !deletedIds.has(p.id) && !deletedIds.has(p.slug)
+      );
+
+      const merged = [...firestoreProducts, ...activeStatic].filter(
+        (p, i, arr) => arr.findIndex((x) => x.slug === p.slug || (x.id && x.id === p.id)) === i
+      );
+
+      setProducts(merged);
     } catch (e) {
       console.error(e);
-      setProducts(mergeWithCustomProducts([]));
+      setProducts(staticProducts as Product[]);
     } finally {
       setLoading(false);
     }
@@ -47,10 +63,6 @@ export default function AdminProductsPage() {
     if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
     setDeletingId(id);
 
-    // 1. Remove from local browser cache
-    removeCustomProduct(id);
-
-    // 2. Remove permanently from Firestore
     try {
       await deleteProductFromFirestore(id);
       // Also try API fallback

@@ -7,11 +7,10 @@ import { categories as initialCategories } from '@/data/categories';
 import ProductCard from '@/components/ProductCard';
 import { SlidersHorizontal, Grid, ListFilter } from 'lucide-react';
 import { Category, Product } from '@/types';
-import { mergeWithCustomProducts } from '@/utils/productStorage';
-import { getAllProductsFromFirestore } from '@/lib/firestoreProducts';
+import { getAllProductsFromFirestore, getDeletedProductIdsFromFirestore } from '@/lib/firestoreProducts';
 
 export default function ShopPage() {
-  const [productsList, setProductsList] = useState<Product[]>(() => mergeWithCustomProducts(initialProducts));
+  const [productsList, setProductsList] = useState<Product[]>(initialProducts as Product[]);
   const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
@@ -19,17 +18,22 @@ export default function ShopPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        // Load from Firestore first (universal — all admin uploads)
-        const firestoreProducts = await getAllProductsFromFirestore();
-        if (firestoreProducts.length > 0) {
-          const merged = [...firestoreProducts, ...initialProducts as Product[]].filter(
-            (p, i, arr) => arr.findIndex(x => x.slug === p.slug) === i
-          );
-          setProductsList(merged);
-        } else {
-          // Fallback: merge localStorage + static
-          setProductsList(mergeWithCustomProducts(initialProducts));
-        }
+        const [firestoreProds, deletedIds] = await Promise.all([
+          getAllProductsFromFirestore(),
+          getDeletedProductIdsFromFirestore(),
+        ]);
+
+        const activeFirestore = firestoreProds.filter(
+          (p) => !deletedIds.has(p.id) && !deletedIds.has(p.slug)
+        );
+        const activeStatic = (initialProducts as Product[]).filter(
+          (p) =>
+            !deletedIds.has(p.id) &&
+            !deletedIds.has(p.slug) &&
+            !activeFirestore.some((fp) => fp.slug === p.slug || fp.id === p.id)
+        );
+
+        setProductsList([...activeFirestore, ...activeStatic]);
 
         // Also load categories
         try {
@@ -41,7 +45,6 @@ export default function ShopPage() {
         } catch { /* use default categories */ }
       } catch (err) {
         console.error(err);
-        setProductsList(mergeWithCustomProducts(initialProducts));
       }
     }
     loadData();

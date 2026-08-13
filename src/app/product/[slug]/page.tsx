@@ -6,8 +6,11 @@ import { products as initialProducts } from '@/data/products';
 import { Product } from '@/types';
 import ProductDetailView from '@/components/ProductDetailView';
 import { ArrowLeft, Loader2, PackageX } from 'lucide-react';
-import { getCustomProducts, mergeWithCustomProducts } from '@/utils/productStorage';
-import { getProductBySlugFromFirestore, getAllProductsFromFirestore } from '@/lib/firestoreProducts';
+import {
+  getProductBySlugFromFirestore,
+  getAllProductsFromFirestore,
+  getDeletedProductIdsFromFirestore,
+} from '@/lib/firestoreProducts';
 
 interface ProductPageProps {
   params: {
@@ -38,61 +41,39 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   useEffect(() => {
     async function loadProduct() {
-      // 1. Check Firestore first — universal source of truth for admin-uploaded products
       try {
-        const firestoreProduct = await getProductBySlugFromFirestore(normalizedSlug);
-        if (firestoreProduct) {
-          // Also save to localStorage as cache for this browser
-          const { saveCustomProduct } = await import('@/utils/productStorage');
-          saveCustomProduct(firestoreProduct);
+        const [firestoreProduct, allFirestore, deletedIds] = await Promise.all([
+          getProductBySlugFromFirestore(normalizedSlug),
+          getAllProductsFromFirestore(),
+          getDeletedProductIdsFromFirestore(),
+        ]);
 
-          const allFirestore = await getAllProductsFromFirestore();
-          const merged = [...allFirestore, ...initialProducts as Product[]].filter(
-            (p, i, arr) => arr.findIndex(x => x.slug === p.slug) === i
-          );
-          setProduct(firestoreProduct);
-          setAllProducts(merged);
-          setLoading(false);
-          return;
+        const activeStatic = (initialProducts as Product[]).filter(
+          (p) => !deletedIds.has(p.id) && !deletedIds.has(p.slug)
+        );
+
+        const mergedAll = [...allFirestore, ...activeStatic].filter(
+          (p, i, arr) => arr.findIndex((x) => x.slug === p.slug || (x.id && x.id === p.id)) === i
+        );
+
+        let currentProduct = firestoreProduct || findInList(allFirestore, normalizedSlug);
+        if (!currentProduct) {
+          currentProduct = findInList(activeStatic, normalizedSlug);
         }
-      } catch (fsErr) {
-        console.warn('Firestore lookup failed, falling back:', fsErr);
-      }
 
-      // 2. Check localStorage (local cache / offline fallback)
-      const localProducts = getCustomProducts();
-      const localFound = findInList(localProducts, normalizedSlug);
-      if (localFound) {
-        const merged = mergeWithCustomProducts(initialProducts as Product[]);
-        setProduct(localFound);
-        setAllProducts(merged);
+        setProduct(currentProduct || null);
+        setAllProducts(mergedAll);
+      } catch (err) {
+        console.error('Error loading product:', err);
+        const staticFound = findInList(initialProducts as Product[], normalizedSlug);
+        setProduct(staticFound || null);
+        setAllProducts(initialProducts as Product[]);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      // 3. Check static bundled products
-      const staticFound = findInList(initialProducts as Product[], normalizedSlug);
-      if (staticFound) {
-        setProduct(staticFound);
-        const merged = mergeWithCustomProducts(initialProducts as Product[]);
-        setAllProducts(merged);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(false);
     }
 
     loadProduct();
-
-    // Listen for live admin updates
-    const handleUpdate = () => {
-      const localProducts = getCustomProducts();
-      const localFound = findInList(localProducts, normalizedSlug);
-      if (localFound) setProduct(localFound);
-    };
-    window.addEventListener('lumiflick_products_updated', handleUpdate);
-    return () => window.removeEventListener('lumiflick_products_updated', handleUpdate);
   }, [normalizedSlug]);
 
   if (loading) {

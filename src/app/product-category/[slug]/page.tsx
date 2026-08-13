@@ -7,8 +7,7 @@ import { products as initialProducts } from '@/data/products';
 import ProductCard from '@/components/ProductCard';
 import { Category, Product } from '@/types';
 import { Sparkles, ArrowLeft } from 'lucide-react';
-import { mergeWithCustomProducts } from '@/utils/productStorage';
-import { getUniversalProducts } from '@/lib/firestoreProducts';
+import { getAllProductsFromFirestore, getDeletedProductIdsFromFirestore } from '@/lib/firestoreProducts';
 
 interface CategoryPageProps {
   params: {
@@ -20,14 +19,28 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   const slug = decodeURIComponent(params.slug).toLowerCase().trim();
 
   const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
-  const [productsList, setProductsList] = useState<Product[]>(() => mergeWithCustomProducts(initialProducts));
+  const [productsList, setProductsList] = useState<Product[]>(initialProducts as Product[]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const universalProds = await getUniversalProducts();
-        setProductsList(mergeWithCustomProducts(universalProds));
+        const [firestoreProds, deletedIds] = await Promise.all([
+          getAllProductsFromFirestore(),
+          getDeletedProductIdsFromFirestore(),
+        ]);
+
+        const activeFirestore = firestoreProds.filter(
+          (p) => !deletedIds.has(p.id) && !deletedIds.has(p.slug)
+        );
+        const activeStatic = (initialProducts as Product[]).filter(
+          (p) =>
+            !deletedIds.has(p.id) &&
+            !deletedIds.has(p.slug) &&
+            !activeFirestore.some((fp) => fp.slug === p.slug || fp.id === p.id)
+        );
+
+        setProductsList([...activeFirestore, ...activeStatic]);
 
         try {
           const cRes = await fetch('/api/admin/categories');
@@ -38,7 +51,6 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         } catch { /* default categories fallback */ }
       } catch (err) {
         console.error('Failed to load dynamic category data:', err);
-        setProductsList(mergeWithCustomProducts(initialProducts));
       } finally {
         setLoading(false);
       }

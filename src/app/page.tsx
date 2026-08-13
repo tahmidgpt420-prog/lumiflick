@@ -6,33 +6,37 @@ import FrameEffectSlider from '@/components/FrameEffectSlider';
 import CategorySlider from '@/components/CategorySlider';
 import ProductGridSection from '@/components/ProductGridSection';
 import ReviewsCarousel from '@/components/ReviewsCarousel';
-import { products as initialProducts, getFeaturedProducts, getProductsByCategory } from '@/data/products';
+import { products as staticProducts, getFeaturedProducts, getProductsByCategory } from '@/data/products';
 import { Product } from '@/types';
-import { mergeWithCustomProducts } from '@/utils/productStorage';
-import { getUniversalProducts } from '@/lib/firestoreProducts';
+import { getAllProductsFromFirestore, getDeletedProductIdsFromFirestore } from '@/lib/firestoreProducts';
 
 export default function HomePage() {
-  const [allProducts, setAllProducts] = useState<Product[]>(() =>
-    mergeWithCustomProducts(initialProducts as Product[])
-  );
+  const [allProducts, setAllProducts] = useState<Product[]>(staticProducts as Product[]);
 
   useEffect(() => {
-    async function loadUniversal() {
+    async function loadProducts() {
       try {
-        const universalProds = await getUniversalProducts();
-        const merged = mergeWithCustomProducts(universalProds);
-        setAllProducts(merged);
+        const [firestoreProds, deletedIds] = await Promise.all([
+          getAllProductsFromFirestore(),
+          getDeletedProductIdsFromFirestore(),
+        ]);
+
+        const activeFirestore = firestoreProds.filter(
+          (p) => !deletedIds.has(p.id) && !deletedIds.has(p.slug)
+        );
+        const activeStatic = (staticProducts as Product[]).filter(
+          (p) =>
+            !deletedIds.has(p.id) &&
+            !deletedIds.has(p.slug) &&
+            !activeFirestore.some((fp) => fp.slug === p.slug || fp.id === p.id)
+        );
+
+        setAllProducts([...activeFirestore, ...activeStatic]);
       } catch (err) {
         console.error('Failed to load home page products:', err);
       }
     }
-    loadUniversal();
-
-    const handleUpdate = () => {
-      setAllProducts(mergeWithCustomProducts(initialProducts as Product[]));
-    };
-    window.addEventListener('lumiflick_products_updated', handleUpdate);
-    return () => window.removeEventListener('lumiflick_products_updated', handleUpdate);
+    loadProducts();
   }, []);
 
   // Filter helper for categories

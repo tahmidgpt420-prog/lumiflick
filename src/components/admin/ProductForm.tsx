@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, ProductVariation, Category } from '@/types';
 import { categories as initialCategories } from '@/data/categories';
-import { saveCustomProduct } from '@/utils/productStorage';
 import { saveProductToFirestore } from '@/lib/firestoreProducts';
 import ImageGalleryPicker from './ImageGalleryPicker';
 import {
@@ -231,18 +230,10 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         id: payload.id || `prod_${slug}_${Date.now()}`,
       } as Product;
 
-      // 1. Save to localStorage (instant local cache)
-      saveCustomProduct(localProduct);
+      // 1. Save to Firestore (universal source of truth)
+      await saveProductToFirestore(localProduct);
 
-      // 2. Save to Firestore (universal — visible on ALL browsers/devices)
-      try {
-        await saveProductToFirestore(localProduct);
-      } catch (firestoreErr) {
-        console.warn('Firestore save failed:', firestoreErr);
-        // Non-fatal — localStorage still has it
-      }
-
-      // 3. Best-effort API sync (non-fatal)
+      // 2. Best-effort API sync (non-fatal)
       try {
         const url = isEditing && initialData?.id
           ? `/api/admin/products/${initialData.id}`
