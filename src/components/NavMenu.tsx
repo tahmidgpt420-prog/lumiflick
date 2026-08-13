@@ -16,16 +16,28 @@ import {
   X,
   CornerDownRight,
 } from 'lucide-react';
+import { Category } from '@/types';
 
 interface NavMenuProps {
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
 }
 
+interface ActiveDropdownState {
+  slug: string;
+  name: string;
+  subs: Category[];
+  left: number;
+}
+
 export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
   const pathname = usePathname();
   const { categories } = useProducts();
+  const navRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLUListElement>(null);
+  const closeTimerRef = useRef<any>(null);
+
+  const [activeDropdown, setActiveDropdown] = useState<ActiveDropdownState | null>(null);
   const [openMobileAccordions, setOpenMobileAccordions] = useState<Record<string, boolean>>({});
 
   const scroll = (direction: 'left' | 'right') => {
@@ -36,6 +48,30 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
         behavior: 'smooth',
       });
     }
+  };
+
+  const handleMouseEnterCategory = (
+    e: React.MouseEvent<HTMLLIElement>,
+    cat: Category,
+    subs: Category[]
+  ) => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    if (navRef.current) {
+      const liRect = e.currentTarget.getBoundingClientRect();
+      const navRect = navRef.current.getBoundingClientRect();
+      setActiveDropdown({
+        slug: cat.slug,
+        name: cat.name,
+        subs,
+        left: liRect.left - navRect.left,
+      });
+    }
+  };
+
+  const handleMouseLeaveCategory = () => {
+    closeTimerRef.current = setTimeout(() => {
+      setActiveDropdown(null);
+    }, 150);
   };
 
   const toggleMobileAccordion = (slug: string) => {
@@ -61,7 +97,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
   return (
     <>
       {/* Desktop Horizontal Navigation */}
-      <nav className="hidden lg:block bg-white border-t border-gray-100 shadow-sm relative">
+      <nav ref={navRef} className="hidden lg:block bg-white border-t border-gray-100 shadow-sm relative">
         <div className="max-w-7xl mx-auto px-4 relative flex items-center group/nav">
           {/* Left Scroll Button */}
           <button
@@ -129,45 +165,32 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               const href = `/product-category/${cat.slug}`;
               const isActive = pathname === href;
               const subs = getSubcategories(cat.slug);
+              const hasSubs = subs.length > 0;
+              const isCurrentDropdown = activeDropdown?.slug === cat.slug;
 
-              if (subs.length > 0) {
+              if (hasSubs) {
                 return (
-                  <li key={cat.slug} className="shrink-0 relative group">
+                  <li
+                    key={cat.slug}
+                    className="shrink-0"
+                    onMouseEnter={(e) => handleMouseEnterCategory(e, cat, subs)}
+                    onMouseLeave={handleMouseLeaveCategory}
+                  >
                     <Link
                       href={href}
                       className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
-                        isActive ? 'font-bold text-black bg-gray-100' : ''
+                        isActive || isCurrentDropdown
+                          ? 'font-bold text-black bg-gray-100'
+                          : 'text-gray-700'
                       }`}
                     >
                       <span>{cat.name}</span>
-                      <ChevronDown className="w-3 h-3 text-gray-400 group-hover:text-black group-hover:rotate-180 transition-transform duration-200" />
+                      <ChevronDown
+                        className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${
+                          isCurrentDropdown ? 'rotate-180 text-black' : ''
+                        }`}
+                      />
                     </Link>
-
-                    {/* Sub-categories Dropdown Menu */}
-                    <div className="absolute top-full left-0 pt-1.5 hidden group-hover:block z-50 min-w-[210px] animate-in fade-in-50 duration-150">
-                      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-2 space-y-0.5">
-                        <Link
-                          href={href}
-                          className="block px-3 py-1.5 text-xs font-bold text-gray-900 rounded-xl hover:bg-gray-100 transition-colors"
-                        >
-                          All {cat.name}
-                        </Link>
-                        <div className="h-px bg-gray-100 my-1" />
-                        {subs.map((sub) => (
-                          <Link
-                            key={sub.slug}
-                            href={`/product-category/${sub.slug}`}
-                            className={`block px-3 py-1.5 text-xs rounded-lg transition-colors font-medium ${
-                              pathname === `/product-category/${sub.slug}`
-                                ? 'text-black font-bold bg-gray-100'
-                                : 'text-gray-600 hover:text-black hover:bg-gray-50'
-                            }`}
-                          >
-                            {sub.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
                   </li>
                 );
               }
@@ -197,6 +220,45 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Global Desktop Floating Dropdown (Renders outside scroll container so it never gets clipped!) */}
+        {activeDropdown && (
+          <div
+            style={{ left: Math.max(16, activeDropdown.left) }}
+            className="absolute top-full z-50 pt-1 min-w-[220px]"
+            onMouseEnter={() => {
+              if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+            }}
+            onMouseLeave={() => {
+              setActiveDropdown(null);
+            }}
+          >
+            <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 space-y-0.5 animate-in fade-in-50 slide-in-from-top-1 duration-150">
+              <Link
+                href={`/product-category/${activeDropdown.slug}`}
+                onClick={() => setActiveDropdown(null)}
+                className="block px-3 py-1.5 text-xs font-bold text-gray-900 rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                All {activeDropdown.name}
+              </Link>
+              <div className="h-px bg-gray-100 my-1" />
+              {activeDropdown.subs.map((sub) => (
+                <Link
+                  key={sub.slug}
+                  href={`/product-category/${sub.slug}`}
+                  onClick={() => setActiveDropdown(null)}
+                  className={`block px-3 py-1.5 text-xs rounded-lg transition-colors font-medium ${
+                    pathname === `/product-category/${sub.slug}`
+                      ? 'text-black font-bold bg-gray-100'
+                      : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                  }`}
+                >
+                  {sub.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Mobile Off-Canvas Slide Drawer */}
