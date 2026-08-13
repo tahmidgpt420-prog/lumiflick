@@ -7,6 +7,7 @@ import { categories as staticCategories } from '@/data/categories';
 import {
   getAllProductsFromFirestore,
   getDeletedProductIdsFromFirestore,
+  getAllCategoriesFromFirestore,
 } from '@/lib/firestoreProducts';
 
 const CACHE_KEY = 'lumiflick_catalog_cache_v3';
@@ -75,10 +76,10 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const [firestoreProds, deletedIds, catRes] = await Promise.all([
+      const [firestoreProds, deletedIds, firestoreCats] = await Promise.all([
         getAllProductsFromFirestore(),
         getDeletedProductIdsFromFirestore(),
-        fetch('/api/admin/categories').catch(() => null),
+        getAllCategoriesFromFirestore(),
       ]);
 
       // Filter active Firestore products
@@ -98,14 +99,14 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
       const mergedProducts = [...activeFirestore, ...activeStatic];
       setProducts(mergedProducts);
 
+      // Merge Firestore categories with static (Firestore wins on slug conflict)
       let updatedCategories = staticCategories;
-      if (catRes && catRes.ok) {
-        const catData = await catRes.json();
-        if (catData.success && Array.isArray(catData.categories)) {
-          updatedCategories = catData.categories;
-          setCategories(updatedCategories);
-        }
+      if (firestoreCats.length > 0) {
+        const firestoreSlugs = new Set(firestoreCats.map((c) => c.slug));
+        const staticOnly = staticCategories.filter((c) => !firestoreSlugs.has(c.slug));
+        updatedCategories = [...firestoreCats, ...staticOnly];
       }
+      setCategories(updatedCategories);
 
       // Save to browser cache
       try {

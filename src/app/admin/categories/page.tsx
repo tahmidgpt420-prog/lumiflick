@@ -7,6 +7,7 @@ import FileUploadBox from '@/components/admin/FileUploadBox';
 import { Plus, Edit2, Layers, Check, ExternalLink } from 'lucide-react';
 import { Category } from '@/types';
 import Link from 'next/link';
+import { useProducts } from '@/context/ProductContext';
 
 export default function AdminCategoriesPage() {
   const [categoriesList, setCategoriesList] = useState<Category[]>([]);
@@ -17,6 +18,7 @@ export default function AdminCategoriesPage() {
   const [image, setImage] = useState('');
   const [description, setDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const { refreshProducts } = useProducts();
 
   const fetchCategories = async () => {
     try {
@@ -65,6 +67,8 @@ export default function AdminCategoriesPage() {
       if (data.success) {
         setCategoriesList(data.categories);
         setEditingCategory(null);
+        // Invalidate global cache so Nav/Slider picks up the new category
+        refreshProducts();
       }
     } catch (e) {
       console.error(e);

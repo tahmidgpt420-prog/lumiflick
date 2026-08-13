@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { categories as initialCategories } from '@/data/categories';
+import { useProducts } from '@/context/ProductContext';
 import {
   ChevronRight,
   Home,
@@ -13,7 +13,6 @@ import {
   Flame,
   X,
 } from 'lucide-react';
-import { Category } from '@/types';
 
 interface NavMenuProps {
   mobileOpen: boolean;
@@ -22,26 +21,11 @@ interface NavMenuProps {
 
 export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
   const pathname = usePathname();
-  const [catList, setCatList] = useState<Category[]>(initialCategories);
+  const { categories } = useProducts();
   const scrollRef = useRef<HTMLUListElement>(null);
 
-  useEffect(() => {
-    async function loadDynamicCategories() {
-      try {
-        const res = await fetch('/api/admin/categories');
-        const data = await res.json();
-        if (data.success && Array.isArray(data.categories)) {
-          setCatList(data.categories);
-        }
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-      }
-    }
-    loadDynamicCategories();
-  }, []);
-
   // Filter out 'best-selling' from the remaining categories loop since it is pinned at position 1
-  const remainingCategories = catList.filter(
+  const remainingCategories = categories.filter(
     (c) => c.slug !== 'best-selling' && c.name.toLowerCase() !== 'best selling'
   );
 

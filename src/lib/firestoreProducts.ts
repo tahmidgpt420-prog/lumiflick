@@ -9,10 +9,11 @@ import {
   limit,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Product } from '@/types';
+import { Product, Category } from '@/types';
 
 const COL = 'products';
 const DELETED_COL = 'deleted_products';
+const CATEGORIES_COL = 'categories';
 
 /** Strip any undefined keys recursively before saving to Firestore */
 function sanitizeForFirestore(obj: any): any {
@@ -73,5 +74,34 @@ export async function deleteProductFromFirestore(idOrSlug: string): Promise<void
     await setDoc(doc(db, DELETED_COL, idOrSlug), { deletedAt: Date.now() });
   } catch (err) {
     console.error('Error deleting product from Firestore:', err);
+  }
+}
+
+// ─── Category Firestore helpers ───────────────────────────────────────
+
+/** Get all categories from Firestore */
+export async function getAllCategoriesFromFirestore(): Promise<Category[]> {
+  try {
+    const snap = await getDocs(collection(db, CATEGORIES_COL));
+    return snap.docs.map((d) => d.data() as Category);
+  } catch {
+    return [];
+  }
+}
+
+/** Save or update a category in Firestore */
+export async function saveCategoryToFirestore(category: Category): Promise<void> {
+  const docId = category.slug || category.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const ref = doc(db, CATEGORIES_COL, docId);
+  const data = sanitizeForFirestore({ ...category, updatedAt: Date.now() });
+  await setDoc(ref, data, { merge: true });
+}
+
+/** Delete a category from Firestore */
+export async function deleteCategoryFromFirestore(slug: string): Promise<void> {
+  try {
+    await deleteDoc(doc(db, CATEGORIES_COL, slug));
+  } catch (err) {
+    console.error('Error deleting category from Firestore:', err);
   }
 }

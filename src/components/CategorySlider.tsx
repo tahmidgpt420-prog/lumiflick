@@ -1,30 +1,14 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
-import { categories as initialCategories } from '@/data/categories';
-import { Category } from '@/types';
+import { useProducts } from '@/context/ProductContext';
 
 export default function CategorySlider() {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
-
-  useEffect(() => {
-    async function loadCategories() {
-      try {
-        const res = await fetch('/api/admin/categories');
-        const data = await res.json();
-        if (data.success && Array.isArray(data.categories)) {
-          setCategoriesList(data.categories);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    loadCategories();
-  }, []);
+  const { categories: categoriesList } = useProducts();
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
