@@ -53,10 +53,10 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
       <nav className="hidden lg:block bg-white border-t border-gray-100 shadow-sm relative">
         <div className="max-w-7xl mx-auto px-4 relative flex items-center">
           
-          {/* Scroll Track */}
+          {/* Nav Items (Flex wrap within max container) */}
           <ul
             ref={scrollRef}
-            className="flex items-center justify-start gap-1.5 overflow-visible py-2 text-[13px] font-medium tracking-tight text-gray-700 no-scrollbar whitespace-nowrap w-full"
+            className="flex flex-wrap items-center justify-start gap-1.5 py-2 text-[13px] font-medium tracking-tight text-gray-700 w-full"
           >
             {/* PINNED OPTION 1: Best Selling */}
             <li className="shrink-0">
