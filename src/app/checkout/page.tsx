@@ -382,7 +382,7 @@ export default function CheckoutPage() {
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold text-gray-900 truncate">{item.title}</h4>
                     <p className="text-[11px] text-gray-500">
-                      {item.selectedSize} × {item.quantity}
+                      {item.selectedSize}{item.selectedPiecesLabel ? ` (${item.selectedPiecesLabel})` : ''} × {item.quantity}
                     </p>
                   </div>
                   <span className="text-xs font-bold text-gray-900">

@@ -5,7 +5,14 @@ import { CartItem, Product, ProductVariation } from '@/types';
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product, variation?: ProductVariation, frameColor?: string, quantity?: number, selectedPieces?: number) => void;
+  addItem: (
+    product: Product,
+    variation?: ProductVariation,
+    frameColor?: string,
+    quantity?: number,
+    selectedPieces?: number,
+    selectedPiecesLabel?: string
+  ) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -54,9 +61,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addItem = (
     product: Product,
     variation?: ProductVariation,
-    frameColor: string = 'Matte Black',
+    frameColor: string = '',
     quantity: number = 1,
-    selectedPieces: number = 1
+    selectedPieces: number = 1,
+    selectedPiecesLabel?: string
   ) => {
     const selectedSize = variation ? variation.size : (product.variations?.[0]?.size || 'Standard');
     const basePrice = variation ? variation.price : product.price;
@@ -65,8 +73,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const price = basePrice * selectedPieces;
     const regularPrice = baseRegularPrice ? baseRegularPrice * selectedPieces : undefined;
 
-    // Unique ID includes pieces so 1-piece and 2-piece are separate cart items
-    const itemId = `${product.slug}_${selectedSize.replace(/\s+/g, '-')}_${frameColor.replace(/\s+/g, '-')}_${selectedPieces}pc`;
+    // Unique ID includes pieces so 1-piece and 2-piece/3-piece combinations are separate cart items
+    const piecesKey = selectedPiecesLabel ? selectedPiecesLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-') : `${selectedPieces}pc`;
+    const itemId = `${product.slug}_${selectedSize.replace(/\s+/g, '-')}_${piecesKey}`;
 
     setItems(prevItems => {
       const existing = prevItems.find(item => item.id === itemId);
@@ -90,7 +99,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             quantity: quantity,
             selectedSize: selectedSize,
             selectedFrameColor: frameColor,
-            selectedPieces: selectedPieces > 1 ? selectedPieces : undefined,
+            selectedPieces: selectedPieces,
+            selectedPiecesLabel: selectedPiecesLabel,
           },
         ];
       }

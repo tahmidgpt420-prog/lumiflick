@@ -63,6 +63,7 @@ export interface CartItem {
   selectedSize?: string;
   selectedFrameColor?: string;
   selectedPieces?: number; // how many pieces from a set
+  selectedPiecesLabel?: string; // e.g. "1st and 3rd pieces"
 }
 
 export interface CustomerReview {

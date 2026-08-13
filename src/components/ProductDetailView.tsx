@@ -58,10 +58,32 @@ export default function ProductDetailView({
     setSelectedImage(updated);
   }, [product.image, product.galleryImages]);
 
+function getOrdinal(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function formatPieceSelectionDescription(piecesSet: Set<number>): string {
+  const sorted = Array.from(piecesSet).sort((a, b) => a - b);
+  if (sorted.length === 0) return '';
+  const ordinals = sorted.map(getOrdinal);
+  if (ordinals.length === 1) {
+    return `${ordinals[0]} piece`;
+  }
+  if (ordinals.length === 2) {
+    return `${ordinals[0]} and ${ordinals[1]} pieces`;
+  }
+  const last = ordinals[ordinals.length - 1];
+  const rest = ordinals.slice(0, -1).join(', ');
+  return `${rest} and ${last} pieces`;
+}
+
   const pieceEnabled = product.pieceSelectionEnabled === true;
   const maxPieces = product.maxPieces || 3;
   const pieceOptions = Array.from({ length: maxPieces }, (_, i) => i + 1);
   const selectedPieces = selectedPiecesSet.size; // total pieces = count of selected buttons
+  const piecesFormatted = formatPieceSelectionDescription(selectedPiecesSet);
   const effectivePrice = selectedVariation.price * Math.max(1, selectedPieces);
   const effectiveRegularPrice = selectedVariation.regularPrice * Math.max(1, selectedPieces);
 
@@ -86,18 +108,32 @@ export default function ProductDetailView({
   ).map((url) => formatImageUrl(url));
 
   const handleAddToCart = () => {
-    addItem(product, selectedVariation, '', quantity, Math.max(1, selectedPieces));
+    addItem(
+      product,
+      selectedVariation,
+      '',
+      quantity,
+      Math.max(1, selectedPieces),
+      pieceEnabled ? piecesFormatted : undefined
+    );
     setAddedToast(true);
     setTimeout(() => setAddedToast(false), 3000);
   };
 
   const handleBuyNow = () => {
-    addItem(product, selectedVariation, '', quantity, Math.max(1, selectedPieces));
+    addItem(
+      product,
+      selectedVariation,
+      '',
+      quantity,
+      Math.max(1, selectedPieces),
+      pieceEnabled ? piecesFormatted : undefined
+    );
     router.push('/checkout');
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hello LUMIFLICK! I want to order/inquire about this frame:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}${pieceEnabled ? `\n• Pieces: ${selectedPieces} piece${selectedPieces > 1 ? 's' : ''}` : ''}\n• Quantity: ${quantity}\n• Total Price: ৳ ${(effectivePrice * quantity).toLocaleString()}\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`
+    `Hello LUMIFLICK! I want to order/inquire about this frame:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}${pieceEnabled && piecesFormatted ? `\n• Pieces: ${piecesFormatted}` : ''}\n• Quantity: ${quantity}\n• Total Price: ৳ ${(effectivePrice * quantity).toLocaleString()}\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`
   );
 
   return (
@@ -254,8 +290,8 @@ export default function ProductDetailView({
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block">
                 Select Pieces
-                <span className="ml-2 text-[11px] text-gray-400 font-normal normal-case">
-                  {selectedPieces} piece{selectedPieces !== 1 ? 's' : ''} selected &middot; ৳ {effectivePrice.toLocaleString()} total
+                <span className="ml-2 text-[11px] text-gray-500 font-medium normal-case">
+                  ({piecesFormatted}) &middot; ৳ {effectivePrice.toLocaleString()} total
                 </span>
               </label>
               <div className="flex gap-2">
