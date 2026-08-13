@@ -58,6 +58,31 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     loadCats();
   }, []);
 
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || '');
+      setSlug(initialData.slug || '');
+      setCategory(initialData.category || 'Best Selling');
+      setPrice(initialData.price || 1250);
+      setRegularPrice(initialData.regularPrice || 1650);
+      setSale(initialData.sale ?? true);
+      setFeatured(initialData.featured ?? false);
+      setBestSeller(initialData.bestSeller ?? false);
+      setPieceSelectionEnabled(initialData.pieceSelectionEnabled ?? false);
+      setMaxPieces(initialData.maxPieces ?? 3);
+      setPrimaryImage(initialData.image || '');
+      setGalleryImages(initialData.galleryImages || (initialData.image ? [initialData.image] : []));
+      setShortDescription(initialData.shortDescription || '');
+      setDescription(initialData.description || '');
+      if (initialData.variations && initialData.variations.length > 0) {
+        setVariations(initialData.variations);
+      }
+      if (initialData.specifications) {
+        setSpecifications((prev) => ({ ...prev, ...initialData.specifications }));
+      }
+    }
+  }, [initialData]);
+
   const [primaryImage, setPrimaryImage] = useState<string>(
     initialData?.image ||
       'https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg'
