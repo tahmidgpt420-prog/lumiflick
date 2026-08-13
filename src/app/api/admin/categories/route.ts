@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getAllCategories, saveCategory, deleteCategory } from '@/data/db';
+import { getAllCategories, saveCategory, deleteCategory, getDeletedCategorySlugs } from '@/data/db';
 import {
   getAllCategoriesFromFirestore,
+  getDeletedCategorySlugsFromFirestore,
   saveCategoryToFirestore,
   deleteCategoryFromFirestore,
 } from '@/lib/firestoreProducts';
@@ -14,9 +15,12 @@ export const dynamic = 'force-dynamic';
 /** Merge static seed, JSON store, and Firestore (Firestore wins on slug conflict). */
 async function getMergedCategories(): Promise<Category[]> {
   const jsonCats = getAllCategories();
+  const deletedSlugs = getDeletedCategorySlugs();
   let firestoreCats: Category[] = [];
   try {
     firestoreCats = await getAllCategoriesFromFirestore();
+    const firestoreDeleted = await getDeletedCategorySlugsFromFirestore();
+    firestoreDeleted.forEach((s) => deletedSlugs.add(s));
   } catch {
     // best-effort — fall through with whatever we have
   }
@@ -25,7 +29,8 @@ async function getMergedCategories(): Promise<Category[]> {
   staticCategories.forEach((c) => bySlug.set(c.slug, c));
   jsonCats.forEach((c) => bySlug.set(c.slug, c));
   firestoreCats.forEach((c) => bySlug.set(c.slug, c));
-  return Array.from(bySlug.values());
+
+  return Array.from(bySlug.values()).filter((c) => !deletedSlugs.has(c.slug));
 }
 
 export async function GET() {

@@ -8,10 +8,6 @@ import { Plus, Edit2, Layers, Check, ExternalLink, Trash2, CornerDownRight, Fold
 import { Category } from '@/types';
 import Link from 'next/link';
 import { useProducts } from '@/context/ProductContext';
-import {
-  getAllCategoriesFromFirestore,
-  getDeletedCategorySlugsFromFirestore,
-} from '@/lib/firestoreProducts';
 import { categories as staticCategories } from '@/data/categories';
 
 export default function AdminCategoriesPage() {
@@ -30,20 +26,14 @@ export default function AdminCategoriesPage() {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const [firestoreCats, deletedSlugs] = await Promise.all([
-        getAllCategoriesFromFirestore(),
-        getDeletedCategorySlugsFromFirestore(),
-      ]);
-
-      const activeFirestore = firestoreCats.filter((c) => !deletedSlugs.has(c.slug));
-      const firestoreSlugs = new Set(activeFirestore.map((c) => c.slug));
-      const activeStatic = staticCategories.filter(
-        (c) => !deletedSlugs.has(c.slug) && !firestoreSlugs.has(c.slug)
-      );
-
-      setCategoriesList([...activeFirestore, ...activeStatic]);
+      // The authenticated admin API merges JSON store + Firestore + static
+      // and always reflects a save immediately.
+      const res = await fetch('/api/admin/categories');
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load categories');
+      setCategoriesList(data.categories);
     } catch (e) {
-      console.error('Error fetching categories from Firestore:', e);
+      console.error('Error fetching categories:', e);
       setCategoriesList(staticCategories);
     } finally {
       setLoading(false);

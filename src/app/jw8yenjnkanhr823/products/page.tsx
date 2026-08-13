@@ -18,10 +18,6 @@ import {
 import { Product } from '@/types';
 import { categories } from '@/data/categories';
 import { products as staticProducts } from '@/data/products';
-import {
-  getAllProductsFromFirestore,
-  getDeletedProductIdsFromFirestore,
-} from '@/lib/firestoreProducts';
 import { useProducts } from '@/context/ProductContext';
 
 export default function AdminProductsPage() {
@@ -34,20 +30,13 @@ export default function AdminProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const [firestoreProducts, deletedIds] = await Promise.all([
-        getAllProductsFromFirestore(),
-        getDeletedProductIdsFromFirestore(),
-      ]);
-
-      const activeStatic = (staticProducts as Product[]).filter(
-        (p) => !deletedIds.has(p.id) && !deletedIds.has(p.slug)
-      );
-
-      const merged = [...firestoreProducts, ...activeStatic].filter(
-        (p, i, arr) => arr.findIndex((x) => x.slug === p.slug || (x.id && x.id === p.id)) === i
-      );
-
-      setProducts(merged);
+      // The authenticated admin API merges JSON store + Firestore + static
+      // and always reflects a save immediately — reading Firestore directly
+      // here would miss anything the Firestore mirror hasn't caught up on.
+      const res = await fetch('/api/admin/products');
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load products');
+      setProducts(data.products);
     } catch (e) {
       console.error(e);
       setProducts(staticProducts as Product[]);

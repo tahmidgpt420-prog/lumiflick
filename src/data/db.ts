@@ -31,6 +31,12 @@ export interface StoreData {
   reviews: CustomerReview[];
   settings: StoreSettings;
   banners?: HeroBanner[];
+  // Tombstones so a delete sticks even for items seeded from the static
+  // catalog or Firestore (which the JSON store doesn't otherwise know
+  // about) — without these, deleting a Firestore/static-sourced item just
+  // makes it reappear the next time the admin API merges the three sources.
+  deletedProductKeys?: string[];
+  deletedCategorySlugs?: string[];
 }
 
 const defaultSettings: StoreSettings = {
@@ -166,6 +172,13 @@ export function getProductByIdOrSlug(idOrSlug: string): Product | undefined {
 
 export function saveProduct(productData: Partial<Product>): Product {
   const store = getStoreData();
+
+  // Un-tombstone — a save means this key is wanted again.
+  if (store.deletedProductKeys?.length) {
+    const keys = [productData.id, productData.slug].filter(Boolean) as string[];
+    store.deletedProductKeys = store.deletedProductKeys.filter((k) => !keys.includes(k));
+  }
+
   const existingIndex = store.products.findIndex(
     (p) =>
       (productData.id && p.id === productData.id) ||
@@ -238,12 +251,28 @@ export function saveProduct(productData: Partial<Product>): Product {
 export function deleteProduct(id: string): boolean {
   const store = getStoreData();
   const initialLength = store.products.length;
-  store.products = store.products.filter((p) => p.id !== id);
+  const removed = store.products.find((p) => p.id === id || p.slug === id);
+  store.products = store.products.filter((p) => p.id !== id && p.slug !== id);
+
+  const tombstones = new Set(store.deletedProductKeys || []);
+  tombstones.add(id);
+  if (removed?.slug) tombstones.add(removed.slug);
+  if (removed?.id) tombstones.add(removed.id);
+  store.deletedProductKeys = Array.from(tombstones);
+
   if (store.products.length !== initialLength) {
     saveStoreData(store);
     return true;
   }
-  return false;
+  // Even if nothing was in the JSON store under this key (e.g. it only
+  // existed in Firestore/static), still persist the tombstone so it
+  // doesn't reappear in the merged product list.
+  saveStoreData(store);
+  return true;
+}
+
+export function getDeletedProductKeys(): Set<string> {
+  return new Set(getStoreData().deletedProductKeys || []);
 }
 
 // Category helpers
@@ -257,6 +286,12 @@ export function getCategoryBySlug(slug: string): Category | undefined {
 
 export function saveCategory(categoryData: Partial<Category>, oldSlug?: string): Category {
   const store = getStoreData();
+
+  // Un-tombstone — a save means this slug is wanted again.
+  if (store.deletedCategorySlugs?.length && categoryData.slug) {
+    store.deletedCategorySlugs = store.deletedCategorySlugs.filter((s) => s !== categoryData.slug);
+  }
+
   const lookupSlug = oldSlug || categoryData.slug;
   const existingIndex = store.categories.findIndex((c) => c.slug === lookupSlug);
 
@@ -295,13 +330,21 @@ export function saveCategory(categoryData: Partial<Category>, oldSlug?: string):
 
 export function deleteCategory(slug: string): boolean {
   const store = getStoreData();
-  const initialLength = store.categories.length;
   store.categories = store.categories.filter((c) => c.slug !== slug);
-  if (store.categories.length !== initialLength) {
-    saveStoreData(store);
-    return true;
-  }
-  return false;
+
+  const tombstones = new Set(store.deletedCategorySlugs || []);
+  tombstones.add(slug);
+  store.deletedCategorySlugs = Array.from(tombstones);
+
+  // Always persist the tombstone, even if this slug only ever existed in
+  // Firestore/static (not the JSON store) — otherwise it reappears in the
+  // merged category list on the next read.
+  saveStoreData(store);
+  return true;
+}
+
+export function getDeletedCategorySlugs(): Set<string> {
+  return new Set(getStoreData().deletedCategorySlugs || []);
 }
 
 // Order helpers

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, ProductVariation, Category } from '@/types';
 import { categories as initialCategories } from '@/data/categories';
-import { getAllCategoriesFromFirestore } from '@/lib/firestoreProducts';
 import { useProducts } from '@/context/ProductContext';
 import ImageGalleryPicker from './ImageGalleryPicker';
 import {
@@ -48,11 +47,12 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   useEffect(() => {
     async function loadCats() {
       try {
-        const firestoreCats = await getAllCategoriesFromFirestore();
-        if (firestoreCats && firestoreCats.length > 0) {
-          const firestoreSlugs = new Set(firestoreCats.map((c) => c.slug));
-          const staticOnly = initialCategories.filter((c) => !firestoreSlugs.has(c.slug));
-          setCatList([...firestoreCats, ...staticOnly]);
+        // Merged JSON store + Firestore + static — reflects a save made
+        // moments ago on the categories page, unlike a raw Firestore read.
+        const res = await fetch('/api/admin/categories');
+        const data = await res.json();
+        if (data.success && data.categories && data.categories.length > 0) {
+          setCatList(data.categories);
         }
       } catch (err) {
         console.error('Error fetching categories in ProductForm:', err);
