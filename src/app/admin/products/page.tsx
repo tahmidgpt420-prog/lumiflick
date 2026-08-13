@@ -23,8 +23,10 @@ import {
   getDeletedProductIdsFromFirestore,
   deleteProductFromFirestore,
 } from '@/lib/firestoreProducts';
+import { useProducts } from '@/context/ProductContext';
 
 export default function AdminProductsPage() {
+  const { refreshProducts } = useProducts();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -67,6 +69,9 @@ export default function AdminProductsPage() {
       await deleteProductFromFirestore(id);
       // Also try API fallback
       fetch(`/api/admin/products/${id}`, { method: 'DELETE' }).catch(() => {});
+      try {
+        await refreshProducts();
+      } catch {}
     } catch (e) {
       console.error('Error deleting from Firestore:', e);
     } finally {

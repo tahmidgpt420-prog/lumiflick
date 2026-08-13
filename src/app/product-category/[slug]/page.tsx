@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { categories as initialCategories, getCategoryBySlug } from '@/data/categories';
-import { products as initialProducts } from '@/data/products';
+import { getCategoryBySlug } from '@/data/categories';
 import ProductCard from '@/components/ProductCard';
-import { Category, Product } from '@/types';
 import { Sparkles, ArrowLeft } from 'lucide-react';
-import { getAllProductsFromFirestore, getDeletedProductIdsFromFirestore } from '@/lib/firestoreProducts';
+import { useProducts } from '@/context/ProductContext';
 
 interface CategoryPageProps {
   params: {
@@ -17,50 +15,14 @@ interface CategoryPageProps {
 
 export default function CategoryPage({ params }: CategoryPageProps) {
   const slug = decodeURIComponent(params.slug).toLowerCase().trim();
+  const { categories, getProductsByCategory } = useProducts();
 
-  const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
-  const [productsList, setProductsList] = useState<Product[]>(initialProducts as Product[]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [firestoreProds, deletedIds] = await Promise.all([
-          getAllProductsFromFirestore(),
-          getDeletedProductIdsFromFirestore(),
-        ]);
-
-        const activeFirestore = firestoreProds.filter(
-          (p) => !deletedIds.has(p.id) && !deletedIds.has(p.slug)
-        );
-        const activeStatic = (initialProducts as Product[]).filter(
-          (p) =>
-            !deletedIds.has(p.id) &&
-            !deletedIds.has(p.slug) &&
-            !activeFirestore.some((fp) => fp.slug === p.slug || fp.id === p.id)
-        );
-
-        setProductsList([...activeFirestore, ...activeStatic]);
-
-        try {
-          const cRes = await fetch('/api/admin/categories');
-          const cData = await cRes.json();
-          if (cData.success && Array.isArray(cData.categories)) {
-            setCategoriesList(cData.categories);
-          }
-        } catch { /* default categories fallback */ }
-      } catch (err) {
-        console.error('Failed to load dynamic category data:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+  // Instant from client memory cache
+  const categoryProducts = getProductsByCategory(slug);
 
   // Find category object
   const category =
-    categoriesList.find(
+    categories.find(
       (c) =>
         c.slug.toLowerCase() === slug ||
         c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === slug
@@ -74,27 +36,6 @@ export default function CategoryPage({ params }: CategoryPageProps) {
       image: '/logo.png',
       description: `Explore our collection of handcrafted ${slug.replace(/-/g, ' ')} frames at LUMIFLICK.`,
     };
-
-  // Filter products for this category
-  const categoryProducts = productsList.filter((p) => {
-    if (!p) return false;
-    if (slug === 'best-selling') {
-      return (
-        p.bestSeller ||
-        p.categorySlug?.toLowerCase() === 'best-selling' ||
-        p.category?.toLowerCase() === 'best selling'
-      );
-    }
-
-    const pCatSlug = (p.categorySlug || '').toLowerCase().trim();
-    const pCatNameSlug = (p.category || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-      .trim();
-
-    return pCatSlug === slug || pCatNameSlug === slug;
-  });
 
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

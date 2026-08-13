@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
+import { ProductProvider } from '@/context/ProductContext';
 import StorefrontShell from '@/components/StorefrontShell';
 import TrackingScripts from '@/components/TrackingScripts';
 
@@ -49,7 +50,9 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased selection:bg-black selection:text-white">
         <TrackingScripts />
         <CartProvider>
-          <StorefrontShell>{children}</StorefrontShell>
+          <ProductProvider>
+            <StorefrontShell>{children}</StorefrontShell>
+          </ProductProvider>
         </CartProvider>
       </body>
     </html>

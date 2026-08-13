@@ -1,57 +1,17 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { products as initialProducts } from '@/data/products';
-import { categories as initialCategories } from '@/data/categories';
 import ProductCard from '@/components/ProductCard';
-import { SlidersHorizontal, Grid, ListFilter } from 'lucide-react';
-import { Category, Product } from '@/types';
-import { getAllProductsFromFirestore, getDeletedProductIdsFromFirestore } from '@/lib/firestoreProducts';
+import { useProducts } from '@/context/ProductContext';
 
 export default function ShopPage() {
-  const [productsList, setProductsList] = useState<Product[]>(initialProducts as Product[]);
-  const [categoriesList, setCategoriesList] = useState<Category[]>(initialCategories);
+  const { products, categories } = useProducts();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [firestoreProds, deletedIds] = await Promise.all([
-          getAllProductsFromFirestore(),
-          getDeletedProductIdsFromFirestore(),
-        ]);
-
-        const activeFirestore = firestoreProds.filter(
-          (p) => !deletedIds.has(p.id) && !deletedIds.has(p.slug)
-        );
-        const activeStatic = (initialProducts as Product[]).filter(
-          (p) =>
-            !deletedIds.has(p.id) &&
-            !deletedIds.has(p.slug) &&
-            !activeFirestore.some((fp) => fp.slug === p.slug || fp.id === p.id)
-        );
-
-        setProductsList([...activeFirestore, ...activeStatic]);
-
-        // Also load categories
-        try {
-          const cRes = await fetch('/api/admin/categories');
-          const cData = await cRes.json();
-          if (cData.success && Array.isArray(cData.categories)) {
-            setCategoriesList(cData.categories);
-          }
-        } catch { /* use default categories */ }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    loadData();
-  }, []);
-
   const filteredProducts = useMemo(() => {
-    let result = [...productsList];
+    let result = [...products];
 
     if (selectedCategory !== 'all') {
       const norm = selectedCategory.toLowerCase();
@@ -74,7 +34,7 @@ export default function ShopPage() {
     }
 
     return result;
-  }, [productsList, selectedCategory, sortBy]);
+  }, [products, selectedCategory, sortBy]);
 
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -109,9 +69,9 @@ export default function ShopPage() {
                 : 'bg-white text-gray-700 hover:bg-gray-200 border border-gray-200'
             }`}
           >
-            All Designs ({productsList.length})
+            All Designs ({products.length})
           </button>
-          {categoriesList.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat.slug}
               onClick={() => setSelectedCategory(cat.slug)}
