@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import Image from 'next/image';
-import { Plus, Trash2, Image as ImageIcon, UploadCloud, Loader2 } from 'lucide-react';
+import { Plus, Trash2, UploadCloud, Loader2 } from 'lucide-react';
 import FileUploadBox from './FileUploadBox';
 import { formatImageUrl } from '@/utils/driveUrl';
 import { compressImage } from '@/utils/imageCompressor';
@@ -103,9 +102,16 @@ export default function ImageGalleryPicker({
           {galleryImages.map((url, idx) => (
             <div
               key={idx}
-              className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group bg-gray-50"
+              className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group bg-gray-50 flex items-center justify-center"
             >
-              <Image src={url} alt={`Gallery item ${idx + 1}`} fill className="object-cover" />
+              <img
+                src={url}
+                alt={`Gallery item ${idx + 1}`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.opacity = '0.4';
+                }}
+              />
               <button
                 type="button"
                 onClick={() => handleRemoveGalleryImage(idx)}
@@ -149,15 +155,21 @@ export default function ImageGalleryPicker({
           <div className="flex-1 flex gap-2">
             <input
               type="url"
-              placeholder="Or paste image URL: https://..."
+              placeholder="Or paste image URL (https://...) and click Add URL"
               value={newGalleryUrl}
               onChange={(e) => setNewGalleryUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddGalleryImage();
+                }
+              }}
               className="flex-1 px-3.5 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
             />
             <button
               type="button"
               onClick={handleAddGalleryImage}
-              className="px-4 py-2 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shrink-0"
+              className="px-4 py-2 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shrink-0 shadow-sm"
             >
               <Plus className="w-3.5 h-3.5" /> Add URL
             </button>

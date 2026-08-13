@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
-import Image from 'next/image';
-import { UploadCloud, Image as ImageIcon, X, Link as LinkIcon, Check, Loader2 } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { UploadCloud, Image as ImageIcon, X, Link as LinkIcon, Check, Loader2, ArrowRight } from 'lucide-react';
 import { formatImageUrl } from '@/utils/driveUrl';
 import { compressImage } from '@/utils/imageCompressor';
 
@@ -20,9 +19,21 @@ export default function FileUploadBox({
   aspectRatio = 'wide',
 }: FileUploadBoxProps) {
   const [tab, setTab] = useState<'upload' | 'url'>('upload');
+  const [linkInput, setLinkInput] = useState(value || '');
   const [isUploading, setIsUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setLinkInput(value || '');
+  }, [value]);
+
+  const handleApplyLink = () => {
+    const formatted = formatImageUrl(linkInput.trim());
+    if (formatted) {
+      onChange(formatted);
+    }
+  };
 
   const handleFile = async (file: File) => {
     if (!file || !file.type.startsWith('image/')) {
@@ -43,9 +54,8 @@ export default function FileUploadBox({
       // Instant preview with compressed image
       onChange(compressedBase64);
 
-      // 2. Upload to server (pass compressed base64 or blob)
+      // 2. Upload to server
       const formData = new FormData();
-      // Convert base64 back to Blob for FormData server upload
       const resBlob = await fetch(compressedBase64).then((r) => r.blob());
       const compressedFile = new File([resBlob], file.name.replace(/\.[^/.]+$/, '') + '.webp', {
         type: resBlob.type || 'image/webp',
@@ -76,13 +86,6 @@ export default function FileUploadBox({
       handleFile(e.dataTransfer.files[0]);
     }
   };
-
-  const aspectClass =
-    aspectRatio === 'square'
-      ? 'aspect-square'
-      : aspectRatio === 'wide'
-      ? 'aspect-[16/10]'
-      : 'aspect-[4/3]';
 
   return (
     <div className="space-y-3">
@@ -117,10 +120,17 @@ export default function FileUploadBox({
             src={value}
             alt="Uploaded preview"
             className="max-h-80 w-auto max-w-full object-contain rounded-xl"
+            onError={(e) => {
+              // If image failed to load, show subtle broken link badge
+              (e.target as HTMLElement).style.opacity = '0.5';
+            }}
           />
           <button
             type="button"
-            onClick={() => onChange('')}
+            onClick={() => {
+              onChange('');
+              setLinkInput('');
+            }}
             className="absolute top-3 right-3 p-1.5 bg-black/80 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
             title="Remove Photo"
           >
@@ -183,17 +193,32 @@ export default function FileUploadBox({
           </div>
         </div>
       ) : (
-        /* Direct Link Input */
-        <div className="space-y-1.5">
-          <input
-            type="url"
-            placeholder="Paste image link or Google Drive link (e.g. https://drive.google.com/...)"
-            value={value}
-            onChange={(e) => onChange(formatImageUrl(e.target.value))}
-            className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-          />
+        /* Direct Link Input with Apply button & Enter key support */
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input
+              type="url"
+              placeholder="Paste public image link or Google Drive link (https://...)"
+              value={linkInput}
+              onChange={(e) => setLinkInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleApplyLink();
+                }
+              }}
+              className="flex-1 px-3.5 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
+            />
+            <button
+              type="button"
+              onClick={handleApplyLink}
+              className="px-4 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shrink-0 shadow-sm"
+            >
+              Attach Link <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
           <p className="text-[11px] text-gray-400">
-            Paste any direct image link or Google Drive link (make sure sharing is set to &ldquo;Anyone with the link&rdquo;).
+            Paste any direct image URL, Google Drive link, Imgur, or cloud link, then click <strong>Attach Link</strong> or press Enter.
           </p>
         </div>
       )}
