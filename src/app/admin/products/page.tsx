@@ -18,6 +18,7 @@ import {
 import { Product } from '@/types';
 import { categories } from '@/data/categories';
 import { mergeWithCustomProducts, removeCustomProduct } from '@/utils/productStorage';
+import { getUniversalProducts, deleteProductFromFirestore } from '@/lib/firestoreProducts';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -28,13 +29,8 @@ export default function AdminProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('/api/admin/products');
-      const data = await res.json();
-      if (data.success && Array.isArray(data.products)) {
-        setProducts(mergeWithCustomProducts(data.products));
-      } else {
-        setProducts(mergeWithCustomProducts([]));
-      }
+      const universalProds = await getUniversalProducts();
+      setProducts(mergeWithCustomProducts(universalProds));
     } catch (e) {
       console.error(e);
       setProducts(mergeWithCustomProducts([]));
@@ -50,19 +46,19 @@ export default function AdminProductsPage() {
   const handleDelete = async (id: string, title: string) => {
     if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
     setDeletingId(id);
+
+    // 1. Remove from local browser cache
     removeCustomProduct(id);
+
+    // 2. Remove permanently from Firestore
     try {
-      const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
-      } else {
-        setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
-      }
+      await deleteProductFromFirestore(id);
+      // Also try API fallback
+      fetch(`/api/admin/products/${id}`, { method: 'DELETE' }).catch(() => {});
     } catch (e) {
-      console.error(e);
-      setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
+      console.error('Error deleting from Firestore:', e);
     } finally {
+      setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
       setDeletingId(null);
     }
   };

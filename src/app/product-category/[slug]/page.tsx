@@ -8,6 +8,7 @@ import ProductCard from '@/components/ProductCard';
 import { Category, Product } from '@/types';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { mergeWithCustomProducts } from '@/utils/productStorage';
+import { getUniversalProducts } from '@/lib/firestoreProducts';
 
 interface CategoryPageProps {
   params: {
@@ -25,18 +26,16 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   useEffect(() => {
     async function loadData() {
       try {
-        const [pRes, cRes] = await Promise.all([
-          fetch('/api/admin/products'),
-          fetch('/api/admin/categories'),
-        ]);
-        const pData = await pRes.json();
-        const cData = await cRes.json();
-        if (pData.success && Array.isArray(pData.products)) {
-          setProductsList(mergeWithCustomProducts(pData.products));
-        }
-        if (cData.success && Array.isArray(cData.categories)) {
-          setCategoriesList(cData.categories);
-        }
+        const universalProds = await getUniversalProducts();
+        setProductsList(mergeWithCustomProducts(universalProds));
+
+        try {
+          const cRes = await fetch('/api/admin/categories');
+          const cData = await cRes.json();
+          if (cData.success && Array.isArray(cData.categories)) {
+            setCategoriesList(cData.categories);
+          }
+        } catch { /* default categories fallback */ }
       } catch (err) {
         console.error('Failed to load dynamic category data:', err);
         setProductsList(mergeWithCustomProducts(initialProducts));

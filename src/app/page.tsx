@@ -1,23 +1,68 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import HeroSlider from '@/components/HeroSlider';
 import FrameEffectSlider from '@/components/FrameEffectSlider';
 import CategorySlider from '@/components/CategorySlider';
 import ProductGridSection from '@/components/ProductGridSection';
 import ReviewsCarousel from '@/components/ReviewsCarousel';
-import { getProductsByCategory, getFeaturedProducts } from '@/data/products';
-
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+import { products as initialProducts, getFeaturedProducts, getProductsByCategory } from '@/data/products';
+import { Product } from '@/types';
+import { mergeWithCustomProducts } from '@/utils/productStorage';
+import { getUniversalProducts } from '@/lib/firestoreProducts';
 
 export default function HomePage() {
-  const bestSellingProds = getFeaturedProducts();
-  const religiousProds = getProductsByCategory('religious-luxury-frame').slice(0, 8);
-  const natureProds = getProductsByCategory('nature-inspired-frame').slice(0, 8);
-  const bohoProds = getProductsByCategory('boho-theme-frame').slice(0, 8);
-  const floralProds = getProductsByCategory('floral-frame').slice(0, 8);
-  const motivationalProds = getProductsByCategory('motivational-wall-frame').slice(0, 8);
-  const carProds = getProductsByCategory('cars-frame-collection').slice(0, 8);
-  const fiveFramesProds = getProductsByCategory('5-frames-set').slice(0, 8);
+  const [allProducts, setAllProducts] = useState<Product[]>(() =>
+    mergeWithCustomProducts(initialProducts as Product[])
+  );
+
+  useEffect(() => {
+    async function loadUniversal() {
+      try {
+        const universalProds = await getUniversalProducts();
+        const merged = mergeWithCustomProducts(universalProds);
+        setAllProducts(merged);
+      } catch (err) {
+        console.error('Failed to load home page products:', err);
+      }
+    }
+    loadUniversal();
+
+    const handleUpdate = () => {
+      setAllProducts(mergeWithCustomProducts(initialProducts as Product[]));
+    };
+    window.addEventListener('lumiflick_products_updated', handleUpdate);
+    return () => window.removeEventListener('lumiflick_products_updated', handleUpdate);
+  }, []);
+
+  // Filter helper for categories
+  const filterByCat = (catSlug: string) => {
+    return allProducts
+      .filter((p) => {
+        const norm = catSlug.toLowerCase();
+        return (
+          p.categorySlug?.toLowerCase() === norm ||
+          p.category?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === norm
+        );
+      })
+      .slice(0, 8);
+  };
+
+  // Best Selling products
+  const bestSellingProds = allProducts
+    .filter((p) => p.bestSeller || p.categorySlug === 'best-selling' || p.category === 'Best Selling')
+    .slice(0, 8);
+
+  const bestSellingFinal =
+    bestSellingProds.length > 0 ? bestSellingProds : getFeaturedProducts().slice(0, 8);
+
+  const religiousProds = filterByCat('religious-luxury-frame');
+  const natureProds = filterByCat('nature-inspired-frame');
+  const bohoProds = filterByCat('boho-theme-frame');
+  const floralProds = filterByCat('floral-frame');
+  const motivationalProds = filterByCat('motivational-wall-frame');
+  const carProds = filterByCat('cars-frame-collection');
+  const fiveFramesProds = filterByCat('5-frames-set');
 
   return (
     <div className="space-y-4">
@@ -27,7 +72,7 @@ export default function HomePage() {
       {/* Section 1: BEST SELLING */}
       <ProductGridSection
         title="BEST SELLING"
-        products={bestSellingProds}
+        products={bestSellingFinal}
         categorySlug="best-selling"
       />
 
@@ -40,49 +85,49 @@ export default function HomePage() {
       {/* Section 4: RELIGIOUS LUXURY FRAME */}
       <ProductGridSection
         title="RELIGIOUS LUXURY FRAME"
-        products={religiousProds}
+        products={religiousProds.length > 0 ? religiousProds : getProductsByCategory('religious-luxury-frame').slice(0, 8)}
         categorySlug="religious-luxury-frame"
       />
 
       {/* Section 5: NATURE INSPIRED FRAME */}
       <ProductGridSection
         title="NATURE INSPIRED FRAME"
-        products={natureProds}
+        products={natureProds.length > 0 ? natureProds : getProductsByCategory('nature-inspired-frame').slice(0, 8)}
         categorySlug="nature-inspired-frame"
       />
 
       {/* Section 6: BOHO THEME FRAME */}
       <ProductGridSection
         title="BOHO THEME FRAME"
-        products={bohoProds}
+        products={bohoProds.length > 0 ? bohoProds : getProductsByCategory('boho-theme-frame').slice(0, 8)}
         categorySlug="boho-theme-frame"
       />
 
       {/* Section 7: FLORAL FRAME */}
       <ProductGridSection
         title="FLORAL FRAME"
-        products={floralProds}
+        products={floralProds.length > 0 ? floralProds : getProductsByCategory('floral-frame').slice(0, 8)}
         categorySlug="floral-frame"
       />
 
       {/* Section 8: MOTIVATIONAL WALL FRAME */}
       <ProductGridSection
         title="MOTIVATIONAL WALL FRAME"
-        products={motivationalProds}
+        products={motivationalProds.length > 0 ? motivationalProds : getProductsByCategory('motivational-wall-frame').slice(0, 8)}
         categorySlug="motivational-wall-frame"
       />
 
       {/* Section 9: CAR’S FRAME COLLECTION */}
       <ProductGridSection
         title="CAR’S FRAME COLLECTION"
-        products={carProds}
+        products={carProds.length > 0 ? carProds : getProductsByCategory('cars-frame-collection').slice(0, 8)}
         categorySlug="cars-frame-collection"
       />
 
       {/* Section 10: 5 FRAMES SET */}
       <ProductGridSection
         title="5 FRAMES SET"
-        products={fiveFramesProds}
+        products={fiveFramesProds.length > 0 ? fiveFramesProds : getProductsByCategory('5-frames-set').slice(0, 8)}
         categorySlug="5-frames-set"
       />
 
