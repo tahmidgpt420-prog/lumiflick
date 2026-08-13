@@ -8,6 +8,12 @@ import { Plus, Edit2, Layers, Check, ExternalLink } from 'lucide-react';
 import { Category } from '@/types';
 import Link from 'next/link';
 import { useProducts } from '@/context/ProductContext';
+import {
+  saveCategoryToFirestore,
+  getAllCategoriesFromFirestore,
+  deleteCategoryFromFirestore,
+} from '@/lib/firestoreProducts';
+import { categories as staticCategories } from '@/data/categories';
 
 export default function AdminCategoriesPage() {
   const [categoriesList, setCategoriesList] = useState<Category[]>([]);
@@ -22,13 +28,18 @@ export default function AdminCategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/admin/categories');
-      const data = await res.json();
-      if (data.success) {
-        setCategoriesList(data.categories);
+      setLoading(true);
+      const firestoreCats = await getAllCategoriesFromFirestore();
+      if (firestoreCats && firestoreCats.length > 0) {
+        const firestoreSlugs = new Set(firestoreCats.map((c) => c.slug));
+        const staticOnly = staticCategories.filter((c) => !firestoreSlugs.has(c.slug));
+        setCategoriesList([...firestoreCats, ...staticOnly]);
+      } else {
+        setCategoriesList(staticCategories);
       }
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching categories from Firestore:', e);
+      setCategoriesList(staticCategories);
     } finally {
       setLoading(false);
     }
@@ -56,22 +67,32 @@ export default function AdminCategoriesPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim() || !slug.trim()) return;
     setIsSaving(true);
     try {
-      const res = await fetch('/api/admin/categories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, slug, image, description }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setCategoriesList(data.categories);
-        setEditingCategory(null);
-        // Invalidate global cache so Nav/Slider picks up the new category
-        refreshProducts();
+      const categoryData: Category = {
+        name: name.trim(),
+        slug: slug.trim(),
+        image: image.trim() || '/logo.png',
+        description: description.trim(),
+      };
+
+      // 1. Direct Firestore write from client (fast & persistent)
+      await saveCategoryToFirestore(categoryData);
+
+      // 2. Refresh global cache across the entire app
+      try {
+        await refreshProducts();
+      } catch (err) {
+        console.warn('Cache refresh error:', err);
       }
-    } catch (e) {
-      console.error(e);
+
+      // 3. Refresh the local list and close modal
+      await fetchCategories();
+      setEditingCategory(null);
+    } catch (e: any) {
+      console.error('Error saving category:', e);
+      alert('Failed to save category: ' + (e?.message || 'Unknown error'));
     } finally {
       setIsSaving(false);
     }
