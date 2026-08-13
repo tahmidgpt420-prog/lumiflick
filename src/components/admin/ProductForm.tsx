@@ -323,7 +323,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         text: isEditing ? 'Product updated successfully!' : 'Product created successfully!',
       });
       setTimeout(() => {
-        router.push('/admin/products');
+        router.push('/jw8yenjnkanhr823/products');
         router.refresh();
       }, 1000);
     } catch (err: any) {
@@ -338,7 +338,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       {/* Top Action Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
         <Link
-          href="/admin/products"
+          href="/jw8yenjnkanhr823/products"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-black transition-colors"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Products

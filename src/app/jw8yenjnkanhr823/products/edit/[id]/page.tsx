@@ -96,7 +96,7 @@ export default function EditProductPage() {
             <span className="font-bold text-sm">⚠️ Could not load product</span>
             <span>{error}</span>
             <Link
-              href="/admin/products"
+              href="/jw8yenjnkanhr823/products"
               className="mt-1 px-4 py-2 bg-black text-white rounded-lg text-xs font-semibold hover:bg-gray-800 transition-colors"
             >
               ← Back to Products List

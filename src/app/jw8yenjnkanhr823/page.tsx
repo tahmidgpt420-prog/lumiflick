@@ -85,7 +85,7 @@ export default function AdminDashboardPage() {
               {orders.length}
             </p>
             <Link
-              href="/admin/orders"
+              href="/jw8yenjnkanhr823/orders"
               className="text-[11px] text-blue-600 hover:underline font-medium block"
             >
               Manage Orders &rarr;
@@ -104,7 +104,7 @@ export default function AdminDashboardPage() {
               {products.length}
             </p>
             <Link
-              href="/admin/products"
+              href="/jw8yenjnkanhr823/products"
               className="text-[11px] text-amber-700 hover:underline font-medium block"
             >
               View All Products &rarr;
@@ -138,7 +138,7 @@ export default function AdminDashboardPage() {
             </p>
           </div>
           <Link
-            href="/admin/products/new"
+            href="/jw8yenjnkanhr823/products/new"
             className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded-xl flex items-center gap-2 transition-colors shrink-0 shadow-lg"
           >
             <PlusCircle className="w-4 h-4" /> Add Product Now
@@ -155,7 +155,7 @@ export default function AdminDashboardPage() {
               <p className="text-xs text-gray-500">Live incoming orders from Bangladesh</p>
             </div>
             <Link
-              href="/admin/orders"
+              href="/jw8yenjnkanhr823/orders"
               className="text-xs font-bold text-black hover:underline flex items-center gap-1"
             >
               View All Orders <ArrowRight className="w-3.5 h-3.5" />

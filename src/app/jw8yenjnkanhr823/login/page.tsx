@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
     if (validPasswords.includes(password.toLowerCase()) || (username === 'admin' && validPasswords.includes(password))) {
       localStorage.setItem('gt_admin_auth', 'true');
       setTimeout(() => {
-        router.push('/admin');
+        router.push('/jw8yenjnkanhr823');
       }, 300);
     } else {
       setIsLoading(false);

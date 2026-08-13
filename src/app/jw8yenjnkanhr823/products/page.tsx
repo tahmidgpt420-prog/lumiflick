@@ -133,7 +133,7 @@ export default function AdminProductsPage() {
 
           {/* Add New Product Button */}
           <Link
-            href="/admin/products/new"
+            href="/jw8yenjnkanhr823/products/new"
             className="w-full md:w-auto px-5 py-2.5 bg-black hover:bg-gray-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors shrink-0"
           >
             <Plus className="w-4 h-4" /> Add New Product
@@ -184,7 +184,7 @@ export default function AdminProductsPage() {
                           </div>
                           <div>
                             <Link
-                              href={`/admin/products/edit/${product.slug}`}
+                              href={`/jw8yenjnkanhr823/products/edit/${product.slug}`}
                               className="font-bold text-gray-900 hover:underline block max-w-xs truncate"
                             >
                               {product.title}
@@ -242,7 +242,7 @@ export default function AdminProductsPage() {
                           </Link>
 
                           <Link
-                            href={`/admin/products/edit/${product.slug}`}
+                            href={`/jw8yenjnkanhr823/products/edit/${product.slug}`}
                             className="px-3 py-1.5 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1"
                           >
                             <Edit2 className="w-3 h-3" /> Edit

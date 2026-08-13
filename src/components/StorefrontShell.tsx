@@ -11,7 +11,7 @@ import Footer from '@/components/Footer';
 
 export default function StorefrontShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdmin = pathname.startsWith('/admin');
+  const isAdmin = pathname.startsWith('/jw8yenjnkanhr823');
 
   if (isAdmin) {
     return <>{children}</>;

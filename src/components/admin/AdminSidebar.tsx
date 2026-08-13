@@ -27,17 +27,17 @@ export default function AdminSidebar({ isOpen = false, onClose }: AdminSidebarPr
   const router = useRouter();
 
   const navItems = [
-    { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, exact: true },
-    { label: 'Products', href: '/admin/products', icon: Package },
-    { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
-    { label: 'Reviews & Proofs', href: '/admin/reviews', icon: Star },
-    { label: 'Categories', href: '/admin/categories', icon: Layers },
-    { label: 'Store Settings', href: '/admin/settings', icon: Settings },
+    { label: 'Dashboard', href: '/jw8yenjnkanhr823', icon: LayoutDashboard, exact: true },
+    { label: 'Products', href: '/jw8yenjnkanhr823/products', icon: Package },
+    { label: 'Orders', href: '/jw8yenjnkanhr823/orders', icon: ShoppingBag },
+    { label: 'Reviews & Proofs', href: '/jw8yenjnkanhr823/reviews', icon: Star },
+    { label: 'Categories', href: '/jw8yenjnkanhr823/categories', icon: Layers },
+    { label: 'Store Settings', href: '/jw8yenjnkanhr823/settings', icon: Settings },
   ];
 
   const handleLogout = () => {
     localStorage.removeItem('gt_admin_auth');
-    router.push('/admin/login');
+    router.push('/jw8yenjnkanhr823/login');
   };
 
   const handleItemClick = () => {
@@ -63,7 +63,7 @@ export default function AdminSidebar({ isOpen = false, onClose }: AdminSidebarPr
       >
         {/* Brand Header */}
         <div className="p-5 border-b border-gray-800/80 flex items-center justify-between">
-          <Link href="/admin" onClick={handleItemClick} className="flex items-center gap-3">
+          <Link href="/jw8yenjnkanhr823" onClick={handleItemClick} className="flex items-center gap-3">
             <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-700">
               <Image src="/logo.png" alt="LUMIFLICK Logo" fill className="object-cover" />
             </div>
@@ -88,7 +88,7 @@ export default function AdminSidebar({ isOpen = false, onClose }: AdminSidebarPr
         {/* Quick Action */}
         <div className="px-4 pt-4">
           <Link
-            href="/admin/products/new"
+            href="/jw8yenjnkanhr823/products/new"
             onClick={handleItemClick}
             className="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10 transition-colors"
           >

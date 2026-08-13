@@ -22,7 +22,7 @@ export default function TrackingScripts({
   });
 
   // Strict Admin Isolation: Never run tracking scripts inside admin routes
-  const isAdmin = Boolean(pathname && pathname.startsWith('/admin'));
+  const isAdmin = Boolean(pathname && pathname.startsWith('/jw8yenjnkanhr823'));
 
   useEffect(() => {
     // 1. Initial check from localStorage cache if available

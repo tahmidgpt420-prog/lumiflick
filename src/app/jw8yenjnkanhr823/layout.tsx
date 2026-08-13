@@ -31,7 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     // Skip auth check on login page
-    if (pathname === '/admin/login') {
+    if (pathname === '/jw8yenjnkanhr823/login') {
       setIsAuthenticated(true);
       return;
     }
@@ -41,11 +41,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setIsAuthenticated(true);
     } else {
       setIsAuthenticated(false);
-      router.push('/admin/login');
+      router.push('/jw8yenjnkanhr823/login');
     }
   }, [pathname, router]);
 
-  if (pathname === '/admin/login') {
+  if (pathname === '/jw8yenjnkanhr823/login') {
     return <>{children}</>;
   }
 
