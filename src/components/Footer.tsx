@@ -10,7 +10,7 @@ export default function Footer() {
       {/* Top Value Badges */}
       <div className="border-b border-gray-800 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
             <div className="flex flex-col items-center gap-2">
               <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-amber-400">
                 <Truck className="w-5 h-5" />
@@ -28,16 +28,6 @@ export default function Footer() {
               <div>
                 <h4 className="font-bold text-white text-sm">Premium Quality</h4>
                 <p className="text-gray-400 mt-0.5 text-[11px]">Museum Grade UV Matte Art Prints</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-amber-400">
-                <RefreshCw className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-white text-sm">Damage Replacement</h4>
-                <p className="text-gray-400 mt-0.5 text-[11px]">Instant replacement for transit damage</p>
               </div>
             </div>
 
@@ -176,34 +166,18 @@ export default function Footer() {
                   Cancellation Policy
                 </Link>
               </li>
-              <li>
-                <Link href="/customer-login" className="hover:text-white transition-colors">
-                  My Account / Login
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="text-amber-400 font-semibold hover:underline">
-                  ⚙️ Admin Portal / Product Manager
-                </Link>
-              </li>
             </ul>
 
             <div className="pt-4">
-              <h4 className="text-xs font-semibold text-white uppercase tracking-wider mb-2">
-                Accepted Payment Methods
-              </h4>
               <div className="flex flex-wrap gap-2 text-[11px]">
-                <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 text-gray-200">
-                  Cash on Delivery (COD)
-                </span>
                 <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 text-pink-400 font-bold">
                   bKash
                 </span>
                 <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 text-orange-400 font-bold">
                   Nagad
                 </span>
-                <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 text-purple-400 font-bold">
-                  Rocket
+                <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 text-blue-400 font-bold">
+                  Bank
                 </span>
               </div>
             </div>

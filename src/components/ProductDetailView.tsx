@@ -379,13 +379,13 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
             <div className="flex items-center gap-2.5">
               <Truck className="w-4 h-4 text-gray-900 shrink-0" />
               <span>
-                <strong>Inside Dhaka:</strong> 2-3 Days (৳70) | <strong>Outside Dhaka:</strong> 3-5 Days (৳130)
+                <strong>Delivery:</strong> All over Bangladesh &nbsp;|&nbsp; Home delivery available
               </span>
             </div>
             <div className="flex items-center gap-2.5">
               <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0" />
               <span>
-                <strong>Zero Glass Risk:</strong> Unbreakable UV matte laminated print surface.
+                <strong>Color Guarantee:</strong> Lifetime + water and dust proof
               </span>
             </div>
             <div className="flex items-center gap-2.5">
