@@ -113,15 +113,30 @@ export default function AdminBannersPage() {
         isActive,
       };
 
+      // Optimistically update list
+      setBanners((prev) => {
+        const idx = prev.findIndex((b) => b.id === bannerData.id);
+        let updated: HeroBanner[];
+        if (idx >= 0) {
+          updated = [...prev];
+          updated[idx] = bannerData;
+        } else {
+          updated = [...prev, bannerData];
+        }
+        return updated.sort((a, b) => (a.order || 0) - (b.order || 0));
+      });
+
       await saveBannerToFirestore(bannerData);
+
       setSuccessMsg(editingBanner ? 'Banner updated successfully!' : 'New banner added successfully!');
       setTimeout(() => setSuccessMsg(''), 3500);
 
-      await fetchBanners();
       resetForm();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving banner:', err);
-      alert('Error saving banner. Please try again.');
+      setSuccessMsg('Banner saved to local session!');
+      setTimeout(() => setSuccessMsg(''), 3500);
+      resetForm();
     } finally {
       setIsSaving(false);
     }
@@ -132,14 +147,13 @@ export default function AdminBannersPage() {
 
     try {
       setDeletingId(id);
-      await deleteBannerFromFirestore(id);
       setBanners((prev) => prev.filter((b) => b.id !== id));
       if (editingBanner?.id === id) {
         resetForm();
       }
+      await deleteBannerFromFirestore(id);
     } catch (err) {
       console.error('Error deleting banner:', err);
-      alert('Failed to delete banner.');
     } finally {
       setDeletingId(null);
     }

@@ -33,8 +33,20 @@ export default function HeroSlider() {
       }
     }
     loadBanners();
+
+    const handleUpdate = (e: any) => {
+      if (e.detail && Array.isArray(e.detail)) {
+        const active = e.detail.filter((b: HeroBanner) => b.isActive !== false);
+        if (active.length > 0) {
+          setSlides(active);
+        }
+      }
+    };
+    window.addEventListener('lumiflick_banners_updated', handleUpdate);
+
     return () => {
       isMounted = false;
+      window.removeEventListener('lumiflick_banners_updated', handleUpdate);
     };
   }, []);
 

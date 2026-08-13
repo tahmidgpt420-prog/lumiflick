@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Product, Category, OrderDetails, CustomerReview } from '@/types';
+import { Product, Category, OrderDetails, CustomerReview, HeroBanner } from '@/types';
 import rawStoreData from './store.json';
 
 const STORE_FILE = path.join(process.cwd(), 'src', 'data', 'store.json');
@@ -29,6 +29,7 @@ export interface StoreData {
   orders: OrderDetails[];
   reviews: CustomerReview[];
   settings: StoreSettings;
+  banners?: HeroBanner[];
 }
 
 const defaultSettings: StoreSettings = {
@@ -385,4 +386,94 @@ export function updateSettings(newSettings: Partial<StoreSettings>): StoreSettin
   };
   saveStoreData(store);
   return store.settings;
+}
+
+const DEFAULT_STORE_BANNERS: HeroBanner[] = [
+  {
+    id: 'banner-1',
+    image: 'https://genuinetask.com.bd/wp-content/uploads/2026/06/130840.png',
+    title: 'Transform Your Empty Walls Into Living Art',
+    subtitle: 'Handcrafted luxury canvas & textured wooden frames tailored for modern homes.',
+    link: '/product-category/best-selling',
+    buttonText: 'Shop Best Sellers',
+    badge: 'Premium Collection',
+    order: 1,
+    isActive: true,
+  },
+  {
+    id: 'banner-2',
+    image: 'https://genuinetask.com.bd/wp-content/uploads/2026/06/130838.png',
+    title: 'Porsche & Supercars Enthusiast Series',
+    subtitle: 'High-octane automotive wall prints in museum quality matte finish.',
+    link: '/product-category/cars-frame-collection',
+    buttonText: 'Explore Cars Series',
+    badge: 'Automotive Art',
+    order: 2,
+    isActive: true,
+  },
+  {
+    id: 'banner-3',
+    image: 'https://genuinetask.com.bd/wp-content/uploads/2026/06/130839.png',
+    title: 'Sacred Calligraphy & Spiritual Elegance',
+    subtitle: 'Ayat-ul-Kursi and 4 Quls masterworks with golden accent foil effects.',
+    link: '/product-category/religious-luxury-frame',
+    buttonText: 'View Religious Frames',
+    badge: 'Islamic Art',
+    order: 3,
+    isActive: true,
+  },
+  {
+    id: 'banner-4',
+    image: 'https://genuinetask.com.bd/wp-content/uploads/2026/06/130837.png',
+    title: '5 Frames Signature Gallery Sets',
+    subtitle: 'Complete room transformation bundles for master bedrooms and living rooms.',
+    link: '/product-category/5-frames-set',
+    buttonText: 'Discover 5-Frame Sets',
+    badge: 'Gallery Sets',
+    order: 4,
+    isActive: true,
+  },
+];
+
+export function getAllBanners(): HeroBanner[] {
+  const store = getStoreData();
+  if (!store.banners || store.banners.length === 0) {
+    store.banners = DEFAULT_STORE_BANNERS;
+    saveStoreData(store);
+  }
+  return store.banners;
+}
+
+export function saveBanner(bannerData: HeroBanner): HeroBanner {
+  const store = getStoreData();
+  if (!store.banners) {
+    store.banners = [...DEFAULT_STORE_BANNERS];
+  }
+  const id = bannerData.id || `banner-${Date.now()}`;
+  const banner: HeroBanner = {
+    ...bannerData,
+    id,
+    order: bannerData.order !== undefined ? bannerData.order : store.banners.length + 1,
+    isActive: bannerData.isActive !== false,
+  };
+  const index = store.banners.findIndex((b) => b.id === id);
+  if (index >= 0) {
+    store.banners[index] = banner;
+  } else {
+    store.banners.push(banner);
+  }
+  saveStoreData(store);
+  return banner;
+}
+
+export function deleteBanner(id: string): boolean {
+  const store = getStoreData();
+  if (!store.banners) store.banners = [...DEFAULT_STORE_BANNERS];
+  const initialLen = store.banners.length;
+  store.banners = store.banners.filter((b) => b.id !== id);
+  if (store.banners.length !== initialLen) {
+    saveStoreData(store);
+    return true;
+  }
+  return false;
 }
