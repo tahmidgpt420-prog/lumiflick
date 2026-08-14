@@ -5,7 +5,6 @@ import HeroSlider from '@/components/HeroSlider';
 import FrameEffectSlider from '@/components/FrameEffectSlider';
 import CategorySlider from '@/components/CategorySlider';
 import ProductGridSection from '@/components/ProductGridSection';
-import ReviewsCarousel from '@/components/ReviewsCarousel';
 import { getFeaturedProducts } from '@/data/products';
 import { useProducts } from '@/context/ProductContext';
 
@@ -58,9 +57,6 @@ export default function HomePage() {
           categorySlug={category.slug}
         />
       ))}
-
-      {/* Customer Reviews */}
-      <ReviewsCarousel />
     </div>
   );
 }
