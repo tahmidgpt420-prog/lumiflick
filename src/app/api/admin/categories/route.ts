@@ -12,6 +12,14 @@ import { Category } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
+// "Best Selling" isn't a real category — it's a per-product toggle
+// (Product.bestSeller) so a product can show on the Best Sellers page
+// without losing its actual category. Reserving the slug here stops it
+// from ever being created/edited as if it were a normal category again
+// (see /product-category/best-selling, which is a special case in
+// src/data/categories.ts's getCategoryBySlug regardless of what's here).
+const RESERVED_SLUGS = new Set(['best-selling']);
+
 /** Merge static seed, JSON store, and Firestore (Firestore wins on slug conflict). */
 async function getMergedCategories(): Promise<Category[]> {
   const jsonCats = getAllCategories();
@@ -30,7 +38,9 @@ async function getMergedCategories(): Promise<Category[]> {
   jsonCats.forEach((c) => bySlug.set(c.slug, c));
   firestoreCats.forEach((c) => bySlug.set(c.slug, c));
 
-  return Array.from(bySlug.values()).filter((c) => !deletedSlugs.has(c.slug));
+  return Array.from(bySlug.values()).filter(
+    (c) => !deletedSlugs.has(c.slug) && !RESERVED_SLUGS.has(c.slug)
+  );
 }
 
 export async function GET() {
@@ -48,6 +58,16 @@ export async function POST(request: Request) {
     const body = await request.json();
     if (!body.name || !body.slug) {
       return NextResponse.json({ success: false, error: 'name and slug are required' }, { status: 400 });
+    }
+    if (RESERVED_SLUGS.has(body.slug)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            '"best-selling" is reserved — use the "Feature on Best Sellers Section" toggle on each product instead of a category.',
+        },
+        { status: 400 }
+      );
     }
 
     const category: Category = {
