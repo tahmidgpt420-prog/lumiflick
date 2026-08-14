@@ -116,13 +116,13 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
   return (
     <>
       {/* Desktop Horizontal Navigation */}
-      <nav ref={navRef} className="hidden lg:block bg-white/80 backdrop-blur-md border-t border-gray-100/80 shadow-sm relative supports-[backdrop-filter]:bg-white/75">
+      <nav ref={navRef} className="hidden lg:block bg-transparent border-t border-gray-200/50 relative">
         <div className="max-w-7xl mx-auto px-4 relative flex items-center group/nav">
           {/* Left Scroll Button */}
           <button
             type="button"
             onClick={() => scroll('left')}
-            className="absolute left-1 z-20 p-1.5 rounded-full bg-white/95 shadow-md border border-gray-200 text-gray-700 hover:text-black hover:bg-gray-100 transition-all opacity-0 group-hover/nav:opacity-100 focus:opacity-100"
+            className="absolute left-1 z-20 p-1.5 rounded-full bg-white/70 backdrop-blur-md shadow-md border border-white/60 text-gray-700 hover:text-black hover:bg-white transition-all opacity-0 group-hover/nav:opacity-100 focus:opacity-100"
             aria-label="Scroll left"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -137,9 +137,9 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             <li className="shrink-0">
               <Link
                 href="/product-category/best-selling"
-                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
+                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-black/5 ${
                   pathname === '/product-category/best-selling'
-                    ? 'font-bold text-black bg-gray-100'
+                    ? 'font-bold text-black bg-black/10'
                     : 'font-semibold text-gray-800'
                 }`}
               >
@@ -152,9 +152,9 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             <li className="shrink-0">
               <Link
                 href="/reviews"
-                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
+                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-black/5 ${
                   pathname === '/reviews'
-                    ? 'font-bold text-black bg-gray-100'
+                    ? 'font-bold text-black bg-black/10'
                     : 'font-semibold text-gray-800'
                 }`}
               >
@@ -167,9 +167,9 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             <li className="shrink-0">
               <Link
                 href="/raw-photos"
-                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
+                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-black/5 ${
                   pathname === '/raw-photos'
-                    ? 'font-bold text-black bg-gray-100'
+                    ? 'font-bold text-black bg-black/10'
                     : 'font-semibold text-gray-800'
                 }`}
               >
@@ -182,8 +182,8 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             <li className="shrink-0">
               <Link
                 href="/shop"
-                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
-                  pathname === '/shop' ? 'font-bold text-black bg-gray-100' : ''
+                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-black/5 ${
+                  pathname === '/shop' ? 'font-bold text-black bg-black/10' : ''
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-gray-500" />
@@ -192,7 +192,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             </li>
 
             {/* Separator */}
-            <li className="h-3.5 w-px bg-gray-200 shrink-0 mx-1" aria-hidden="true" />
+            <li className="h-3.5 w-px bg-gray-300/60 shrink-0 mx-1" aria-hidden="true" />
 
             {/* Dynamic Main Categories with Sub-Category Dropdowns */}
             {mainCategories.map((cat) => {
@@ -212,9 +212,9 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                   >
                     <Link
                       href={href}
-                      className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
+                      className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-black/5 ${
                         isActive || isCurrentDropdown
-                          ? 'font-bold text-black bg-gray-100'
+                          ? 'font-bold text-black bg-black/10'
                           : 'text-gray-700'
                       }`}
                     >
@@ -233,8 +233,8 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                 <li key={cat.slug} className="shrink-0">
                   <Link
                     href={href}
-                    className={`px-3 py-1.5 rounded-full transition-all block hover:text-black hover:bg-gray-100 ${
-                      isActive ? 'font-bold text-black bg-gray-100' : ''
+                    className={`px-3 py-1.5 rounded-full transition-all block hover:text-black hover:bg-black/5 ${
+                      isActive ? 'font-bold text-black bg-black/10' : ''
                     }`}
                   >
                     {cat.name}
@@ -248,7 +248,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
           <button
             type="button"
             onClick={() => scroll('right')}
-            className="absolute right-1 z-20 p-1.5 rounded-full bg-white/95 shadow-md border border-gray-200 text-gray-700 hover:text-black hover:bg-gray-100 transition-all opacity-0 group-hover/nav:opacity-100 focus:opacity-100"
+            className="absolute right-1 z-20 p-1.5 rounded-full bg-white/70 backdrop-blur-md shadow-md border border-white/60 text-gray-700 hover:text-black hover:bg-white transition-all opacity-0 group-hover/nav:opacity-100 focus:opacity-100"
             aria-label="Scroll right"
           >
             <ChevronRight className="w-4 h-4" />
