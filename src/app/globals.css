@@ -223,6 +223,19 @@ body {
   animation: cardImageShimmer 1.5s ease-in-out infinite;
 }
 
+/* Dark Skeleton Shimmer for Dark Sections (e.g. CategorySlider) */
+.card-skeleton-shimmer-dark {
+  background: #1f2937;
+  background-image: linear-gradient(
+    90deg,
+    #1f2937 0%,
+    #374151 50%,
+    #1f2937 100%
+  );
+  background-size: 200% 100%;
+  animation: cardImageShimmer 1.5s ease-in-out infinite;
+}
+
 @keyframes cardImageShimmer {
   0% {
     background-position: 200% 0;

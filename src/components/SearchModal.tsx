@@ -3,14 +3,55 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, X, ArrowRight, Flame, Sparkles } from 'lucide-react';
+import { Search, X, ArrowRight, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useProducts } from '@/context/ProductContext';
 import { formatImageUrl } from '@/utils/driveUrl';
+import { Product } from '@/types';
+
+function SearchProductCard({ product, onSelect }: { product: Product; onSelect: () => void }) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  return (
+    <Link
+      href={`/product/${product.slug}`}
+      onClick={onSelect}
+      className="flex items-center gap-3 p-2.5 rounded-xl border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all group bg-white"
+    >
+      <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+        {!imgLoaded && (
+          <div className="absolute inset-0 card-skeleton-shimmer z-0" />
+        )}
+        <Image
+          src={formatImageUrl(product.image, 600)}
+          alt={product.title}
+          fill
+          onLoad={() => setImgLoaded(true)}
+          className={`object-cover group-hover:scale-105 transition-all duration-300 ${
+            imgLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          sizes="64px"
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs text-amber-700 font-medium truncate">
+          {product.category}
+        </p>
+        <h4 className="text-sm font-semibold text-gray-900 truncate group-hover:text-black">
+          {product.title}
+        </h4>
+        <p className="text-xs font-bold text-gray-900 mt-0.5">
+          {product.priceRange || `৳ ${product.price.toLocaleString()}`}
+        </p>
+      </div>
+      <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-black group-hover:translate-x-1 transition-all shrink-0" />
+    </Link>
+  );
+}
 
 export default function SearchModal() {
   const { isSearchOpen, setIsSearchOpen } = useCart();
-  const { products, categories } = useProducts();
+  const { products, categories, isLoaded } = useProducts();
   const [searchQuery, setSearchQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -124,18 +165,26 @@ export default function SearchModal() {
                   <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                   Popular Searches &amp; Categories
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {popularSearches.map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => setSearchQuery(tag === 'Best Selling' ? 'Best' : tag)}
-                      className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full text-xs text-gray-700 font-medium transition-colors hover:border-gray-300"
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
+                {!isLoaded && popularSearches.length === 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="h-7 w-24 rounded-full card-skeleton-shimmer" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {popularSearches.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setSearchQuery(tag === 'Best Selling' ? 'Best' : tag)}
+                        className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full text-xs text-gray-700 font-medium transition-colors hover:border-gray-300"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : filteredProducts.length > 0 ? (
               <div>
@@ -144,34 +193,11 @@ export default function SearchModal() {
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {filteredProducts.map((p) => (
-                    <Link
+                    <SearchProductCard
                       key={p.id || p.slug}
-                      href={`/product/${p.slug}`}
-                      onClick={() => setIsSearchOpen(false)}
-                      className="flex items-center gap-3 p-2.5 rounded-xl border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all group bg-white"
-                    >
-                      <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                        <Image
-                          src={formatImageUrl(p.image, 600)}
-                          alt={p.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform"
-                          sizes="64px"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-amber-700 font-medium truncate">
-                          {p.category}
-                        </p>
-                        <h4 className="text-sm font-semibold text-gray-900 truncate group-hover:text-black">
-                          {p.title}
-                        </h4>
-                        <p className="text-xs font-bold text-gray-900 mt-0.5">
-                          {p.priceRange || `৳ ${p.price.toLocaleString()}`}
-                        </p>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-black group-hover:translate-x-1 transition-all shrink-0" />
-                    </Link>
+                      product={p}
+                      onSelect={() => setIsSearchOpen(false)}
+                    />
                   ))}
                 </div>
               </div>
