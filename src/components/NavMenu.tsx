@@ -443,7 +443,12 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             {/* Bottom Support info */}
             <div className="p-4 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
               <p className="font-medium text-gray-700">Need help with an order?</p>
-              <p className="mt-0.5">Hotline: +880 1886 670 211</p>
+              <p className="mt-0.5">
+                Hotline:{' '}
+                <a href="tel:+8801400307299" className="hover:text-black font-semibold text-gray-800">
+                  +8801400307299
+                </a>
+              </p>
             </div>
           </div>
         </div>
