@@ -135,7 +135,7 @@ export default function ShopPage() {
             onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
             className="px-8 py-3 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors shadow-sm"
           >
-            Load More ({filteredProducts.length - visibleCount} remaining)
+            Load More
           </button>
         </div>
       )}

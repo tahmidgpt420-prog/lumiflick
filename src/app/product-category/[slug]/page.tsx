@@ -1,11 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getCategoryBySlug } from '@/data/categories';
 import ProductCard from '@/components/ProductCard';
 import { Sparkles, ArrowLeft, Layers } from 'lucide-react';
 import { useProducts } from '@/context/ProductContext';
+
+const PAGE_SIZE = 16;
 
 interface CategoryPageProps {
   params: {
@@ -16,9 +18,17 @@ interface CategoryPageProps {
 export default function CategoryPage({ params }: CategoryPageProps) {
   const slug = decodeURIComponent(params.slug).toLowerCase().trim();
   const { categories, getProductsByCategory } = useProducts();
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  // Reset pagination whenever navigating to a different category/sub-category
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [slug]);
 
   // Instant from client memory cache
   const categoryProducts = getProductsByCategory(slug);
+  const visibleProducts = categoryProducts.slice(0, visibleCount);
+  const hasMore = visibleCount < categoryProducts.length;
 
   // Find category object
   const category =
@@ -131,9 +141,20 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {categoryProducts.map((product) => (
+          {visibleProducts.map((product) => (
             <ProductCard key={product.id || product.slug} product={product} />
           ))}
+        </div>
+      )}
+
+      {hasMore && (
+        <div className="flex justify-center mt-10">
+          <button
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="px-8 py-3 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors shadow-sm"
+          >
+            Load More
+          </button>
         </div>
       )}
     </div>

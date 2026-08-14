@@ -13,9 +13,12 @@ import {
 import { CustomerReview } from '@/types';
 import { customerReviews as initialReviews } from '@/data/reviews';
 
+const PAGE_SIZE = 16;
+
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<CustomerReview[]>(initialReviews);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     async function loadReviews() {
@@ -36,6 +39,8 @@ export default function ReviewsPage() {
   const photoReviews = reviews.filter(
     (r) => Boolean(r.screenshotImage) || Boolean((r as any).image)
   );
+  const visiblePhotoReviews = photoReviews.slice(0, visibleCount);
+  const hasMorePhotos = visibleCount < photoReviews.length;
 
   const activePhoto =
     activePhotoIndex !== null && photoReviews[activePhotoIndex]
@@ -98,7 +103,7 @@ export default function ReviewsPage() {
           </div>
         ) : (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-            {photoReviews.map((review, index) => {
+            {visiblePhotoReviews.map((review, index) => {
               const imgUrl = review.screenshotImage || (review as any).image;
               if (!imgUrl) return null;
 
@@ -132,6 +137,17 @@ export default function ReviewsPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {hasMorePhotos && (
+          <div className="flex justify-center mt-10">
+            <button
+              onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              className="px-8 py-3 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors shadow-sm"
+            >
+              Load More
+            </button>
           </div>
         )}
       </section>
