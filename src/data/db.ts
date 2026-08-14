@@ -40,6 +40,8 @@ export interface StoreData {
   // makes it reappear the next time the admin API merges the three sources.
   deletedProductKeys?: string[];
   deletedCategorySlugs?: string[];
+  deletedBannerIds?: string[];
+  deletedReviewIds?: string[];
 }
 
 const defaultSettings: StoreSettings = {
@@ -391,6 +393,11 @@ export function saveReview(reviewData: Partial<CustomerReview>): CustomerReview 
     store.reviews = [...((rawStoreData.reviews || []) as CustomerReview[])];
   }
 
+  // Un-tombstone — a save means this id is wanted again.
+  if (store.deletedReviewIds?.length && reviewData.id) {
+    store.deletedReviewIds = store.deletedReviewIds.filter((k) => k !== reviewData.id);
+  }
+
   const existingIndex = store.reviews.findIndex((r) => r.id === reviewData.id);
   if (existingIndex >= 0) {
     const updated: CustomerReview = {
@@ -427,14 +434,22 @@ export function saveReview(reviewData: Partial<CustomerReview>): CustomerReview 
 
 export function deleteReview(id: string): boolean {
   const store = getStoreData();
-  if (!store.reviews) return false;
-  const initialLength = store.reviews.length;
+  if (!store.reviews) store.reviews = [];
   store.reviews = store.reviews.filter((r) => r.id !== id);
-  if (store.reviews.length !== initialLength) {
-    saveStoreData(store);
-    return true;
-  }
-  return false;
+
+  const tombstones = new Set(store.deletedReviewIds || []);
+  tombstones.add(id);
+  store.deletedReviewIds = Array.from(tombstones);
+
+  // Always persist the tombstone, even if this id only ever existed in the
+  // build-time seed or Firestore — otherwise it reappears on the next read
+  // from an instance that never saw the JSON-store delete.
+  saveStoreData(store);
+  return true;
+}
+
+export function getDeletedReviewIds(): Set<string> {
+  return new Set(getStoreData().deletedReviewIds || []);
 }
 
 // Settings helpers
@@ -514,6 +529,12 @@ export function saveBanner(bannerData: HeroBanner): HeroBanner {
     store.banners = [...DEFAULT_STORE_BANNERS];
   }
   const id = bannerData.id || `banner-${Date.now()}`;
+
+  // Un-tombstone — a save means this id is wanted again.
+  if (store.deletedBannerIds?.length) {
+    store.deletedBannerIds = store.deletedBannerIds.filter((k) => k !== id);
+  }
+
   const banner: HeroBanner = {
     ...bannerData,
     id,
@@ -533,11 +554,19 @@ export function saveBanner(bannerData: HeroBanner): HeroBanner {
 export function deleteBanner(id: string): boolean {
   const store = getStoreData();
   if (!store.banners) store.banners = [...DEFAULT_STORE_BANNERS];
-  const initialLen = store.banners.length;
   store.banners = store.banners.filter((b) => b.id !== id);
-  if (store.banners.length !== initialLen) {
-    saveStoreData(store);
-    return true;
-  }
-  return false;
+
+  const tombstones = new Set(store.deletedBannerIds || []);
+  tombstones.add(id);
+  store.deletedBannerIds = Array.from(tombstones);
+
+  // Always persist the tombstone, even if this id only ever existed in the
+  // hardcoded DEFAULT_STORE_BANNERS or Firestore — otherwise it reappears
+  // on the next read from an instance that never saw this delete.
+  saveStoreData(store);
+  return true;
+}
+
+export function getDeletedBannerIds(): Set<string> {
+  return new Set(getStoreData().deletedBannerIds || []);
 }

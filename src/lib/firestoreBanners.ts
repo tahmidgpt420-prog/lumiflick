@@ -215,6 +215,26 @@ export async function removeBannerFromFirestore(bannerId: string): Promise<void>
   await setDoc(doc(db, DELETED_BANNERS_COL, bannerId), { deletedAt: Date.now() });
 }
 
+/** Server-only: raw read of all banners directly from Firestore, no fallbacks. */
+export async function getAllBannersFromFirestoreOnly(): Promise<HeroBanner[]> {
+  try {
+    const snap = await getDocs(collection(db, BANNERS_COL));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() })) as HeroBanner[];
+  } catch {
+    return [];
+  }
+}
+
+/** Server-only: banner ids tombstoned in Firestore's deleted_hero_banners collection. */
+export async function getDeletedBannerIdsFromFirestore(): Promise<Set<string>> {
+  try {
+    const snap = await getDocs(collection(db, DELETED_BANNERS_COL));
+    return new Set(snap.docs.map((d) => d.id));
+  } catch {
+    return new Set();
+  }
+}
+
 /** Delete a banner with guaranteed multi-layer persistence */
 export async function deleteBannerFromFirestore(bannerId: string): Promise<void> {
   // 1. Update localStorage

@@ -52,5 +52,13 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+    match /customer_reviews/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /deleted_customer_reviews/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }
