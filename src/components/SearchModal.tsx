@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, X, ShoppingBag, ArrowRight } from 'lucide-react';
+import { Search, X, ArrowRight, Flame, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { products } from '@/data/products';
+import { useProducts } from '@/context/ProductContext';
+import { formatImageUrl } from '@/utils/driveUrl';
 
 export default function SearchModal() {
   const { isSearchOpen, setIsSearchOpen } = useCart();
+  const { products, categories } = useProducts();
   const [searchQuery, setSearchQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -33,16 +35,43 @@ export default function SearchModal() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [setIsSearchOpen]);
 
+  // Popular search suggestions dynamically generated from active categories & collections
+  const popularSearches = useMemo(() => {
+    const primaryCats = categories
+      .filter((c) => !c.parentSlug && !c.parentId)
+      .map((c) => c.name);
+
+    const subCats = categories
+      .filter((c) => c.parentSlug || c.parentId)
+      .slice(0, 4)
+      .map((c) => c.name);
+
+    return Array.from(new Set(['Best Selling', ...primaryCats, ...subCats])).slice(0, 10);
+  }, [categories]);
+
+  // Smart multi-word search filter
   const filteredProducts = useMemo(() => {
     if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase();
-    return products.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        p.tags?.some((t) => t.toLowerCase().includes(q))
-    ).slice(0, 8);
-  }, [searchQuery]);
+    const queryTokens = searchQuery
+      .toLowerCase()
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    return products
+      .filter((p) => {
+        const title = (p.title || '').toLowerCase();
+        const category = (p.category || '').toLowerCase();
+        const categorySlug = (p.categorySlug || '').toLowerCase();
+        const tags = (p.tags || []).join(' ').toLowerCase();
+        const description = (p.description || '').toLowerCase();
+
+        const combinedSearchable = `${title} ${category} ${categorySlug} ${tags} ${description}`;
+
+        return queryTokens.every((token) => combinedSearchable.includes(token));
+      })
+      .slice(0, 12);
+  }, [searchQuery, products]);
 
   if (!isSearchOpen) return null;
 
@@ -63,20 +92,23 @@ export default function SearchModal() {
             <input
               ref={inputRef}
               type="text"
-              placeholder="Search products by title, category, style (e.g. Porsche, Ayat, Boho)..."
+              placeholder="Search products by title, anime, category, style..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full text-base sm:text-lg outline-none text-gray-800 placeholder-gray-400 bg-transparent"
             />
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => setSearchQuery('')}
                 className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+                aria-label="Clear search"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
             <button
+              type="button"
               onClick={() => setIsSearchOpen(false)}
               className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors text-xs font-semibold uppercase tracking-wider"
             >
@@ -88,24 +120,17 @@ export default function SearchModal() {
           <div className="max-h-[65vh] overflow-y-auto p-4 sm:p-6">
             {!searchQuery.trim() ? (
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                  Popular Searches
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  Popular Searches &amp; Categories
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {[
-                    'Porsche 911',
-                    'Ayat-ul-Qursi',
-                    '5 Frames Set',
-                    'Nature Inspired',
-                    'Motivational Wall Frame',
-                    'Religious Luxury',
-                    'BOHO Theme',
-                    'Floral',
-                  ].map((tag) => (
+                  {popularSearches.map((tag) => (
                     <button
                       key={tag}
-                      onClick={() => setSearchQuery(tag)}
-                      className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full text-xs text-gray-700 font-medium transition-colors"
+                      type="button"
+                      onClick={() => setSearchQuery(tag === 'Best Selling' ? 'Best' : tag)}
+                      className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full text-xs text-gray-700 font-medium transition-colors hover:border-gray-300"
                     >
                       {tag}
                     </button>
@@ -115,19 +140,19 @@ export default function SearchModal() {
             ) : filteredProducts.length > 0 ? (
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                  Products ({filteredProducts.length})
+                  Found Products ({filteredProducts.length})
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {filteredProducts.map((p) => (
                     <Link
-                      key={p.slug}
+                      key={p.id || p.slug}
                       href={`/product/${p.slug}`}
                       onClick={() => setIsSearchOpen(false)}
                       className="flex items-center gap-3 p-2.5 rounded-xl border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all group bg-white"
                     >
                       <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                         <Image
-                          src={p.image}
+                          src={formatImageUrl(p.image, 600)}
                           alt={p.title}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform"
@@ -151,12 +176,12 @@ export default function SearchModal() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-sm">
+              <div className="text-center py-12 space-y-2">
+                <p className="text-gray-600 font-medium text-sm">
                   No products found matching &ldquo;{searchQuery}&rdquo;.
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Try checking for spelling or searching with general terms.
+                <p className="text-xs text-gray-400">
+                  Try checking for spelling or searching by category name like Anime, Islamic, or Dragonball.
                 </p>
               </div>
             )}
