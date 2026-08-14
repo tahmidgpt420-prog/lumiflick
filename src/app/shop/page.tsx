@@ -5,10 +5,13 @@ import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { useProducts } from '@/context/ProductContext';
 
+const PAGE_SIZE = 16;
+
 export default function ShopPage() {
   const { products, categories } = useProducts();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const filteredProducts = useMemo(() => {
     let result = [...products];
@@ -36,6 +39,16 @@ export default function ShopPage() {
     return result;
   }, [products, selectedCategory, sortBy]);
 
+  // Reset to the first page whenever the filter/sort changes, so switching
+  // categories doesn't leave you scrolled past a now-shorter list.
+  const visibleProducts = filteredProducts.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredProducts.length;
+
+  const handleFilterChange = (updater: () => void) => {
+    updater();
+    setVisibleCount(PAGE_SIZE);
+  };
+
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Breadcrumb */}
@@ -62,7 +75,7 @@ export default function ShopPage() {
         {/* Category Pills */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
           <button
-            onClick={() => setSelectedCategory('all')}
+            onClick={() => handleFilterChange(() => setSelectedCategory('all'))}
             className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               selectedCategory === 'all'
                 ? 'bg-black text-white shadow-sm'
@@ -74,7 +87,7 @@ export default function ShopPage() {
           {categories.map((cat) => (
             <button
               key={cat.slug}
-              onClick={() => setSelectedCategory(cat.slug)}
+              onClick={() => handleFilterChange(() => setSelectedCategory(cat.slug))}
               className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                 selectedCategory === cat.slug
                   ? 'bg-black text-white shadow-sm'
@@ -96,7 +109,7 @@ export default function ShopPage() {
             <span className="text-gray-500">Sort by:</span>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={(e) => handleFilterChange(() => setSortBy(e.target.value))}
               className="bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-800 outline-none focus:border-black"
             >
               <option value="default">Featured / Default</option>
@@ -111,10 +124,21 @@ export default function ShopPage() {
 
       {/* Products Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {filteredProducts.map((product) => (
+        {visibleProducts.map((product) => (
           <ProductCard key={product.id || product.slug} product={product} />
         ))}
       </div>
+
+      {hasMore && (
+        <div className="flex justify-center mt-10">
+          <button
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="px-8 py-3 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors shadow-sm"
+          >
+            Load More ({filteredProducts.length - visibleCount} remaining)
+          </button>
+        </div>
+      )}
     </div>
   );
 }
