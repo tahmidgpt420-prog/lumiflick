@@ -60,7 +60,7 @@ export default function AdminCategoriesPage() {
     setName('');
     setSlug('');
     setParentSlug(defaultParentSlug);
-    setImage('https://genuinetask.com.bd/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-02-at-2.46.39-AM.webp');
+    setImage('/logo.png');
     setDescription('');
     setShowOnHomepage(false);
   };

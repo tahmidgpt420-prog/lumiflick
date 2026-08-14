@@ -15,7 +15,7 @@ export default function CartPage() {
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
-    if (couponCode.toUpperCase() === 'GENUINE35' || couponCode.toUpperCase() === 'SALE35') {
+    if (couponCode.toUpperCase() === 'LUMIFLICK35' || couponCode.toUpperCase() === 'SALE35') {
       setDiscount(Math.round(subtotal * 0.35));
       setCouponApplied(true);
       setCouponError('');
@@ -24,7 +24,7 @@ export default function CartPage() {
       setCouponApplied(true);
       setCouponError('');
     } else {
-      setCouponError('Invalid coupon code. Try "GENUINE35"');
+      setCouponError('Invalid coupon code. Try "LUMIFLICK35"');
       setCouponApplied(false);
       setDiscount(0);
     }
@@ -184,7 +184,7 @@ export default function CartPage() {
               {/* Coupon Form */}
               <form onSubmit={handleApplyCoupon} className="pt-2">
                 <label className="text-xs font-semibold text-gray-700 block mb-1.5">
-                  Have a Promo Code? (Try &ldquo;GENUINE35&rdquo;)
+                  Have a Promo Code? (Try &ldquo;LUMIFLICK35&rdquo;)
                 </label>
                 <div className="flex gap-2">
                   <input

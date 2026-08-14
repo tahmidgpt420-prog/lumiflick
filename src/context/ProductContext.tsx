@@ -11,7 +11,7 @@ import {
   getDeletedCategorySlugsFromFirestore,
 } from '@/lib/firestoreProducts';
 
-const CACHE_KEY = 'lumiflick_catalog_cache_v3';
+const CACHE_KEY = 'lumiflick_catalog_cache_v4';
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes cache freshness
 
 interface CatalogCache {

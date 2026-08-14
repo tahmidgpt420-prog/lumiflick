@@ -121,13 +121,10 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   }, [catList, initialData]);
 
   const [primaryImage, setPrimaryImage] = useState<string>(
-    initialData?.image ||
-      'https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg'
+    initialData?.image || '/logo.png'
   );
   const [galleryImages, setGalleryImages] = useState<string[]>(
-    initialData?.galleryImages || [
-      'https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg',
-    ]
+    initialData?.galleryImages || ['/logo.png']
   );
 
   const [shortDescription, setShortDescription] = useState(

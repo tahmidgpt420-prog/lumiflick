@@ -115,7 +115,7 @@ export default function FrameEffectSlider() {
               <div className="absolute inset-0 w-full h-full">
                 <Image
                   src={afterImage}
-                  alt="Room with GenuineTask Luxury Frames"
+                  alt="Room with LUMIFLICK Luxury Frames"
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 60vw"

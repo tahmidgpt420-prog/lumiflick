@@ -56,8 +56,8 @@ const defaultSettings: StoreSettings = {
   headerScripts: '',
   bodyScripts: '',
   footerScripts: '',
-  frameEffectBeforeImage: 'https://genuinetask.com.bd/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-02-at-2.45.04-AM.webp',
-  frameEffectAfterImage: 'https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg',
+  frameEffectBeforeImage: '/logo.png',
+  frameEffectAfterImage: '/logo.png',
 };
 
 // Retrieve store data with serverless fallback
@@ -470,7 +470,7 @@ export function updateSettings(newSettings: Partial<StoreSettings>): StoreSettin
 const DEFAULT_STORE_BANNERS: HeroBanner[] = [
   {
     id: 'banner-1',
-    image: 'https://genuinetask.com.bd/wp-content/uploads/2026/06/130840.png',
+    image: '/logo.png',
     title: 'Transform Your Empty Walls Into Living Art',
     subtitle: 'Handcrafted luxury canvas & textured wooden frames tailored for modern homes.',
     link: '/product-category/best-selling',
@@ -481,7 +481,7 @@ const DEFAULT_STORE_BANNERS: HeroBanner[] = [
   },
   {
     id: 'banner-2',
-    image: 'https://genuinetask.com.bd/wp-content/uploads/2026/06/130838.png',
+    image: '/logo.png',
     title: 'Porsche & Supercars Enthusiast Series',
     subtitle: 'High-octane automotive wall prints in museum quality matte finish.',
     link: '/product-category/cars-frame-collection',
@@ -492,7 +492,7 @@ const DEFAULT_STORE_BANNERS: HeroBanner[] = [
   },
   {
     id: 'banner-3',
-    image: 'https://genuinetask.com.bd/wp-content/uploads/2026/06/130839.png',
+    image: '/logo.png',
     title: 'Sacred Calligraphy & Spiritual Elegance',
     subtitle: 'Ayat-ul-Kursi and 4 Quls masterworks with golden accent foil effects.',
     link: '/product-category/religious-luxury-frame',
@@ -503,7 +503,7 @@ const DEFAULT_STORE_BANNERS: HeroBanner[] = [
   },
   {
     id: 'banner-4',
-    image: 'https://genuinetask.com.bd/wp-content/uploads/2026/06/130837.png',
+    image: '/logo.png',
     title: '5 Frames Signature Gallery Sets',
     subtitle: 'Complete room transformation bundles for master bedrooms and living rooms.',
     link: '/product-category/5-frames-set',

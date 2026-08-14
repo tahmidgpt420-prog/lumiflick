@@ -1,18 +1,18 @@
-# GenuineTask E-Commerce Platform (Next.js)
+# LUMIFLICK E-Commerce Platform (Next.js)
 
-A modern, high-performance e-commerce platform recreating [genuinetask.com.bd](https://genuinetask.com.bd/) with **Next.js 14 (App Router)**, **TypeScript**, and **Tailwind CSS**.
+A modern, high-performance e-commerce platform for **LUMIFLICK Luxury Wall Frames** built with **Next.js 14 (App Router)**, **TypeScript**, and **Tailwind CSS**.
 
 ## Features
 
-- **Dynamic Routing & Independent Product Pages**: Dynamic URLs (`/product/[slug]`) for 57+ authentic wall frame products with frame size/finish selectors, live dynamic price calculation, and zoomable gallery.
+- **Dynamic Routing & Independent Product Pages**: Dynamic URLs (`/product/[slug]`) for authentic wall frame products with frame size/finish selectors, live dynamic price calculation, and zoomable gallery.
 - **Dynamic Category Archives**: Dedicated collections at `/product-category/[slug]` and all collections shop catalog at `/shop`.
 - **Interactive "Frame Effect" Slider**: Draggable before/after room wall transformation splitter.
 - **Explore Categories Carousel**: Infinite horizontal category slider with smooth arrow navigation.
 - **Live Search Modal**: Real-time product search with instant thumbnail previews.
 - **Slide-out Cart Drawer**: Quick quantity modifications, subtotal calculations, and slide-in drawer.
-- **Express One-Page Checkout**: Bangladeshi delivery zones (Inside Dhaka ৳70, Outside Dhaka ৳130), Cash On Delivery (COD) & bKash payment support.
-- **Invoice & Order Confirmation**: Printable order invoice and direct WhatsApp order tracking support.
-- **Floating WhatsApp Support**: Instant customer support channel.
+- **Express One-Page Checkout**: Streamlined Bangladeshi contact form with direct WhatsApp order confirmation.
+- **Hero Banner Manager**: Full customizable banner management in the secret admin portal.
+- **Secret Admin Portal**: Protected store management dashboard.
 
 ## Getting Started
 
