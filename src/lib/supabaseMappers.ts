@@ -1,4 +1,5 @@
 import { Product, Category, HeroBanner, CustomerReview, OrderDetails, RawPhoto } from '@/types';
+import { formatImageUrl } from '@/utils/driveUrl';
 
 // --- Product ---
 export function productToDb(p: Partial<Product>) {
@@ -101,7 +102,7 @@ export function bannerToDb(b: Partial<HeroBanner>) {
 export function bannerFromDb(row: any): HeroBanner {
   return {
     id: row.id,
-    image: row.image,
+    image: formatImageUrl(row.image, 'original'),
     link: row.link,
     title: row.title ?? undefined,
     subtitle: row.subtitle ?? undefined,
