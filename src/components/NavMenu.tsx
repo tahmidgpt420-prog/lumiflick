@@ -58,6 +58,16 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
     };
   }, [mobileOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileOpen) {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen, setMobileOpen]);
+
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
       const scrollAmount = 250;
@@ -295,16 +305,26 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
       </nav>
 
       {/* Mobile Off-Canvas Slide Drawer */}
-      {mounted && mobileOpen && createPortal(
-        <div className="fixed inset-0 z-[100] lg:hidden">
+      {mounted && createPortal(
+        <div
+          className={`fixed inset-0 z-[100] lg:hidden transition-all duration-300 ${
+            mobileOpen ? 'visible pointer-events-auto' : 'invisible pointer-events-none'
+          }`}
+        >
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+            className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${
+              mobileOpen ? 'opacity-100' : 'opacity-0'
+            }`}
             onClick={() => setMobileOpen(false)}
           />
 
           {/* Drawer Panel */}
-          <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm h-full bg-white shadow-2xl z-[101] flex flex-col">
+          <div
+            className={`fixed inset-y-0 left-0 w-4/5 max-w-sm h-full bg-white shadow-2xl z-[101] flex flex-col transform transition-transform duration-300 ease-out will-change-transform ${
+              mobileOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+          >
             {/* Drawer Header */}
             <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50 shrink-0">
               <div className="flex items-center gap-2.5">
