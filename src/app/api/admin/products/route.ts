@@ -1,95 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllProducts, saveProduct, getDeletedProductKeys } from '@/data/db';
-import {
-  saveProductToFirestore,
-  getAllProductsFromFirestore,
-  getDeletedProductIdsFromFirestore,
-  getProductsPageFromFirestore,
-  getProductsCountFromFirestore,
-  ProductSortField,
-} from '@/lib/firestoreProducts';
-import { ensureFirebaseAdminAuth } from '@/lib/firebaseAdminAuth';
-import { products as staticProducts } from '@/data/products';
-import { Product } from '@/types';
+import { supabaseAdmin } from '@/lib/supabase';
+import { productFromDb, productToDb } from '@/lib/supabaseMappers';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Merge static seed, JSON store, and Firestore (Firestore wins on id/slug
- * conflict). The JSON store is the reliable write target (see POST below);
- * this merge is what lets admin pages see a save immediately even while the
- * Firestore mirror is still catching up (or, right now, not configured —
- * see firestore.rules).
- */
-async function getMergedProducts(): Promise<Product[]> {
-  const jsonProducts = getAllProducts();
-  const deletedKeys = getDeletedProductKeys();
-  let firestoreProducts: Product[] = [];
-  try {
-    firestoreProducts = await getAllProductsFromFirestore();
-    const firestoreDeleted = await getDeletedProductIdsFromFirestore();
-    firestoreDeleted.forEach((k) => deletedKeys.add(k));
-  } catch {
-    // best-effort — fall through with whatever we have
-  }
-
-  const byKey = new Map<string, Product>();
-  const keyOf = (p: Product) => p.slug || p.id;
-  (staticProducts as Product[]).forEach((p) => byKey.set(keyOf(p), p));
-  jsonProducts.forEach((p) => byKey.set(keyOf(p), p));
-  firestoreProducts.forEach((p) => byKey.set(keyOf(p), p));
-
-  return Array.from(byKey.values()).filter(
-    (p) => !deletedKeys.has(p.id) && !deletedKeys.has(p.slug)
-  );
-}
-
-const SORT_MAP: Record<string, { sortField: ProductSortField; direction: 'asc' | 'desc' }> = {
-  newest: { sortField: 'updatedAt', direction: 'desc' },
-  oldest: { sortField: 'updatedAt', direction: 'asc' },
-  'name-asc': { sortField: 'title', direction: 'asc' },
-  'name-desc': { sortField: 'title', direction: 'desc' },
+const SORT_MAP: Record<string, { column: string; ascending: boolean }> = {
+  newest: { column: 'updated_at', ascending: false },
+  oldest: { column: 'updated_at', ascending: true },
+  'name-asc': { column: 'title', ascending: true },
+  'name-desc': { column: 'title', ascending: false },
+  category: { column: 'category', ascending: true },
 };
+const PAGE_SIZE = 50;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get('mode');
 
-  // Real paginated read — only pulls `pageSize` documents from Firestore,
-  // not the whole collection. This is the default admin-panel browse mode;
-  // search still needs the full merge below (no way around scanning
-  // everything for a substring search).
   if (mode === 'page') {
     try {
       const sortKey = searchParams.get('sort') || 'newest';
       const sort = SORT_MAP[sortKey] || SORT_MAP.newest;
       const category = searchParams.get('category') || 'all';
-      const cursorParam = searchParams.get('cursor');
-      const cursor = cursorParam
-        ? (sort.sortField === 'updatedAt' ? Number(cursorParam) : cursorParam)
-        : null;
+      const search = searchParams.get('search')?.trim() || '';
+      const page = Number(searchParams.get('page') || '0');
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
 
-      const { products, nextCursor } = await getProductsPageFromFirestore({
-        sortField: sort.sortField,
-        direction: sort.direction,
-        category,
-        cursor,
-      });
+      let query = supabaseAdmin.from('products').select('*', { count: 'exact' });
+      if (category !== 'all') query = query.eq('category_slug', category);
+      if (search) query = query.or(`title.ilike.%${search}%,category.ilike.%${search}%`);
+      query = query.order(sort.column, { ascending: sort.ascending }).range(from, to);
 
-      // Total count only on the first page — avoid an extra read on every
-      // "Load More" click.
-      const totalCount = cursor === null ? await getProductsCountFromFirestore() : undefined;
+      const { data, error, count } = await query;
+      if (error) throw error;
 
-      return NextResponse.json({ success: true, products, nextCursor, totalCount });
+      const products = (data || []).map(productFromDb);
+      const hasMore = count !== null && from + products.length < count;
+
+      return NextResponse.json({ success: true, products, totalCount: count, hasMore, nextPage: page + 1 });
     } catch (error) {
       console.error('GET /api/admin/products?mode=page error:', error);
       return NextResponse.json({ success: false, error: 'Failed to load products page' }, { status: 500 });
     }
   }
 
+  // Full list — cheap on Postgres even at hundreds of rows, unlike Firestore's
+  // per-document billing. Used by the dashboard's stat cards.
   try {
-    const products = await getMergedProducts();
-    return NextResponse.json({ success: true, products });
+    const { data, error } = await supabaseAdmin.from('products').select('*').order('updated_at', { ascending: false });
+    if (error) throw error;
+    return NextResponse.json({ success: true, products: (data || []).map(productFromDb) });
   } catch (error) {
     console.error('GET /api/admin/products error:', error);
     return NextResponse.json({ success: false, error: 'Failed to load products' }, { status: 500 });
@@ -103,19 +64,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Product title is required' }, { status: 400 });
     }
 
-    // 1. Reliable primary store — always awaited, errors surface to the caller.
-    const created = saveProduct(body);
+    const slug =
+      body.slug ||
+      String(body.title)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+    const id = body.id || `prod_${slug}_${Date.now()}`;
+    const category = body.category || 'Modern Frames';
+    const categorySlug =
+      body.categorySlug ||
+      category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const image = body.image || '/logo.png';
 
-    // 2. Best-effort Firestore mirror (the public storefront reads Firestore first).
-    // No-ops safely until ADMIN_FIREBASE_EMAIL/PASSWORD are provisioned — see firestore.rules.
-    try {
-      await ensureFirebaseAdminAuth();
-      await saveProductToFirestore(created);
-    } catch (firestoreErr) {
-      console.warn('Firestore product sync skipped:', (firestoreErr as Error).message);
-    }
+    const row = productToDb({
+      shortDescription: 'Handcrafted luxury wall frame with UV matte textured finish.',
+      description: '<p>Transform any blank wall into a sophisticated statement with LUMIFLICK.</p>',
+      regularPrice: body.price || 1250,
+      galleryImages: [image],
+      ...body,
+      id,
+      slug,
+      category,
+      categorySlug,
+      image,
+    });
+    const { data, error } = await supabaseAdmin.from('products').upsert(row, { onConflict: 'id' }).select().single();
+    if (error) throw error;
 
-    return NextResponse.json({ success: true, product: created }, { status: 201 });
+    return NextResponse.json({ success: true, product: productFromDb(data) }, { status: 201 });
   } catch (error) {
     console.error('POST /api/admin/products error:', error);
     return NextResponse.json({ success: false, error: 'Failed to save product' }, { status: 500 });

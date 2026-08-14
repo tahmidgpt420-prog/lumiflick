@@ -1,23 +1,24 @@
 import { NextResponse } from 'next/server';
-import { getProductByIdOrSlug, saveProduct, deleteProduct } from '@/data/db';
-import { saveProductToFirestore, deleteProductFromFirestore } from '@/lib/firestoreProducts';
-import { ensureFirebaseAdminAuth } from '@/lib/firebaseAdminAuth';
+import { supabaseAdmin } from '@/lib/supabase';
+import { productFromDb, productToDb } from '@/lib/supabaseMappers';
 
 export const dynamic = 'force-dynamic';
 
 interface RouteProps {
-  params: {
-    id: string;
-  };
+  params: { id: string };
 }
 
 export async function GET(request: Request, { params }: RouteProps) {
   try {
-    const product = getProductByIdOrSlug(params.id);
-    if (!product) {
-      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
-    }
-    return NextResponse.json({ success: true, product });
+    const { data, error } = await supabaseAdmin
+      .from('products')
+      .select('*')
+      .or(`id.eq.${params.id},slug.eq.${params.id}`)
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
+    return NextResponse.json({ success: true, product: productFromDb(data) });
   } catch (error) {
     console.error('GET /api/admin/products/[id] error:', error);
     return NextResponse.json({ success: false, error: 'Failed to load product' }, { status: 500 });
@@ -27,16 +28,16 @@ export async function GET(request: Request, { params }: RouteProps) {
 export async function PUT(request: Request, { params }: RouteProps) {
   try {
     const body = await request.json();
-    const updated = saveProduct({ ...body, id: params.id });
-
-    try {
-      await ensureFirebaseAdminAuth();
-      await saveProductToFirestore(updated);
-    } catch (firestoreErr) {
-      console.warn('Firestore product sync skipped:', (firestoreErr as Error).message);
-    }
-
-    return NextResponse.json({ success: true, product: updated });
+    const row = productToDb({ ...body, id: params.id });
+    const { data, error } = await supabaseAdmin
+      .from('products')
+      .update(row)
+      .or(`id.eq.${params.id},slug.eq.${params.id}`)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
+    return NextResponse.json({ success: true, product: productFromDb(data) });
   } catch (error) {
     console.error('PUT /api/admin/products/[id] error:', error);
     return NextResponse.json({ success: false, error: 'Failed to update product' }, { status: 500 });
@@ -45,18 +46,12 @@ export async function PUT(request: Request, { params }: RouteProps) {
 
 export async function DELETE(request: Request, { params }: RouteProps) {
   try {
-    const success = deleteProduct(params.id);
-    if (!success) {
-      return NextResponse.json({ success: false, error: 'Product not found or failed to delete' }, { status: 404 });
-    }
-
-    try {
-      await ensureFirebaseAdminAuth();
-      await deleteProductFromFirestore(params.id);
-    } catch (firestoreErr) {
-      console.warn('Firestore product delete sync skipped:', (firestoreErr as Error).message);
-    }
-
+    const { error, count } = await supabaseAdmin
+      .from('products')
+      .delete({ count: 'exact' })
+      .or(`id.eq.${params.id},slug.eq.${params.id}`);
+    if (error) throw error;
+    if (!count) return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     return NextResponse.json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {
     console.error('DELETE /api/admin/products/[id] error:', error);

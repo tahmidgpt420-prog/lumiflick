@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import AdminHeader from '@/components/admin/AdminHeader';
@@ -17,10 +17,7 @@ import {
 } from 'lucide-react';
 import { Product } from '@/types';
 import { categories } from '@/data/categories';
-import { products as staticProducts } from '@/data/products';
 import { useProducts } from '@/context/ProductContext';
-
-const PAGE_SIZE = 50;
 
 type SortOption = 'newest' | 'oldest' | 'name-asc' | 'name-desc' | 'category';
 
@@ -33,81 +30,51 @@ export default function AdminProductsPage() {
   const [selectedCat, setSelectedCat] = useState('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [totalCount, setTotalCount] = useState<number | null>(null);
-  const [cursor, setCursor] = useState<string | number | null>(null);
-  const [hasMoreServer, setHasMoreServer] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
 
-  const isSearching = search.trim() !== '';
-  // "category" sort groups the whole catalog by category name, which needs
-  // everything loaded to do correctly — falls back to a full fetch, same
-  // as search. Every other sort/category combo stays on the real paginated
-  // read (only fetches PAGE_SIZE documents from Firestore per request).
-  const needsFullFetch = isSearching || sortBy === 'category';
-
-  // Real server-side pagination — only reads PAGE_SIZE documents from
-  // Firestore, not the whole products collection. This is the default
-  // (no search, sort != category) browsing mode.
+  // Real server-side search + sort + category filter + pagination — one
+  // query does all of it now that this is Postgres, not Firestore, so
+  // there's no more need for a separate "full fetch for search" fallback.
   const fetchPage = useCallback(
     async (reset: boolean) => {
       reset ? setLoading(true) : setLoadingMore(true);
       try {
+        const nextPage = reset ? 0 : page;
         const params = new URLSearchParams({
           mode: 'page',
           sort: sortBy,
           category: selectedCat,
+          search,
+          page: String(nextPage),
         });
-        if (!reset && cursor !== null) params.set('cursor', String(cursor));
-
         const res = await fetch(`/api/admin/products?${params}`);
         const data = await res.json();
         if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load products');
 
         setProducts((prev) => (reset ? data.products : [...prev, ...data.products]));
-        setCursor(data.nextCursor);
-        setHasMoreServer(Boolean(data.nextCursor));
-        if (typeof data.totalCount === 'number') setTotalCount(data.totalCount);
+        setTotalCount(data.totalCount);
+        setHasMore(data.hasMore);
+        setPage(nextPage + 1);
       } catch (e) {
-        console.error('Error fetching product page:', e);
-        if (reset) setProducts(staticProducts as Product[]);
+        console.error('Error fetching products:', e);
+        if (reset) setProducts([]);
       } finally {
         setLoading(false);
         setLoadingMore(false);
       }
     },
-    [sortBy, selectedCat, cursor]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sortBy, selectedCat, search]
   );
 
-  // Full merge fetch (JSON store + Firestore + static) — used for search and
-  // "Category (A-Z)" sort, both of which need the whole catalog in memory.
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/admin/products');
-      const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load products');
-      setProducts(data.products);
-      setTotalCount(data.products.length);
-    } catch (e) {
-      console.error('Error fetching all products:', e);
-      setProducts(staticProducts as Product[]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Switch fetch strategy when search is entered/cleared or sort mode
-  // crosses the full-fetch boundary.
+  // Debounce search so every keystroke doesn't fire a request.
   useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-    if (needsFullFetch) {
-      fetchAll();
-    } else {
-      setCursor(null);
-      fetchPage(true);
-    }
+    const timer = setTimeout(() => fetchPage(true), search ? 300 : 0);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsFullFetch, sortBy, selectedCat]);
+  }, [sortBy, selectedCat, search]);
 
   const handleDelete = async (id: string, title: string) => {
     if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
@@ -124,46 +91,6 @@ export default function AdminProductsPage() {
       setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
       setTotalCount((c) => (c !== null ? Math.max(0, c - 1) : c));
       setDeletingId(null);
-    }
-  };
-
-  const filtered = useMemo(() => {
-    let result = products;
-
-    if (isSearching) {
-      const term = search.toLowerCase();
-      result = result.filter(
-        (p) => p.title.toLowerCase().includes(term) || p.category.toLowerCase().includes(term)
-      );
-    }
-    if (needsFullFetch && selectedCat !== 'all') {
-      result = result.filter((p) => p.categorySlug === selectedCat);
-    }
-    if (sortBy === 'category') {
-      result = [...result].sort(
-        (a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title)
-      );
-    }
-    // newest/oldest/name-* are already ordered server-side when !needsFullFetch;
-    // when needsFullFetch (search), re-apply the same ordering client-side.
-    else if (needsFullFetch) {
-      if (sortBy === 'name-asc') result = [...result].sort((a, b) => a.title.localeCompare(b.title));
-      else if (sortBy === 'name-desc') result = [...result].sort((a, b) => b.title.localeCompare(a.title));
-      else if (sortBy === 'newest') result = [...result].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-      else if (sortBy === 'oldest') result = [...result].sort((a, b) => (a.updatedAt || 0) - (b.updatedAt || 0));
-    }
-
-    return result;
-  }, [products, search, selectedCat, sortBy, isSearching, needsFullFetch]);
-
-  const visibleProducts = needsFullFetch ? filtered.slice(0, visibleCount) : filtered;
-  const hasMore = needsFullFetch ? visibleCount < filtered.length : hasMoreServer;
-
-  const handleLoadMore = () => {
-    if (needsFullFetch) {
-      setVisibleCount((c) => c + PAGE_SIZE);
-    } else {
-      fetchPage(false);
     }
   };
 
@@ -237,7 +164,7 @@ export default function AdminProductsPage() {
               <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
               Loading inventory...
             </div>
-          ) : visibleProducts.length === 0 ? (
+          ) : products.length === 0 ? (
             <div className="py-16 text-center text-xs text-gray-500">
               No products found matching your search.
             </div>
@@ -255,7 +182,7 @@ export default function AdminProductsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {visibleProducts.map((product) => (
+                  {products.map((product) => (
                     <tr
                       key={product.id || product.slug}
                       className="hover:bg-gray-50/80 transition-colors"
@@ -359,7 +286,7 @@ export default function AdminProductsPage() {
         {hasMore && (
           <div className="flex justify-center">
             <button
-              onClick={handleLoadMore}
+              onClick={() => fetchPage(false)}
               disabled={loadingMore}
               className="px-8 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-colors shadow-sm disabled:opacity-50"
             >

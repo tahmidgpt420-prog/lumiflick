@@ -7,7 +7,6 @@ import ProductForm from '@/components/admin/ProductForm';
 import { Product } from '@/types';
 import { products as initialProducts } from '@/data/products';
 import { useProducts } from '@/context/ProductContext';
-import { getAllProductsFromFirestore } from '@/lib/firestoreProducts';
 import Link from 'next/link';
 
 function findProduct(decodedId: string, list: Product[]): Product | null {
@@ -48,12 +47,13 @@ export default function EditProductPage() {
         return;
       }
 
-      // 2. Fetch directly from Firestore
+      // 2. Not in the (possibly stale, 15-min cached) context yet — fetch
+      // this one product directly and freshly from the admin API.
       try {
-        const firestoreProds = await getAllProductsFromFirestore();
-        const foundInFirestore = findProduct(decodedId, firestoreProds);
-        if (foundInFirestore) {
-          setProduct(foundInFirestore);
+        const res = await fetch(`/api/admin/products/${encodeURIComponent(decodedId)}`);
+        const data = await res.json();
+        if (data.success && data.product) {
+          setProduct(data.product);
           setLoading(false);
           return;
         }
