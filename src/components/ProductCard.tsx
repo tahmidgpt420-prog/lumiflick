@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingBag, Eye } from 'lucide-react';
@@ -14,6 +14,8 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCart();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -36,14 +38,29 @@ export default function ProductCard({ product }: ProductCardProps) {
     <div className="group flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-gray-200 hover:shadow-xl transition-all duration-300">
       
       {/* Thumbnail Wrap */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-50">
-        <Link href={`/product/${productSlug}`} className="block w-full h-full">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
+        <Link href={`/product/${productSlug}`} className="block w-full h-full relative">
+          {/* Skeleton Shimmer Placeholder */}
+          <div
+            aria-hidden="true"
+            className={`absolute inset-0 z-0 card-skeleton-shimmer transition-opacity duration-300 pointer-events-none ${
+              imageLoaded ? 'opacity-0' : 'opacity-100'
+            }`}
+          />
+
           <Image
-            src={formatImageUrl(product.image || '/logo.png')}
+            src={hasError ? '/logo.png' : formatImageUrl(product.image || '/logo.png')}
             alt={product.title || 'LUMIFLICK Frame'}
             fill
             unoptimized
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              setImageLoaded(true);
+              setHasError(true);
+            }}
+            className={`object-cover group-hover:scale-105 transition-all duration-500 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         </Link>
@@ -56,7 +73,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         {/* Quick Action Button on Hover */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute bottom-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
           <button
             onClick={handleQuickAdd}
             className="w-10 h-10 rounded-full bg-black text-white hover:bg-amber-600 flex items-center justify-center shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0"
