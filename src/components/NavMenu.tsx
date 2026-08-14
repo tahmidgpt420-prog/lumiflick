@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -40,6 +41,22 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
 
   const [activeDropdown, setActiveDropdown] = useState<ActiveDropdownState | null>(null);
   const [openMobileAccordions, setOpenMobileAccordions] = useState<Record<string, boolean>>({});
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -278,18 +295,18 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
       </nav>
 
       {/* Mobile Off-Canvas Slide Drawer */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+      {mounted && mobileOpen && createPortal(
+        <div className="fixed inset-0 z-[100] lg:hidden">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
             onClick={() => setMobileOpen(false)}
           />
 
           {/* Drawer Panel */}
-          <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white shadow-2xl z-10 flex flex-col">
+          <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm h-full bg-white shadow-2xl z-[101] flex flex-col">
             {/* Drawer Header */}
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-200">
                   <Image src="/logo.png" alt="LUMIFLICK Logo" fill className="object-cover" />
@@ -298,7 +315,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               </div>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-2 rounded-full hover:bg-gray-200 text-gray-700"
+                className="p-2 rounded-full hover:bg-gray-200 text-gray-700 transition-colors"
                 aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
@@ -470,7 +487,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             </div>
 
             {/* Bottom Support info */}
-            <div className="p-4 bg-gray-50 border-t border-gray-100 text-xs text-gray-500">
+            <div className="p-4 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 shrink-0">
               <p className="font-medium text-gray-700">Need help with an order?</p>
               <p className="mt-0.5">
                 Hotline:{' '}
@@ -480,7 +497,8 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               </p>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
