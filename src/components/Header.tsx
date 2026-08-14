@@ -54,7 +54,7 @@ export default function Header() {
                   LUMIFLICK
                 </span>
                 <span className="text-[9px] sm:text-[10px] tracking-[0.25em] text-gray-500 font-semibold uppercase mt-0.5">
-                  Wall Art & Frames
+                  Elegant Glass Poster
                 </span>
               </div>
             </Link>

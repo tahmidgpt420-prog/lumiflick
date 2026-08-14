@@ -59,7 +59,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-gray-400 leading-relaxed">
-              Premium aesthetics for every wall. We design and craft museum-grade wall frames, calligraphy sets, and modern art pieces for residences & offices across Bangladesh.
+              Turn your wall into a statement with LumiFlick’s premium frameless glass posters. Crafted from 2.5mm real glass with vivid, fade-proof colors, a mirror-like HD finish, and a sleek modern look, our posters are waterproof, scratch-resistant, and built to last. No paper, no PVC, no bulky frames—just premium glass art designed to elevate your space.
             </p>
             <div className="space-y-2 pt-2 text-gray-300">
               <div className="flex items-center gap-2.5">
@@ -72,7 +72,7 @@ export default function Footer() {
               </div>
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <span>Location : Matbor bari, Baunia, Uttara, Dhaka, Bangladesh</span>
+                <span>Location : PTI Mor, Khulna, Bangladesh - 9100</span>
               </div>
             </div>
           </div>

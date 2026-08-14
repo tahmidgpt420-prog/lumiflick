@@ -69,7 +69,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900">Workshop & Studio</h4>
-                  <p className="mt-0.5">Matbor bari, Baunia, Uttara, Dhaka, Bangladesh</p>
+                  <p className="mt-0.5">PTI Mor, Khulna, Bangladesh - 9100</p>
                 </div>
               </div>
 
