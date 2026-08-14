@@ -64,7 +64,7 @@ export default function CheckoutPage() {
     const orderItemsText = items
       .map((item, i) => {
         const pieceStr = item.selectedPiecesLabel ? ` (${item.selectedPiecesLabel})` : '';
-        return `   ${i + 1}. ${item.title}\n      • Variation: ${item.selectedSize}${pieceStr}\n      • Qty: ${item.quantity}\n      • Price: ৳ ${(item.price * item.quantity).toLocaleString()}`;
+        return `   ${i + 1}. ${item.title}\n      • Variation: ${item.selectedSize}${pieceStr}\n      • Qty: ${item.quantity}\n      • Price: ${(item.price * item.quantity).toLocaleString()} BDT + Delivery Charge`;
       })
       .join('\n');
 
@@ -81,8 +81,7 @@ export default function CheckoutPage() {
       `🛍️ *Products in Cart:*`,
       orderItemsText,
       ``,
-      `💰 *Total:* ৳ ${totalAmount.toLocaleString()}`,
-      `*(Delivery charge applicable according to product weight)*`,
+      `💰 *Total Price:* ${totalAmount.toLocaleString()} BDT + Delivery Charge`,
     ]
       .filter((line) => line !== '')
       .join('\n');

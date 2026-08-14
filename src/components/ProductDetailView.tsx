@@ -151,7 +151,7 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
   };
 
   const whatsappMessage = encodeURIComponent(
-    `Hello LUMIFLICK! I want to order/inquire about this frame:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}${pieceEnabled && piecesFormatted ? `\n• Pieces: ${piecesFormatted}` : ''}\n• Quantity: ${quantity}\n• Total Price: ৳ ${(effectivePrice * quantity).toLocaleString()}\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`
+    `Hello LUMIFLICK! I want to order/inquire about this frame:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}${pieceEnabled && piecesFormatted ? `\n• Pieces: ${piecesFormatted}` : ''}\n• Quantity: ${quantity}\n• Price: ${(effectivePrice * quantity).toLocaleString()} BDT + Delivery Charge\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`
   );
 
   return (
