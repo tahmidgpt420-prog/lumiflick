@@ -7,6 +7,11 @@ import ProductCard from '@/components/ProductCard';
 import { Sparkles, ArrowLeft, Layers, Loader2 } from 'lucide-react';
 import { useProducts } from '@/context/ProductContext';
 import { Category } from '@/types';
+import {
+  getSubcategories,
+  getParentCategory,
+  findCategoryBySlugOrName,
+} from '@/utils/categoryHelpers';
 
 const PAGE_SIZE = 16;
 
@@ -40,20 +45,11 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   const visibleProducts = categoryProducts.slice(0, visibleCount);
   const hasMore = visibleCount < categoryProducts.length;
 
-  // Find category object — ONLY against the live database list (plus the
-  // virtual Best Selling page). Used to synthesize a placeholder category
-  // out of thin air for any slug, so deleting a category in the admin
-  // panel never actually took its page down: the URL kept "working"
-  // forever, just showing an auto-generated empty page. Now, once the
-  // catalog has actually loaded, an unmatched slug is a real 404.
+  // Find category object
   const category =
     slug === 'best-selling'
       ? BEST_SELLING_CATEGORY
-      : categories.find(
-          (c) =>
-            c.slug.toLowerCase() === slug ||
-            c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === slug
-        );
+      : findCategoryBySlugOrName(slug, categories);
 
   if (!category) {
     if (!isLoaded) {
@@ -68,17 +64,20 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   }
 
   // Find parent category if this is a subcategory
-  const parentCategory =
-    category.parentSlug || category.parentId
-      ? categories.find(
-          (c) => c.slug === category.parentSlug || c.slug === category.parentId
-        )
-      : null;
+  const parentCategory = category.parentSlug || category.parentId
+    ? getParentCategory(category, categories)
+    : null;
 
-  // Find child sub-categories if this is a parent category
-  const childSubcategories = categories.filter(
-    (c) => c.parentSlug === category.slug || c.parentId === category.slug
-  );
+  // If this is a parent category, find direct child sub-categories
+  // If this is a sub-category, find all sibling sub-categories under the same parent
+  const activeMainCat = parentCategory || (!category.parentSlug ? category : null);
+  const relevantSubcategories = activeMainCat
+    ? getSubcategories(activeMainCat.slug, categories)
+    : [];
+
+  const mainCategoryTotalCount = activeMainCat
+    ? getProductsByCategory(activeMainCat.slug).length
+    : categoryProducts.length;
 
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -124,24 +123,48 @@ export default function CategoryPage({ params }: CategoryPageProps) {
           Showing {categoryProducts.length} handcrafted wall frame{categoryProducts.length === 1 ? '' : 's'}
         </p>
 
-        {/* Sub-category Pills (if this is a parent category with subcategories) */}
-        {childSubcategories.length > 0 && (
+        {/* Sub-category Navigation Buttons */}
+        {activeMainCat && relevantSubcategories.length > 0 && (
           <div className="mt-5 flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-            <span className="text-xs text-gray-400 font-semibold shrink-0 flex items-center gap-1">
-              <Layers className="w-3 h-3" /> Sub-categories:
-            </span>
-            <span className="px-3 py-1.5 rounded-full bg-black text-white text-xs font-bold shrink-0">
-              All {category.name} ({categoryProducts.length})
-            </span>
-            {childSubcategories.map((sub) => (
+            {/* "All [Main Collection]" Button */}
+            {category.slug === activeMainCat.slug ? (
+              <span className="px-4 py-2 rounded-full bg-black text-white text-xs font-semibold shrink-0 shadow-sm">
+                All {activeMainCat.name}
+              </span>
+            ) : (
               <Link
-                key={sub.slug}
-                href={`/product-category/${sub.slug}`}
-                className="px-3 py-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold shrink-0 transition-colors hover:text-black"
+                href={`/product-category/${activeMainCat.slug}`}
+                className="px-4 py-2 rounded-full bg-white text-gray-700 hover:bg-gray-200 border border-gray-200 text-xs font-semibold shrink-0 transition-colors"
               >
-                {sub.name}
+                All {activeMainCat.name}
               </Link>
-            ))}
+            )}
+
+            {/* Sub-category Pills */}
+            {relevantSubcategories.map((sub) => {
+              const isCurrent = sub.slug === category.slug;
+
+              if (isCurrent) {
+                return (
+                  <span
+                    key={sub.slug}
+                    className="px-4 py-2 rounded-full bg-black text-white text-xs font-semibold shrink-0 shadow-sm"
+                  >
+                    {sub.name}
+                  </span>
+                );
+              }
+
+              return (
+                <Link
+                  key={sub.slug}
+                  href={`/product-category/${sub.slug}`}
+                  className="px-4 py-2 rounded-full bg-white text-gray-700 hover:bg-gray-200 border border-gray-200 text-xs font-semibold shrink-0 transition-colors"
+                >
+                  {sub.name}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

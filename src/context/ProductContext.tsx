@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { Product, Category } from '@/types';
 import { products as staticProducts } from '@/data/products';
 import { categories as staticCategories } from '@/data/categories';
+import { matchesCategory } from '@/utils/categoryHelpers';
 
 const CACHE_KEY = 'lumiflick_catalog_cache_v5';
 // Was 15 minutes to protect Firestore's read quota — no longer needed on
@@ -127,36 +128,10 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   const getProductsByCategory = useCallback(
     (categorySlug: string): Product[] => {
-      const norm = categorySlug.toLowerCase().trim();
-      if (norm === 'all') return products;
-      if (norm === 'best-selling') {
-        return products.filter(
-          (p) => p.bestSeller || p.categorySlug === 'best-selling' || p.category?.toLowerCase() === 'best selling'
-        );
-      }
+      const norm = decodeURIComponent(categorySlug).toLowerCase().trim();
+      if (!norm || norm === 'all') return products;
 
-      // Find all child subcategory slugs if this is a parent category
-      const childSlugs = new Set<string>();
-      categories.forEach((c) => {
-        if (
-          (c.parentSlug && c.parentSlug.toLowerCase() === norm) ||
-          (c.parentId && c.parentId.toLowerCase() === norm)
-        ) {
-          childSlugs.add(c.slug.toLowerCase());
-          childSlugs.add(c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
-        }
-      });
-
-      return products.filter((p) => {
-        const pCatSlug = p.categorySlug?.toLowerCase();
-        const pCatName = p.category?.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-        return (
-          pCatSlug === norm ||
-          pCatName === norm ||
-          (pCatSlug && childSlugs.has(pCatSlug)) ||
-          (pCatName && childSlugs.has(pCatName))
-        );
-      });
+      return products.filter((p) => matchesCategory(p, norm, categories));
     },
     [products, categories]
   );

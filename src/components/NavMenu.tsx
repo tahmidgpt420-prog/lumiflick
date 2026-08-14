@@ -19,6 +19,7 @@ import {
   CornerDownRight,
 } from 'lucide-react';
 import { Category } from '@/types';
+import { getMainCategories, getSubcategories } from '@/utils/categoryHelpers';
 
 interface NavMenuProps {
   mobileOpen: boolean;
@@ -110,17 +111,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
   };
 
   // Main Categories (those with NO parent, excluding pinned 'best-selling')
-  const mainCategories = categories.filter(
-    (c) =>
-      !c.parentSlug &&
-      !c.parentId &&
-      c.slug !== 'best-selling' &&
-      c.name.toLowerCase() !== 'best selling'
-  );
-
-  // Helper to find sub-categories for a parent category
-  const getSubcategories = (parentSlug: string) =>
-    categories.filter((c) => c.parentSlug === parentSlug || c.parentId === parentSlug);
+  const mainCategories = getMainCategories(categories);
 
   return (
     <>
@@ -207,7 +198,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             {mainCategories.map((cat) => {
               const href = `/product-category/${cat.slug}`;
               const isActive = pathname === href;
-              const subs = getSubcategories(cat.slug);
+              const subs = getSubcategories(cat.slug, categories);
               const hasSubs = subs.length > 0;
               const isCurrentDropdown = activeDropdown?.slug === cat.slug;
 
@@ -414,7 +405,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               </div>
 
               {mainCategories.map((cat) => {
-                const subs = getSubcategories(cat.slug);
+                const subs = getSubcategories(cat.slug, categories);
                 const isExpanded = openMobileAccordions[cat.slug];
 
                 if (subs.length > 0) {

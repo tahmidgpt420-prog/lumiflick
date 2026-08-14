@@ -1,4 +1,6 @@
 import { Product } from '@/types';
+import { categories as staticCategories } from './categories';
+import { matchesCategory } from '@/utils/categoryHelpers';
 import storeData from './store.json';
 
 export const products: Product[] = (storeData.products || []) as Product[];
@@ -54,24 +56,7 @@ export function getProductsByCategory(categorySlug: string): Product[] {
   if (!categorySlug || categorySlug === 'all') return all;
 
   const normalized = categorySlug.toLowerCase().trim();
-
-  if (normalized === 'best-selling') {
-    return all.filter(
-      (p) =>
-        p.bestSeller ||
-        p.categorySlug === 'best-selling' ||
-        p.category?.toLowerCase() === 'best selling'
-    );
-  }
-
-  return all.filter((p) => {
-    const pCatSlug = p.categorySlug?.toLowerCase();
-    const pCatNameSlug = p.category
-      ?.toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-    return pCatSlug === normalized || pCatNameSlug === normalized;
-  });
+  return all.filter((p) => matchesCategory(p, normalized, staticCategories));
 }
 
 export function getFeaturedProducts(): Product[] {
