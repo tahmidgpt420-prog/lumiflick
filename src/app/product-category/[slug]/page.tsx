@@ -2,12 +2,22 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getCategoryBySlug } from '@/data/categories';
+import { notFound } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
-import { Sparkles, ArrowLeft, Layers } from 'lucide-react';
+import { Sparkles, ArrowLeft, Layers, Loader2 } from 'lucide-react';
 import { useProducts } from '@/context/ProductContext';
+import { Category } from '@/types';
 
 const PAGE_SIZE = 16;
+
+// Virtual category — not a real row in the categories table, driven by the
+// per-product "Best Seller" toggle instead. Always valid, never deletable.
+const BEST_SELLING_CATEGORY: Category = {
+  name: 'Best Selling',
+  slug: 'best-selling',
+  image: '/logo.png',
+  description: 'Our top most popular, best-selling handcrafted wall frames across Bangladesh.',
+};
 
 interface CategoryPageProps {
   params: {
@@ -17,7 +27,7 @@ interface CategoryPageProps {
 
 export default function CategoryPage({ params }: CategoryPageProps) {
   const slug = decodeURIComponent(params.slug).toLowerCase().trim();
-  const { categories, getProductsByCategory } = useProducts();
+  const { categories, isLoaded, getProductsByCategory } = useProducts();
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   // Reset pagination whenever navigating to a different category/sub-category
@@ -30,22 +40,32 @@ export default function CategoryPage({ params }: CategoryPageProps) {
   const visibleProducts = categoryProducts.slice(0, visibleCount);
   const hasMore = visibleCount < categoryProducts.length;
 
-  // Find category object
+  // Find category object — ONLY against the live database list (plus the
+  // virtual Best Selling page). Used to synthesize a placeholder category
+  // out of thin air for any slug, so deleting a category in the admin
+  // panel never actually took its page down: the URL kept "working"
+  // forever, just showing an auto-generated empty page. Now, once the
+  // catalog has actually loaded, an unmatched slug is a real 404.
   const category =
-    categories.find(
-      (c) =>
-        c.slug.toLowerCase() === slug ||
-        c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === slug
-    ) ||
-    getCategoryBySlug(slug) || {
-      name: slug
-        .split('-')
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' '),
-      slug,
-      image: '/logo.png',
-      description: `Explore our collection of handcrafted ${slug.replace(/-/g, ' ')} frames at LUMIFLICK.`,
-    };
+    slug === 'best-selling'
+      ? BEST_SELLING_CATEGORY
+      : categories.find(
+          (c) =>
+            c.slug.toLowerCase() === slug ||
+            c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') === slug
+        );
+
+  if (!category) {
+    if (!isLoaded) {
+      return (
+        <div className="py-24 flex items-center justify-center text-gray-400 text-xs gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Loading category...
+        </div>
+      );
+    }
+    notFound();
+  }
 
   // Find parent category if this is a subcategory
   const parentCategory =

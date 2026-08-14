@@ -167,17 +167,17 @@ export default function FrameEffectSlider() {
             </div>
 
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
-              The <span className="italic font-serif text-amber-700">Frame</span> Effect 🦋
+              The <span className="italic font-serif text-amber-700">Glass</span> Effect ✨
             </h2>
 
             <div className="w-16 h-1 bg-amber-500 rounded-full mx-auto lg:mx-0"></div>
 
             <h3 className="text-base sm:text-lg font-semibold text-gray-800">
-              Why frames are important?
+              Why choose frameless glass art?
             </h3>
 
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-              Your wall deserves more than blank space — give it personality, warmth, and emotion. Our handcrafted gallery frames turn ordinary rooms into luxurious conversation starters.
+              Your wall deserves more than ordinary posters — give it personality, depth, and a premium finish. LumiFlick’s frameless glass posters transform your favorite artwork into a modern statement piece, crafted with real glass for vivid colors, lasting quality, and timeless style.
             </p>
 
             <div className="pt-2">
