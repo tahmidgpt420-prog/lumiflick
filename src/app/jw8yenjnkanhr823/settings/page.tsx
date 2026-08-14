@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import FileUploadBox from '@/components/admin/FileUploadBox';
-import { Save, CheckCircle2, Shield, Phone, MapPin, Truck, Code2, EyeOff, Activity, HelpCircle, Loader2, Images } from 'lucide-react';
+import { Save, CheckCircle2, Shield, Phone, MapPin, Truck, Code2, EyeOff, Activity, HelpCircle, Loader2, Images, Megaphone, Plus, Trash2 } from 'lucide-react';
 import { StoreSettings } from '@/data/db';
 
 export default function AdminSettingsPage() {
@@ -11,7 +11,7 @@ export default function AdminSettingsPage() {
     storeName: 'LUMIFLICK',
     phone: '+8801400307299',
     email: 'info@lumiflick.shop',
-    address: 'Matbor bari, Baunia, Uttara, Dhaka, Bangladesh',
+    address: 'PTI Mor, Khulna, Bangladesh - 9100',
     insideDhakaDelivery: 70,
     outsideDhakaDelivery: 130,
     promoNotice: '🎁 Upto 35% Off— Biggest Sale of the Year',
@@ -20,6 +20,11 @@ export default function AdminSettingsPage() {
     footerScripts: '',
     frameEffectBeforeImage: '',
     frameEffectAfterImage: '',
+    promoBarItems: [
+      { icon: '🎁', text: 'Upto 35% Off— Biggest Sale of the Year' },
+      { icon: '💳', text: 'Cash on Delivery Available' },
+      { icon: '🚚', text: 'Fast Delivery All Over Bangladesh' },
+    ],
   });
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -51,6 +56,21 @@ export default function AdminSettingsPage() {
     }
     fetchSettings();
   }, []);
+
+  const promoBarItems = settings.promoBarItems || [];
+
+  const updatePromoBarItem = (index: number, field: 'icon' | 'text', value: string) => {
+    const next = promoBarItems.map((item, i) => (i === index ? { ...item, [field]: value } : item));
+    setSettings({ ...settings, promoBarItems: next });
+  };
+
+  const addPromoBarItem = () => {
+    setSettings({ ...settings, promoBarItems: [...promoBarItems, { icon: '✨', text: '' }] });
+  };
+
+  const removePromoBarItem = (index: number) => {
+    setSettings({ ...settings, promoBarItems: promoBarItems.filter((_, i) => i !== index) });
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,22 +215,65 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* Top Marquee Notice */}
+          {/* Top Scrolling Announcement Bar */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-3">
-              Promotional Banner Notice
-            </h3>
             <div>
-              <label className="text-xs font-semibold text-gray-700 block mb-1">
-                Announcement Ticker Text
-              </label>
-              <input
-                type="text"
-                value={settings.promoNotice}
-                onChange={(e) => setSettings({ ...settings, promoNotice: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-              />
+              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+                <Megaphone className="w-4 h-4 text-amber-600" />
+                Top Announcement Bar
+              </h3>
+              <p className="text-xs text-gray-500 mt-2">
+                Scrolling ticker lines shown at the very top of every storefront page. Add, remove, or edit lines below.
+                Leave the list empty to hide the bar entirely.
+              </p>
             </div>
+
+            <div className="space-y-2.5">
+              {promoBarItems.map((item, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={item.icon}
+                    onChange={(e) => updatePromoBarItem(index, 'icon', e.target.value)}
+                    placeholder="🎁"
+                    maxLength={4}
+                    className="w-14 shrink-0 px-3 py-2.5 border border-gray-300 rounded-xl text-sm text-center outline-none focus:border-black"
+                    aria-label={`Line ${index + 1} icon`}
+                  />
+                  <input
+                    type="text"
+                    value={item.text}
+                    onChange={(e) => updatePromoBarItem(index, 'text', e.target.value)}
+                    placeholder="Line text, e.g. Cash on Delivery Available"
+                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
+                    aria-label={`Line ${index + 1} text`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removePromoBarItem(index)}
+                    className="shrink-0 p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                    aria-label={`Remove line ${index + 1}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+
+              {promoBarItems.length === 0 && (
+                <p className="text-xs text-gray-400 italic py-2">
+                  No lines — bar will be hidden on the storefront.
+                </p>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={addPromoBarItem}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-gray-700 border border-dashed border-gray-300 rounded-xl hover:border-black hover:text-black transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Line
+            </button>
           </div>
 
           {/* Homepage Frame Effect (Before/After Slider) */}

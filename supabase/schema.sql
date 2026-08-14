@@ -90,10 +90,17 @@ create table if not exists settings (
   footer_scripts text,
   frame_effect_before_image text,
   frame_effect_after_image text,
+  -- Top announcement ticker lines, e.g. [{"icon":"🎁","text":"Upto 35% Off"}].
+  -- Admin-editable (add/remove/edit) at /jw8yenjnkanhr823/settings.
+  promo_bar_items jsonb,
   updated_at timestamptz not null default now()
 );
-insert into settings (id, store_name, phone, email, address, inside_dhaka_delivery, outside_dhaka_delivery, promo_notice)
-values (1, 'LUMIFLICK', '+8801400307299', 'info@lumiflick.shop', 'Matbor bari, Baunia, Uttara, Dhaka, Bangladesh', 70, 130, '🎁 Upto 35% Off— Biggest Sale of the Year')
+insert into settings (id, store_name, phone, email, address, inside_dhaka_delivery, outside_dhaka_delivery, promo_notice, promo_bar_items)
+values (
+  1, 'LUMIFLICK', '+8801400307299', 'info@lumiflick.shop', 'PTI Mor, Khulna, Bangladesh - 9100', 70, 130,
+  '🎁 Upto 35% Off— Biggest Sale of the Year',
+  '[{"icon":"🎁","text":"Upto 35% Off— Biggest Sale of the Year"},{"icon":"💳","text":"Cash on Delivery Available"},{"icon":"🚚","text":"Fast Delivery All Over Bangladesh"}]'::jsonb
+)
 on conflict (id) do nothing;
 
 create table if not exists orders (

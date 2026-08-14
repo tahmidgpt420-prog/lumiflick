@@ -185,6 +185,12 @@ export function orderFromDb(row: any): OrderDetails & { status?: string } {
   };
 }
 
+const DEFAULT_PROMO_BAR_ITEMS = [
+  { icon: '🎁', text: 'Upto 35% Off— Biggest Sale of the Year' },
+  { icon: '💳', text: 'Cash on Delivery Available' },
+  { icon: '🚚', text: 'Fast Delivery All Over Bangladesh' },
+];
+
 // --- Settings ---
 export function settingsFromDb(row: any) {
   return {
@@ -200,6 +206,9 @@ export function settingsFromDb(row: any) {
     footerScripts: row.footer_scripts ?? '',
     frameEffectBeforeImage: row.frame_effect_before_image ?? '',
     frameEffectAfterImage: row.frame_effect_after_image ?? '',
+    // Falls back to the old hardcoded 3 lines if the column is missing
+    // (migration not yet run) or genuinely unset.
+    promoBarItems: Array.isArray(row.promo_bar_items) ? row.promo_bar_items : DEFAULT_PROMO_BAR_ITEMS,
   };
 }
 
@@ -217,6 +226,7 @@ export function settingsToDb(s: Record<string, any>) {
   if (s.footerScripts !== undefined) row.footer_scripts = s.footerScripts;
   if (s.frameEffectBeforeImage !== undefined) row.frame_effect_before_image = s.frameEffectBeforeImage;
   if (s.frameEffectAfterImage !== undefined) row.frame_effect_after_image = s.frameEffectAfterImage;
+  if (s.promoBarItems !== undefined) row.promo_bar_items = s.promoBarItems;
   row.updated_at = new Date().toISOString();
   return row;
 }

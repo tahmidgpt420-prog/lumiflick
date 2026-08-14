@@ -25,6 +25,8 @@ export interface StoreSettings {
   /** Homepage "Frame Effect" before/after slider images. */
   frameEffectBeforeImage?: string;
   frameEffectAfterImage?: string;
+  /** Top scrolling announcement bar lines (emoji + text), admin add/remove/edit-able. */
+  promoBarItems?: { icon: string; text: string }[];
 }
 
 export interface StoreData {
@@ -48,7 +50,7 @@ const defaultSettings: StoreSettings = {
   storeName: 'LUMIFLICK',
   phone: '+8801400307299',
   email: 'info@lumiflick.shop',
-  address: 'Matbor bari, Baunia, Uttara, Dhaka, Bangladesh',
+  address: 'PTI Mor, Khulna, Bangladesh - 9100',
   insideDhakaDelivery: 70,
   outsideDhakaDelivery: 130,
   promoNotice: '🎁 Upto 35% Off— Biggest Sale of the Year',
@@ -58,6 +60,11 @@ const defaultSettings: StoreSettings = {
   footerScripts: '',
   frameEffectBeforeImage: '/logo.png',
   frameEffectAfterImage: '/logo.png',
+  promoBarItems: [
+    { icon: '🎁', text: 'Upto 35% Off— Biggest Sale of the Year' },
+    { icon: '💳', text: 'Cash on Delivery Available' },
+    { icon: '🚚', text: 'Fast Delivery All Over Bangladesh' },
+  ],
 };
 
 // Retrieve store data with serverless fallback
