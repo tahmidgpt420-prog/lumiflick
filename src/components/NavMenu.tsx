@@ -116,7 +116,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
   return (
     <>
       {/* Desktop Horizontal Navigation */}
-      <nav ref={navRef} className="hidden lg:block bg-white border-t border-gray-100 shadow-sm relative">
+      <nav ref={navRef} className="hidden lg:block bg-white/80 backdrop-blur-md border-t border-gray-100/80 shadow-sm relative supports-[backdrop-filter]:bg-white/75">
         <div className="max-w-7xl mx-auto px-4 relative flex items-center group/nav">
           {/* Left Scroll Button */}
           <button
@@ -267,15 +267,15 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               setActiveDropdown(null);
             }}
           >
-            <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 space-y-0.5 animate-in fade-in-50 slide-in-from-top-1 duration-150">
+            <div className="bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/60 p-2 space-y-0.5 animate-in fade-in-50 slide-in-from-top-1 duration-150 supports-[backdrop-filter]:bg-white/85">
               <Link
                 href={`/product-category/${activeDropdown.slug}`}
                 onClick={() => setActiveDropdown(null)}
-                className="block px-3 py-1.5 text-xs font-bold text-gray-900 rounded-xl hover:bg-gray-100 transition-colors"
+                className="block px-3 py-1.5 text-xs font-bold text-gray-900 rounded-xl hover:bg-black/5 transition-colors"
               >
                 All {activeDropdown.name}
               </Link>
-              <div className="h-px bg-gray-100 my-1" />
+              <div className="h-px bg-gray-200/60 my-1" />
               {activeDropdown.subs.map((sub) => (
                 <Link
                   key={sub.slug}
@@ -283,8 +283,8 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                   onClick={() => setActiveDropdown(null)}
                   className={`block px-3 py-1.5 text-xs rounded-lg transition-colors font-medium ${
                     pathname === `/product-category/${sub.slug}`
-                      ? 'text-black font-bold bg-gray-100'
-                      : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                      ? 'text-black font-bold bg-black/10'
+                      : 'text-gray-700 hover:text-black hover:bg-black/5'
                   }`}
                 >
                   {sub.name}
@@ -304,29 +304,29 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
         >
           {/* Backdrop */}
           <div
-            className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${
+            className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ease-in-out ${
               mobileOpen ? 'opacity-100' : 'opacity-0'
             }`}
             onClick={() => setMobileOpen(false)}
           />
 
-          {/* Drawer Panel */}
+          {/* Drawer Panel (Frosted Glass) */}
           <div
-            className={`fixed inset-y-0 left-0 w-4/5 max-w-sm h-full bg-white shadow-2xl z-[101] flex flex-col transform transition-transform duration-300 ease-out will-change-transform ${
+            className={`fixed inset-y-0 left-0 w-4/5 max-w-sm h-full bg-white/85 backdrop-blur-2xl border-r border-white/50 shadow-2xl z-[101] flex flex-col transform transition-transform duration-300 ease-out will-change-transform supports-[backdrop-filter]:bg-white/80 ${
               mobileOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
           >
             {/* Drawer Header */}
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50 shrink-0">
+            <div className="p-4 border-b border-gray-200/60 flex items-center justify-between bg-white/40 backdrop-blur-md shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-gray-200 shadow-sm">
                   <Image src="/logo.png" alt="LUMIFLICK Logo" fill className="object-cover" />
                 </div>
                 <span className="font-bold tracking-wider text-black text-sm uppercase font-serif">LUMIFLICK</span>
               </div>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="p-2 rounded-full hover:bg-gray-200 text-gray-700 transition-colors"
+                className="p-2 rounded-full hover:bg-black/5 text-gray-700 transition-colors"
                 aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
@@ -338,7 +338,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               <Link
                 href="/"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-800 font-medium"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-black/5 text-gray-800 font-medium transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <Home className="w-4 h-4 text-gray-500" />
@@ -351,7 +351,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               <Link
                 href="/product-category/best-selling"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-900 font-semibold"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-black/5 text-gray-900 font-semibold transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <Flame className="w-4 h-4 text-gray-700" />
@@ -364,7 +364,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               <Link
                 href="/reviews"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-900 font-semibold"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-black/5 text-gray-900 font-semibold transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <Star className="w-4 h-4 text-gray-700" />
@@ -377,7 +377,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               <Link
                 href="/raw-photos"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-900 font-semibold"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-black/5 text-gray-900 font-semibold transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <Camera className="w-4 h-4 text-gray-700" />
@@ -389,7 +389,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               <Link
                 href="/shop"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-800 font-medium"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-black/5 text-gray-800 font-medium transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <Sparkles className="w-4 h-4 text-gray-500" />
@@ -410,7 +410,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
 
                 if (subs.length > 0) {
                   return (
-                    <div key={cat.slug} className="rounded-xl overflow-hidden bg-gray-50/70 border border-gray-100">
+                    <div key={cat.slug} className="rounded-xl overflow-hidden bg-black/[0.03] backdrop-blur-sm border border-black/5">
                       <div className="flex items-center justify-between p-3">
                         <Link
                           href={`/product-category/${cat.slug}`}
@@ -422,7 +422,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                         <button
                           type="button"
                           onClick={() => toggleMobileAccordion(cat.slug)}
-                          className="p-1 rounded-lg hover:bg-gray-200 text-gray-500"
+                          className="p-1 rounded-lg hover:bg-black/5 text-gray-500"
                           aria-label={`Toggle ${cat.name} sub-categories`}
                         >
                           <ChevronDown
@@ -434,11 +434,11 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                       </div>
 
                       {isExpanded && (
-                        <div className="pl-4 pr-3 pb-2 pt-1 space-y-1 bg-white border-t border-gray-100">
+                        <div className="pl-4 pr-3 pb-2 pt-1 space-y-1 bg-white/60 backdrop-blur-md border-t border-black/5">
                           <Link
                             href={`/product-category/${cat.slug}`}
                             onClick={() => setMobileOpen(false)}
-                            className="block py-1.5 px-2 text-xs font-bold text-gray-900 rounded hover:bg-gray-50"
+                            className="block py-1.5 px-2 text-xs font-bold text-gray-900 rounded hover:bg-black/5"
                           >
                             All {cat.name}
                           </Link>
@@ -447,7 +447,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                               key={sub.slug}
                               href={`/product-category/${sub.slug}`}
                               onClick={() => setMobileOpen(false)}
-                              className="flex items-center gap-1.5 py-1.5 px-2 text-xs text-gray-600 hover:text-black rounded hover:bg-gray-50 font-medium"
+                              className="flex items-center gap-1.5 py-1.5 px-2 text-xs text-gray-600 hover:text-black rounded hover:bg-black/5 font-medium"
                             >
                               <CornerDownRight className="w-3 h-3 text-gray-400" />
                               <span>{sub.name}</span>
@@ -464,7 +464,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                     key={cat.slug}
                     href={`/product-category/${cat.slug}`}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-700 font-normal text-sm"
+                    className="flex items-center justify-between p-3 rounded-xl hover:bg-black/5 text-gray-700 font-normal text-sm transition-colors"
                   >
                     <span>{cat.name}</span>
                     <ChevronRight className="w-4 h-4 text-gray-300" />
@@ -472,25 +472,25 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                 );
               })}
 
-              <div className="pt-4 border-t border-gray-100 mt-4 space-y-1">
+              <div className="pt-4 border-t border-gray-200/60 mt-4 space-y-1">
                 <Link
                   href="/about-us"
                   onClick={() => setMobileOpen(false)}
-                  className="block p-3 text-sm text-gray-600 hover:text-black"
+                  className="block p-3 text-sm text-gray-600 hover:text-black rounded-xl hover:bg-black/5 transition-colors"
                 >
                   About LUMIFLICK
                 </Link>
                 <Link
                   href="/contact"
                   onClick={() => setMobileOpen(false)}
-                  className="block p-3 text-sm text-gray-600 hover:text-black"
+                  className="block p-3 text-sm text-gray-600 hover:text-black rounded-xl hover:bg-black/5 transition-colors"
                 >
                   Contact Us
                 </Link>
                 <Link
                   href="/shipping-policy"
                   onClick={() => setMobileOpen(false)}
-                  className="block p-3 text-sm text-gray-600 hover:text-black"
+                  className="block p-3 text-sm text-gray-600 hover:text-black rounded-xl hover:bg-black/5 transition-colors"
                 >
                   Delivery &amp; Shipping
                 </Link>
@@ -498,7 +498,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
             </div>
 
             {/* Bottom Support info */}
-            <div className="p-4 bg-gray-50 border-t border-gray-100 text-xs text-gray-500 shrink-0">
+            <div className="p-4 bg-white/40 backdrop-blur-md border-t border-gray-200/60 text-xs text-gray-500 shrink-0">
               <p className="font-medium text-gray-700">Need help with an order?</p>
               <p className="mt-0.5">
                 Hotline:{' '}
