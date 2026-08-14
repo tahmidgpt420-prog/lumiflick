@@ -20,6 +20,8 @@ import { categories } from '@/data/categories';
 import { products as staticProducts } from '@/data/products';
 import { useProducts } from '@/context/ProductContext';
 
+const PAGE_SIZE = 50;
+
 export default function AdminProductsPage() {
   const { refreshProducts } = useProducts();
   const [products, setProducts] = useState<Product[]>([]);
@@ -27,6 +29,7 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const fetchProducts = async () => {
     try {
@@ -76,6 +79,14 @@ export default function AdminProductsPage() {
       return matchesSearch && matchesCat;
     });
   }, [products, search, selectedCat]);
+
+  // Reset to the first page whenever the search/filter changes.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [search, selectedCat]);
+
+  const visibleProducts = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
 
   return (
     <div className="space-y-6">
@@ -151,7 +162,7 @@ export default function AdminProductsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filtered.map((product) => (
+                  {visibleProducts.map((product) => (
                     <tr
                       key={product.id || product.slug}
                       className="hover:bg-gray-50/80 transition-colors"
@@ -251,6 +262,17 @@ export default function AdminProductsPage() {
             </div>
           )}
         </div>
+
+        {hasMore && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              className="px-8 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+            >
+              Load More
+            </button>
+          </div>
+        )}
 
       </div>
     </div>
