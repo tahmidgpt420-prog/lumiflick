@@ -11,7 +11,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
     remotePatterns: [
-      { protocol: 'https', hostname: 'genuinetask.com.bd' },
       { protocol: 'https', hostname: 'drive.google.com' },
       { protocol: 'https', hostname: 'dropbox.com' },
       { protocol: 'https', hostname: 'www.dropbox.com' },

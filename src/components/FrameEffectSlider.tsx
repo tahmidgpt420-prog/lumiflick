@@ -4,30 +4,37 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeftRight, Sparkles, ArrowRight } from 'lucide-react';
+import { formatImageUrl } from '@/utils/driveUrl';
 
-const DEFAULT_BEFORE_IMAGE =
-  'https://genuinetask.com.bd/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-02-at-2.45.04-AM.webp';
-const DEFAULT_AFTER_IMAGE =
-  'https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg';
 const SETTINGS_CACHE_KEY = 'lumiflick_store_settings_v1';
 
 export default function FrameEffectSlider() {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [beforeImage, setBeforeImage] = useState(DEFAULT_BEFORE_IMAGE);
-  const [afterImage, setAfterImage] = useState(DEFAULT_AFTER_IMAGE);
+  const [beforeImage, setBeforeImage] = useState<string>('');
+  const [afterImage, setAfterImage] = useState<string>('');
+  const [beforeLoaded, setBeforeLoaded] = useState(false);
+  const [afterLoaded, setAfterLoaded] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   useEffect(() => {
     const applyFromSettings = (settings: any) => {
-      if (settings?.frameEffectBeforeImage) setBeforeImage(settings.frameEffectBeforeImage);
-      if (settings?.frameEffectAfterImage) setAfterImage(settings.frameEffectAfterImage);
+      if (settings?.frameEffectBeforeImage) {
+        setBeforeImage(settings.frameEffectBeforeImage);
+      }
+      if (settings?.frameEffectAfterImage) {
+        setAfterImage(settings.frameEffectAfterImage);
+      }
+      setSettingsLoaded(true);
     };
 
-    // Instant paint from cache (same pattern as TrackingScripts)
+    // Instant paint from cache
     try {
       const cached = localStorage.getItem(SETTINGS_CACHE_KEY);
-      if (cached) applyFromSettings(JSON.parse(cached));
+      if (cached) {
+        applyFromSettings(JSON.parse(cached));
+      }
     } catch {}
 
     let cancelled = false;
@@ -35,8 +42,14 @@ export default function FrameEffectSlider() {
       try {
         const res = await fetch('/api/admin/settings');
         const data = await res.json();
-        if (!cancelled && data.success) applyFromSettings(data.settings);
-      } catch {}
+        if (!cancelled && data.success && data.settings) {
+          applyFromSettings(data.settings);
+        } else if (!cancelled) {
+          setSettingsLoaded(true);
+        }
+      } catch {
+        if (!cancelled) setSettingsLoaded(true);
+      }
     };
     loadLatest();
 
@@ -92,6 +105,9 @@ export default function FrameEffectSlider() {
     };
   }, [isDragging, handleMouseMove, handleTouchMove, handleEnd]);
 
+  const hasImages = Boolean(beforeImage && afterImage);
+  const isReady = Boolean(settingsLoaded && hasImages && beforeLoaded && afterLoaded);
+
   return (
     <section className="py-12 md:py-16 bg-gradient-to-b from-gray-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -101,57 +117,93 @@ export default function FrameEffectSlider() {
           <div className="lg:col-span-7">
             <div
               ref={containerRef}
-              className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-xl select-none cursor-ew-resize border-4 border-white bg-gray-200"
+              className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-xl select-none cursor-ew-resize border-4 border-white bg-gray-100"
               onMouseDown={(e) => {
-                setIsDragging(true);
-                handleMove(e.clientX);
+                if (isReady) {
+                  setIsDragging(true);
+                  handleMove(e.clientX);
+                }
               }}
               onTouchStart={(e) => {
-                setIsDragging(true);
-                handleMove(e.touches[0].clientX);
+                if (isReady) {
+                  setIsDragging(true);
+                  handleMove(e.touches[0].clientX);
+                }
               }}
             >
-              {/* "After" Image (Full background - Styled room with frames) */}
-              <div className="absolute inset-0 w-full h-full">
-                <Image
-                  src={afterImage}
-                  alt="Room with LUMIFLICK Luxury Frames"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                />
-                <span className="absolute top-4 right-4 bg-black/70 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
-                  ✨ With Frames
-                </span>
-              </div>
-
-              {/* "Before" Image (Clipped overlay - Bare room wall) */}
+              {/* Skeleton Shimmer Loading Placeholder */}
               <div
-                className="absolute inset-0 w-full h-full overflow-hidden"
-                style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
-              >
-                <Image
-                  src={beforeImage}
-                  alt="Empty Bare Wall"
-                  fill
-                  className="object-cover grayscale brightness-90 contrast-90"
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                />
-                <span className="absolute top-4 left-4 bg-black/70 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
-                  Plain Wall
-                </span>
-              </div>
+                aria-hidden="true"
+                className={`absolute inset-0 z-30 card-skeleton-shimmer transition-opacity duration-500 pointer-events-none ${
+                  isReady ? 'opacity-0' : 'opacity-100'
+                }`}
+              />
 
-              {/* Draggable Divider Bar */}
-              <div
-                className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20"
-                style={{ left: `${sliderPosition}%` }}
-              >
-                {/* Center Handle Button */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-xl flex items-center justify-center text-gray-800 border-2 border-gray-100 hover:scale-110 active:scale-95 transition-transform">
-                  <ArrowLeftRight className="w-4 h-4" />
-                </div>
-              </div>
+              {hasImages && (
+                <>
+                  {/* "After" Image (Full background - Styled room with glass art) */}
+                  <div className="absolute inset-0 w-full h-full">
+                    <Image
+                      src={formatImageUrl(afterImage)}
+                      alt="Room with LUMIFLICK Luxury Glass Art"
+                      fill
+                      unoptimized
+                      onLoad={() => setAfterLoaded(true)}
+                      onError={() => setAfterLoaded(true)}
+                      className={`object-cover transition-opacity duration-500 ${
+                        afterLoaded ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      sizes="(max-width: 1024px) 100vw, 60vw"
+                    />
+                    <span
+                      className={`absolute top-4 right-4 bg-black/70 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow z-10 transition-opacity duration-300 ${
+                        isReady ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      ✨ With Glass Poster
+                    </span>
+                  </div>
+
+                  {/* "Before" Image (Clipped overlay - Bare room wall) */}
+                  <div
+                    className="absolute inset-0 w-full h-full overflow-hidden"
+                    style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
+                  >
+                    <Image
+                      src={formatImageUrl(beforeImage)}
+                      alt="Empty Bare Wall"
+                      fill
+                      unoptimized
+                      onLoad={() => setBeforeLoaded(true)}
+                      onError={() => setBeforeLoaded(true)}
+                      className={`object-cover grayscale brightness-90 contrast-90 transition-opacity duration-500 ${
+                        beforeLoaded ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      sizes="(max-width: 1024px) 100vw, 60vw"
+                    />
+                    <span
+                      className={`absolute top-4 left-4 bg-black/70 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow z-10 transition-opacity duration-300 ${
+                        isReady ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    >
+                      Plain Wall
+                    </span>
+                  </div>
+
+                  {/* Draggable Divider Bar */}
+                  <div
+                    className={`absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20 transition-opacity duration-300 ${
+                      isReady ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    style={{ left: `${sliderPosition}%` }}
+                  >
+                    {/* Center Handle Button */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-xl flex items-center justify-center text-gray-800 border-2 border-gray-100 hover:scale-110 active:scale-95 transition-transform">
+                      <ArrowLeftRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             
             <p className="text-center text-xs text-gray-400 mt-2.5 flex items-center justify-center gap-1.5">
