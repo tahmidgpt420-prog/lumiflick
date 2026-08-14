@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import DOMPurify from 'isomorphic-dompurify';
 import { useRouter } from 'next/navigation';
 import {
   ShoppingBag,
@@ -58,6 +57,24 @@ export default function ProductDetailView({
     const updated = formatImageUrl(product.galleryImages?.[0] || product.image || '/logo.png');
     setSelectedImage(updated);
   }, [product.image, product.galleryImages]);
+
+  // Sanitized client-side only, via dynamic import — isomorphic-dompurify's
+  // server-side path pulls in jsdom, which pulled in an ESM-only dependency
+  // that crashed every product page in production (require() of ES Module).
+  // Keeping the import out of the static module graph means webpack never
+  // bundles that broken chain into the server build at all. Starts empty,
+  // fills in on mount — a one-frame flash, not an XSS window, since empty
+  // string is what's actually in the server-rendered HTML.
+  const [safeDescription, setSafeDescription] = useState('');
+  useEffect(() => {
+    let cancelled = false;
+    import('isomorphic-dompurify').then(({ default: DOMPurify }) => {
+      if (!cancelled) setSafeDescription(DOMPurify.sanitize(product.description || ''));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [product.description]);
 
 function getOrdinal(n: number): string {
   const s = ['th', 'st', 'nd', 'rd'];
@@ -430,7 +447,7 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
           {activeTab === 'desc' && (
             <div
               className="prose prose-sm sm:prose-base max-w-none text-gray-700 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description || '') }}
+              dangerouslySetInnerHTML={{ __html: safeDescription }}
             />
           )}
 
