@@ -10,7 +10,7 @@ import crypto from 'node:crypto';
  */
 
 export const ADMIN_SESSION_COOKIE = 'lf_admin_session';
-export const SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour, matches prior inactivity policy
+export const SESSION_TTL_MS = 3 * 60 * 60 * 1000; // 3 hours
 
 interface SessionPayload {
   sub: string; // admin username
