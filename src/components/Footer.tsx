@@ -17,7 +17,7 @@ export default function Footer() {
               </div>
               <div>
                 <h4 className="font-bold text-white text-sm">Nationwide Delivery</h4>
-                <p className="text-gray-400 mt-0.5 text-[11px]">Inside & Outside Dhaka Delivery</p>
+                <p className="text-gray-400 mt-0.5 text-[11px]">All Bangladesh Home Delivery</p>
               </div>
             </div>
 
@@ -27,7 +27,7 @@ export default function Footer() {
               </div>
               <div>
                 <h4 className="font-bold text-white text-sm">Premium Quality</h4>
-                <p className="text-gray-400 mt-0.5 text-[11px]">Museum Grade UV Matte Art Prints</p>
+                <p className="text-gray-400 mt-0.5 text-[11px]">2.5mm Real Glass with Lifetime Color Guarantee</p>
               </div>
             </div>
 
@@ -36,8 +36,8 @@ export default function Footer() {
                 <Heart className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-white text-sm">Cash On Delivery</h4>
-                <p className="text-gray-400 mt-0.5 text-[11px]">Pay upon physical parcel receipt</p>
+                <h4 className="font-bold text-white text-sm">5000+</h4>
+                <p className="text-gray-400 mt-0.5 text-[11px]">Successful Orders</p>
               </div>
             </div>
           </div>
@@ -84,28 +84,33 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/product-category/religious-luxury-frame" className="hover:text-white transition-colors">
-                  Religious Luxury Frame
+                <Link href="/product-category/anime-glass-poster" className="hover:text-white transition-colors">
+                  Anime Glass Poster
                 </Link>
               </li>
               <li>
-                <Link href="/product-category/cars-frame-collection" className="hover:text-white transition-colors">
-                  Car’s Frame Collection
+                <Link href="/product-category/car-glass-poster" className="hover:text-white transition-colors">
+                  Car Glass Poster
                 </Link>
               </li>
               <li>
-                <Link href="/product-category/5-frames-set" className="hover:text-white transition-colors">
-                  5 Frames Set
+                <Link href="/product-category/fifa-glass-poster" className="hover:text-white transition-colors">
+                  Fifa Glass Poster
                 </Link>
               </li>
               <li>
-                <Link href="/product-category/motivational-wall-frame" className="hover:text-white transition-colors">
-                  Motivational Wall Frame
+                <Link href="/product-category/islamic-glass-poster" className="hover:text-white transition-colors">
+                  Islamic Glass Poster
                 </Link>
               </li>
               <li>
-                <Link href="/product-category/nature-inspired-frame" className="hover:text-white transition-colors">
-                  Nature Inspired Frame
+                <Link href="/product-category/motivational-glass-poster" className="hover:text-white transition-colors">
+                  Motivational Glass Poster
+                </Link>
+              </li>
+              <li>
+                <Link href="/product-category/nature-glass-poster" className="hover:text-white transition-colors">
+                  Nature Glass Poster
                 </Link>
               </li>
               <li>
