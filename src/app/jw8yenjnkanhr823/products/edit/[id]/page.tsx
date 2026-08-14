@@ -6,7 +6,6 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import ProductForm from '@/components/admin/ProductForm';
 import { Product } from '@/types';
 import { products as initialProducts } from '@/data/products';
-import { useProducts } from '@/context/ProductContext';
 import Link from 'next/link';
 
 function findProduct(decodedId: string, list: Product[]): Product | null {
@@ -26,7 +25,6 @@ export default function EditProductPage() {
   const rawId = (params?.id as string) || '';
   const decodedId = decodeURIComponent(rawId).toLowerCase().trim();
 
-  const { products: contextProducts, isLoaded } = useProducts();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -39,16 +37,12 @@ export default function EditProductPage() {
     }
 
     async function load() {
-      // 1. Check ProductContext products first (cached Firestore + static)
-      const foundInContext = findProduct(decodedId, contextProducts);
-      if (foundInContext) {
-        setProduct(foundInContext);
-        setLoading(false);
-        return;
-      }
-
-      // 2. Not in the (possibly stale, 15-min cached) context yet — fetch
-      // this one product directly and freshly from the admin API.
+      // Always fetch live from the admin API — this used to check the
+      // (cached, up to a minute stale) ProductContext catalog first, which
+      // meant saving an edit and immediately reopening it to verify could
+      // show the pre-edit values even though the save genuinely worked.
+      // The edit form should never show anything but the current database
+      // state.
       try {
         const res = await fetch(`/api/admin/products/${encodeURIComponent(decodedId)}`);
         const data = await res.json();
@@ -58,7 +52,8 @@ export default function EditProductPage() {
           return;
         }
 
-        // 3. Fall back to static bundled products
+        // Fall back to static bundled products only if the database
+        // genuinely has nothing under this id/slug.
         const staticFound = findProduct(decodedId, initialProducts as Product[]);
         if (staticFound) {
           setProduct(staticFound);
@@ -76,7 +71,7 @@ export default function EditProductPage() {
     }
 
     load();
-  }, [decodedId, rawId, contextProducts]);
+  }, [decodedId, rawId]);
 
   return (
     <div className="space-y-6">
