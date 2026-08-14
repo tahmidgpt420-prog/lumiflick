@@ -22,6 +22,9 @@ export interface StoreSettings {
   headerScripts?: string;
   bodyScripts?: string;
   footerScripts?: string;
+  /** Homepage "Frame Effect" before/after slider images. */
+  frameEffectBeforeImage?: string;
+  frameEffectAfterImage?: string;
 }
 
 export interface StoreData {
@@ -51,6 +54,8 @@ const defaultSettings: StoreSettings = {
   headerScripts: '',
   bodyScripts: '',
   footerScripts: '',
+  frameEffectBeforeImage: 'https://genuinetask.com.bd/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-02-at-2.45.04-AM.webp',
+  frameEffectAfterImage: 'https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg',
 };
 
 // Retrieve store data with serverless fallback

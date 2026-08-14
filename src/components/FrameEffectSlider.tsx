@@ -5,10 +5,55 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeftRight, Sparkles, ArrowRight } from 'lucide-react';
 
+const DEFAULT_BEFORE_IMAGE =
+  'https://genuinetask.com.bd/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-02-at-2.45.04-AM.webp';
+const DEFAULT_AFTER_IMAGE =
+  'https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg';
+const SETTINGS_CACHE_KEY = 'lumiflick_store_settings_v1';
+
 export default function FrameEffectSlider() {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [beforeImage, setBeforeImage] = useState(DEFAULT_BEFORE_IMAGE);
+  const [afterImage, setAfterImage] = useState(DEFAULT_AFTER_IMAGE);
+
+  useEffect(() => {
+    const applyFromSettings = (settings: any) => {
+      if (settings?.frameEffectBeforeImage) setBeforeImage(settings.frameEffectBeforeImage);
+      if (settings?.frameEffectAfterImage) setAfterImage(settings.frameEffectAfterImage);
+    };
+
+    // Instant paint from cache (same pattern as TrackingScripts)
+    try {
+      const cached = localStorage.getItem(SETTINGS_CACHE_KEY);
+      if (cached) applyFromSettings(JSON.parse(cached));
+    } catch {}
+
+    let cancelled = false;
+    const loadLatest = async () => {
+      try {
+        const res = await fetch('/api/admin/settings');
+        const data = await res.json();
+        if (!cancelled && data.success) applyFromSettings(data.settings);
+      } catch {}
+    };
+    loadLatest();
+
+    const handleUpdate = () => {
+      try {
+        const cached = localStorage.getItem(SETTINGS_CACHE_KEY);
+        if (cached) applyFromSettings(JSON.parse(cached));
+      } catch {}
+      loadLatest();
+    };
+    window.addEventListener('lumiflick_settings_updated', handleUpdate);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('lumiflick_settings_updated', handleUpdate);
+    };
+  }, []);
 
   const handleMove = useCallback((clientX: number) => {
     if (!containerRef.current) return;
@@ -69,7 +114,7 @@ export default function FrameEffectSlider() {
               {/* "After" Image (Full background - Styled room with frames) */}
               <div className="absolute inset-0 w-full h-full">
                 <Image
-                  src="https://genuinetask.com.bd/wp-content/uploads/2026/08/IMG_3056-1-300x225.jpeg"
+                  src={afterImage}
                   alt="Room with GenuineTask Luxury Frames"
                   fill
                   className="object-cover"
@@ -86,7 +131,7 @@ export default function FrameEffectSlider() {
                 style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
               >
                 <Image
-                  src="https://genuinetask.com.bd/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-02-at-2.45.04-AM.webp"
+                  src={beforeImage}
                   alt="Empty Bare Wall"
                   fill
                   className="object-cover grayscale brightness-90 contrast-90"

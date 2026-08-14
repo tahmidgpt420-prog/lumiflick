@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import AdminHeader from '@/components/admin/AdminHeader';
-import { Save, CheckCircle2, Shield, Phone, MapPin, Truck, Code2, EyeOff, Activity, HelpCircle, Loader2 } from 'lucide-react';
+import FileUploadBox from '@/components/admin/FileUploadBox';
+import { Save, CheckCircle2, Shield, Phone, MapPin, Truck, Code2, EyeOff, Activity, HelpCircle, Loader2, Images } from 'lucide-react';
 import { StoreSettings } from '@/data/db';
 
 export default function AdminSettingsPage() {
@@ -17,6 +18,8 @@ export default function AdminSettingsPage() {
     headerScripts: '',
     bodyScripts: '',
     footerScripts: '',
+    frameEffectBeforeImage: '',
+    frameEffectAfterImage: '',
   });
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -207,6 +210,42 @@ export default function AdminSettingsPage() {
                 onChange={(e) => setSettings({ ...settings, promoNotice: e.target.value })}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
               />
+            </div>
+          </div>
+
+          {/* Homepage Frame Effect (Before/After Slider) */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-5">
+            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+              <Images className="w-4 h-4 text-amber-600" />
+              &ldquo;The Frame Effect&rdquo; Section (Homepage Before/After Slider)
+            </h3>
+            <p className="text-xs text-gray-500 -mt-2">
+              Upload images or paste a direct link (including Google Drive share links) for each side of the
+              draggable before/after slider on the homepage.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                  &ldquo;Before&rdquo; Image (Plain Wall)
+                </label>
+                <FileUploadBox
+                  label="Before Image"
+                  value={settings.frameEffectBeforeImage || ''}
+                  onChange={(url) => setSettings({ ...settings, frameEffectBeforeImage: url })}
+                  aspectRatio="square"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-700 block mb-1.5">
+                  &ldquo;After&rdquo; Image (With Frames)
+                </label>
+                <FileUploadBox
+                  label="After Image"
+                  value={settings.frameEffectAfterImage || ''}
+                  onChange={(url) => setSettings({ ...settings, frameEffectAfterImage: url })}
+                  aspectRatio="square"
+                />
+              </div>
             </div>
           </div>
 
