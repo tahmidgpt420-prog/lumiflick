@@ -142,7 +142,7 @@ function ShopContent() {
                   : 'bg-white text-gray-700 hover:bg-gray-200 border border-gray-200'
               }`}
             >
-              All Designs ({products.length})
+              All Designs
             </button>
             {mainCategories.map((cat) => {
               const isDirectlySelected = selectedCategory === cat.slug;
