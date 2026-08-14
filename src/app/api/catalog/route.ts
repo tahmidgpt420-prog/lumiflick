@@ -11,6 +11,7 @@ import { categories as staticCategories } from '@/data/categories';
 // per visitor), but it no longer needs to be aggressive — a long TTL here
 // just makes admin edits (new categories, product changes) look broken
 // for up to 15 minutes for no real benefit anymore.
+export const dynamic = 'force-dynamic';
 export const revalidate = 20;
 
 const CACHE_TTL_MS = 20 * 1000;

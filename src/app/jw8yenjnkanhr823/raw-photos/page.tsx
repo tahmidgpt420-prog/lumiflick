@@ -271,7 +271,7 @@ export default function AdminRawPhotosPage() {
                   label="Select or Drag Raw Image"
                   value={photoUrl}
                   onChange={setPhotoUrl}
-                  aspectRatio="auto"
+                  aspectRatio="wide"
                 />
 
                 {/* Live Preview */}

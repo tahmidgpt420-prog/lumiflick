@@ -6,6 +6,7 @@ import StorefrontShell from '@/components/StorefrontShell';
 import TrackingScripts from '@/components/TrackingScripts';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://lumiflick.shop'),
   title: 'LUMIFLICK | Premium Handcrafted Wall Art & Frames in Bangladesh',
   description:
     'Discover premium handcrafted wall frames, religious calligraphy sets, automotive supercar prints, and modern minimalist art with cash on delivery across Bangladesh.',
