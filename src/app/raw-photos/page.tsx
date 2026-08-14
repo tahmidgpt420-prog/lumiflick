@@ -289,7 +289,7 @@ export default function RawPhotosPage() {
               </div>
             )}
             <img
-              src={formatImageUrl(activePhoto.image, 1600)}
+              src={formatImageUrl(activePhoto.image, 'original')}
               alt="Raw Product Photo Full View"
               onLoad={() => setLightboxLoaded(true)}
               className={`max-h-[85vh] max-w-[90vw] object-contain rounded-xl shadow-2xl transition-opacity duration-300 ${

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { CustomerReview } from '@/types';
 import { customerReviews as initialReviews } from '@/data/reviews';
+import { formatImageUrl } from '@/utils/driveUrl';
 
 const PAGE_SIZE = 16;
 
@@ -191,7 +192,7 @@ export default function ReviewsPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={activePhoto.screenshotImage || (activePhoto as any).image}
+              src={formatImageUrl(activePhoto.screenshotImage || (activePhoto as any).image, 'original')}
               alt="Customer Review Fullscreen"
               className="max-h-[85vh] max-w-full w-auto h-auto object-contain rounded-xl shadow-2xl"
             />
