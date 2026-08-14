@@ -52,7 +52,7 @@ export default function AdminRawPhotosPage() {
 
   const handleApplyLink = () => {
     if (!directLinkInput.trim()) return;
-    const formatted = formatImageUrl(directLinkInput.trim());
+    const formatted = formatImageUrl(directLinkInput.trim(), 800);
     setPhotoUrl(formatted);
     setDirectLinkInput('');
   };
@@ -83,7 +83,7 @@ export default function AdminRawPhotosPage() {
 
     setIsSaving(true);
 
-    const formatted = formatImageUrl(finalUrl);
+    const formatted = formatImageUrl(finalUrl, 800);
     const payload: Partial<RawPhoto> = {
       image: formatted,
       displayOrder: photos.length + 1,
@@ -174,7 +174,7 @@ export default function AdminRawPhotosPage() {
         ) : (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
             {photos.map((p) => {
-              const displayImg = formatImageUrl(p.image);
+              const displayImg = formatImageUrl(p.image, 800);
               return (
                 <div
                   key={p.id}
@@ -278,7 +278,7 @@ export default function AdminRawPhotosPage() {
                 {photoUrl && (
                   <div className="p-2 bg-gray-50 rounded-2xl border border-gray-200 max-h-48 overflow-hidden flex items-center justify-center">
                     <img
-                      src={formatImageUrl(photoUrl)}
+                      src={formatImageUrl(photoUrl, 800)}
                       alt="Preview"
                       className="max-h-44 w-auto object-contain rounded-lg"
                     />

@@ -17,11 +17,91 @@ import { formatImageUrl } from '@/utils/driveUrl';
 
 const PAGE_SIZE = 16;
 
+// Individual Photo Card with Skeleton Shimmer Animation
+function RawPhotoCard({
+  photo,
+  index,
+  onSelect,
+}: {
+  photo: RawPhoto;
+  index: number;
+  onSelect: (index: number) => void;
+}) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  // Use 800px width for Google Drive images in the raw photo section
+  const imgUrl = formatImageUrl(photo.image, 800);
+
+  if (!imgUrl) return null;
+
+  return (
+    <div
+      onClick={() => onSelect(index)}
+      className="break-inside-avoid bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden group cursor-zoom-in relative transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
+    >
+      <div className="relative w-full min-h-[180px] bg-gray-100 flex items-center justify-center overflow-hidden">
+        
+        {/* Skeleton Shimmer Loading Placeholder */}
+        {!imageLoaded && !hasError && (
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 z-10 card-skeleton-shimmer transition-opacity duration-300 pointer-events-none min-h-[220px]"
+          />
+        )}
+
+        {/* Image in its TRUE Original Aspect Ratio */}
+        <img
+          src={hasError ? '/logo.png' : imgUrl}
+          alt="LUMIFLICK Raw Glass Poster Photo"
+          loading="lazy"
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            setImageLoaded(true);
+            setHasError(true);
+          }}
+          className={`w-full h-auto object-contain block transition-all duration-500 group-hover:scale-[1.01] ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+
+        {/* Hover Overlay with Zoom Icon */}
+        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-20">
+          <div className="px-3.5 py-1.5 bg-black/80 backdrop-blur-sm text-white rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-lg">
+            <ZoomIn className="w-3.5 h-3.5" /> View Photo
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// Initial Masonry Grid Skeleton Loader
+function RawPhotosSkeletonGrid() {
+  const dummyHeights = [
+    'h-72', 'h-96', 'h-64', 'h-80',
+    'h-84', 'h-60', 'h-76', 'h-90'
+  ];
+
+  return (
+    <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+      {dummyHeights.map((h, i) => (
+        <div
+          key={i}
+          className={`break-inside-avoid bg-white rounded-2xl border border-gray-200 overflow-hidden relative ${h} card-skeleton-shimmer`}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function RawPhotosPage() {
   const [photos, setPhotos] = useState<RawPhoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [lightboxLoaded, setLightboxLoaded] = useState(false);
 
   useEffect(() => {
     async function loadPhotos() {
@@ -48,8 +128,14 @@ export default function RawPhotosPage() {
       ? photos[activePhotoIndex]
       : null;
 
+  const handleOpenPhoto = (idx: number) => {
+    setLightboxLoaded(false);
+    setActivePhotoIndex(idx);
+  };
+
   const handlePrev = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setLightboxLoaded(false);
     if (activePhotoIndex !== null && activePhotoIndex > 0) {
       setActivePhotoIndex(activePhotoIndex - 1);
     } else if (activePhotoIndex === 0) {
@@ -59,6 +145,7 @@ export default function RawPhotosPage() {
 
   const handleNext = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setLightboxLoaded(false);
     if (activePhotoIndex !== null && activePhotoIndex < photos.length - 1) {
       setActivePhotoIndex(activePhotoIndex + 1);
     } else if (activePhotoIndex === photos.length - 1) {
@@ -72,11 +159,13 @@ export default function RawPhotosPage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setActivePhotoIndex(null);
       if (e.key === 'ArrowLeft') {
+        setLightboxLoaded(false);
         setActivePhotoIndex((prev) =>
           prev !== null ? (prev > 0 ? prev - 1 : photos.length - 1) : null
         );
       }
       if (e.key === 'ArrowRight') {
+        setLightboxLoaded(false);
         setActivePhotoIndex((prev) =>
           prev !== null ? (prev < photos.length - 1 ? prev + 1 : 0) : null
         );
@@ -116,13 +205,10 @@ export default function RawPhotosPage() {
         </div>
       </section>
 
-      {/* Original Aspect Ratio Masonry Gallery */}
+      {/* Original Aspect Ratio Masonry Gallery with Skeleton Shimmer */}
       <section className="py-8 sm:py-12 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         {loading ? (
-          <div className="py-24 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
-            Loading raw photos...
-          </div>
+          <RawPhotosSkeletonGrid />
         ) : photos.length === 0 ? (
           <div className="text-center py-24 text-xs text-gray-400 bg-white rounded-2xl border border-dashed border-gray-300 p-8 max-w-md mx-auto space-y-2">
             <Camera className="w-8 h-8 mx-auto text-gray-300" />
@@ -131,33 +217,14 @@ export default function RawPhotosPage() {
           </div>
         ) : (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-            {visiblePhotos.map((photo, index) => {
-              const imgUrl = formatImageUrl(photo.image);
-              if (!imgUrl) return null;
-
-              return (
-                <div
-                  key={photo.id || index}
-                  onClick={() => setActivePhotoIndex(index)}
-                  className="break-inside-avoid bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden group cursor-zoom-in relative transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
-                >
-                  {/* Image in its TRUE Original Aspect Ratio */}
-                  <img
-                    src={imgUrl}
-                    alt="LUMIFLICK Raw Glass Poster Photo"
-                    className="w-full h-auto object-contain block transition-transform duration-300 group-hover:scale-[1.01]"
-                    loading="lazy"
-                  />
-
-                  {/* Hover Overlay with Zoom Icon */}
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                    <div className="px-3.5 py-1.5 bg-black/80 backdrop-blur-sm text-white rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-lg">
-                      <ZoomIn className="w-3.5 h-3.5" /> View Photo
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {visiblePhotos.map((photo, index) => (
+              <RawPhotoCard
+                key={photo.id || index}
+                photo={photo}
+                index={index}
+                onSelect={handleOpenPhoto}
+              />
+            ))}
           </div>
         )}
 
@@ -211,15 +278,23 @@ export default function RawPhotosPage() {
             <ChevronRight className="w-6 h-6" />
           </button>
 
-          {/* Active Image in Original Aspect Ratio */}
+          {/* Active Image in Original Aspect Ratio (High Res 1600px for lightbox) */}
           <div
             className="relative max-w-5xl max-h-[90vh] flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
+            {!lightboxLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-white/60 animate-spin" />
+              </div>
+            )}
             <img
-              src={formatImageUrl(activePhoto.image)}
+              src={formatImageUrl(activePhoto.image, 1600)}
               alt="Raw Product Photo Full View"
-              className="max-h-[85vh] max-w-[90vw] object-contain rounded-xl shadow-2xl animate-scale-up"
+              onLoad={() => setLightboxLoaded(true)}
+              className={`max-h-[85vh] max-w-[90vw] object-contain rounded-xl shadow-2xl transition-opacity duration-300 ${
+                lightboxLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`}
             />
           </div>
         </div>
