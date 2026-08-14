@@ -37,6 +37,8 @@ export interface Product {
   // Piece selection: customer picks 1, 2, or 3 pieces from a set
   pieceSelectionEnabled?: boolean;
   maxPieces?: number; // default 3
+  /** Set by the Firestore mirror on every save — used for newest/oldest sorting. */
+  updatedAt?: number;
 }
 
 export interface Category {

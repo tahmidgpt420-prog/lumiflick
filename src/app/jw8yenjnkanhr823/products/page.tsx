@@ -22,12 +22,24 @@ import { useProducts } from '@/context/ProductContext';
 
 const PAGE_SIZE = 50;
 
+type SortOption = 'default' | 'name-asc' | 'name-desc' | 'category' | 'newest' | 'oldest';
+
+// Newer products have updatedAt from the Firestore mirror; anything created
+// through saveProduct() also embeds its creation time in the id itself
+// (prod_<slug>_<timestamp>) — fall back to that when updatedAt is missing.
+function getProductTimestamp(product: Product): number {
+  if (product.updatedAt) return product.updatedAt;
+  const match = product.id?.match(/_(\d{10,})$/);
+  return match ? Number(match[1]) : 0;
+}
+
 export default function AdminProductsPage() {
   const { refreshProducts } = useProducts();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('all');
+  const [sortBy, setSortBy] = useState<SortOption>('default');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -70,7 +82,7 @@ export default function AdminProductsPage() {
   };
 
   const filtered = useMemo(() => {
-    return products.filter((p) => {
+    const result = products.filter((p) => {
       const matchesSearch =
         p.title.toLowerCase().includes(search.toLowerCase()) ||
         p.category.toLowerCase().includes(search.toLowerCase());
@@ -78,12 +90,27 @@ export default function AdminProductsPage() {
         selectedCat === 'all' || p.categorySlug === selectedCat;
       return matchesSearch && matchesCat;
     });
-  }, [products, search, selectedCat]);
 
-  // Reset to the first page whenever the search/filter changes.
+    switch (sortBy) {
+      case 'name-asc':
+        return result.sort((a, b) => a.title.localeCompare(b.title));
+      case 'name-desc':
+        return result.sort((a, b) => b.title.localeCompare(a.title));
+      case 'category':
+        return result.sort((a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title));
+      case 'newest':
+        return result.sort((a, b) => getProductTimestamp(b) - getProductTimestamp(a));
+      case 'oldest':
+        return result.sort((a, b) => getProductTimestamp(a) - getProductTimestamp(b));
+      default:
+        return result;
+    }
+  }, [products, search, selectedCat, sortBy]);
+
+  // Reset to the first page whenever the search/filter/sort changes.
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [search, selectedCat]);
+  }, [search, selectedCat, sortBy]);
 
   const visibleProducts = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -124,6 +151,21 @@ export default function AdminProductsPage() {
                     {c.name}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            <div className="w-full sm:w-auto">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black bg-white"
+              >
+                <option value="default">Sort: Default</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="category">Category (A-Z)</option>
               </select>
             </div>
           </div>
