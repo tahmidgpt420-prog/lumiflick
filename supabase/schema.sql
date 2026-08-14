@@ -122,12 +122,22 @@ create table if not exists orders (
   created_at timestamptz not null default now()
 );
 
+create table if not exists raw_photos (
+  id text primary key,
+  image text not null,
+  display_order integer default 1,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists raw_photos_created_at_idx on raw_photos (created_at desc);
+
 alter table products enable row level security;
 alter table categories enable row level security;
 alter table banners enable row level security;
 alter table reviews enable row level security;
 alter table settings enable row level security;
 alter table orders enable row level security;
+alter table raw_photos enable row level security;
 
 drop policy if exists "public read" on products;
 create policy "public read" on products for select using (true);
@@ -144,4 +154,8 @@ create policy "public read" on reviews for select using (true);
 drop policy if exists "public read" on settings;
 create policy "public read" on settings for select using (true);
 
+drop policy if exists "public read" on raw_photos;
+create policy "public read" on raw_photos for select using (true);
+
 -- orders: intentionally no policies at all — service_role only.
+

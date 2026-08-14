@@ -16,6 +16,7 @@ import {
   PlusCircle,
   X,
   Sliders,
+  Camera,
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -33,6 +34,7 @@ export default function AdminSidebar({ isOpen = false, onClose }: AdminSidebarPr
     { label: 'Orders', href: '/jw8yenjnkanhr823/orders', icon: ShoppingBag },
     { label: 'Banners', href: '/jw8yenjnkanhr823/banners', icon: Sliders },
     { label: 'Reviews & Proofs', href: '/jw8yenjnkanhr823/reviews', icon: Star },
+    { label: 'Raw Photos', href: '/jw8yenjnkanhr823/raw-photos', icon: Camera },
     { label: 'Categories', href: '/jw8yenjnkanhr823/categories', icon: Layers },
     { label: 'Store Settings', href: '/jw8yenjnkanhr823/settings', icon: Settings },
   ];

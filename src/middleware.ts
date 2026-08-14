@@ -70,6 +70,7 @@ export async function middleware(request: NextRequest) {
     '/api/admin/settings',
     '/api/admin/reviews',
     '/api/admin/banners',
+    '/api/admin/raw-photos',
   ]);
   const isPublicRead = request.method === 'GET' && publicGetPaths.has(pathname);
 

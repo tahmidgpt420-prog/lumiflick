@@ -13,6 +13,7 @@ import {
   Sparkles,
   Star,
   Flame,
+  Camera,
   X,
   CornerDownRight,
 } from 'lucide-react';
@@ -144,7 +145,22 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               </Link>
             </li>
 
-            {/* PINNED OPTION 3: All Products */}
+            {/* PINNED OPTION 3: Raw Photos */}
+            <li className="shrink-0">
+              <Link
+                href="/raw-photos"
+                className={`px-3 py-1.5 rounded-full transition-all flex items-center gap-1 hover:text-black hover:bg-gray-100 ${
+                  pathname === '/raw-photos'
+                    ? 'font-bold text-black bg-gray-100'
+                    : 'font-semibold text-gray-800'
+                }`}
+              >
+                <Camera className="w-3.5 h-3.5 text-gray-700" />
+                <span>Raw Photos</span>
+              </Link>
+            </li>
+
+            {/* PINNED OPTION 4: All Products */}
             <li className="shrink-0">
               <Link
                 href="/shop"
@@ -325,6 +341,19 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                 <div className="flex items-center gap-3">
                   <Star className="w-4 h-4 text-gray-700" />
                   <span>Reviews &amp; Customer Proofs</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </Link>
+
+              {/* PINNED OPTION 3: Raw Photos (Mobile) */}
+              <Link
+                href="/raw-photos"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-900 font-semibold"
+              >
+                <div className="flex items-center gap-3">
+                  <Camera className="w-4 h-4 text-gray-700" />
+                  <span>Raw Product Photos</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </Link>

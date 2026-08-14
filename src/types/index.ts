@@ -111,3 +111,12 @@ export interface HeroBanner {
   order?: number;
   isActive?: boolean;
 }
+
+export interface RawPhoto {
+  id: string;
+  image: string;
+  displayOrder?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+

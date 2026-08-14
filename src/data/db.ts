@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Product, Category, OrderDetails, CustomerReview, HeroBanner } from '@/types';
+import { Product, Category, OrderDetails, CustomerReview, HeroBanner, RawPhoto } from '@/types';
 import rawStoreData from './store.json';
 
 const STORE_FILE = path.join(process.cwd(), 'src', 'data', 'store.json');
@@ -34,6 +34,7 @@ export interface StoreData {
   categories: Category[];
   orders: OrderDetails[];
   reviews: CustomerReview[];
+  rawPhotos?: RawPhoto[];
   settings: StoreSettings;
   banners?: HeroBanner[];
   // Tombstones so a delete sticks even for items seeded from the static
@@ -44,6 +45,7 @@ export interface StoreData {
   deletedCategorySlugs?: string[];
   deletedBannerIds?: string[];
   deletedReviewIds?: string[];
+  deletedRawPhotoIds?: string[];
 }
 
 const defaultSettings: StoreSettings = {
@@ -577,3 +579,58 @@ export function deleteBanner(id: string): boolean {
 export function getDeletedBannerIds(): Set<string> {
   return new Set(getStoreData().deletedBannerIds || []);
 }
+
+// Raw Photos helpers
+export function getRawPhotos(): RawPhoto[] {
+  const store = getStoreData();
+  return store.rawPhotos || [];
+}
+
+export function saveRawPhoto(photoData: Partial<RawPhoto>): RawPhoto {
+  const store = getStoreData();
+  if (!store.rawPhotos) store.rawPhotos = [];
+
+  const id = photoData.id || `raw_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const nowIso = new Date().toISOString();
+
+  // Un-tombstone
+  if (store.deletedRawPhotoIds?.length) {
+    store.deletedRawPhotoIds = store.deletedRawPhotoIds.filter((k) => k !== id);
+  }
+
+  const existingIndex = store.rawPhotos.findIndex((p) => p.id === id);
+  const photo: RawPhoto = {
+    id,
+    image: photoData.image || '',
+    displayOrder: photoData.displayOrder !== undefined ? photoData.displayOrder : store.rawPhotos.length + 1,
+    createdAt: photoData.createdAt || nowIso,
+    updatedAt: nowIso,
+  };
+
+  if (existingIndex >= 0) {
+    store.rawPhotos[existingIndex] = { ...store.rawPhotos[existingIndex], ...photo };
+  } else {
+    store.rawPhotos.unshift(photo);
+  }
+
+  saveStoreData(store);
+  return photo;
+}
+
+export function deleteRawPhoto(id: string): boolean {
+  const store = getStoreData();
+  if (!store.rawPhotos) store.rawPhotos = [];
+  store.rawPhotos = store.rawPhotos.filter((p) => p.id !== id);
+
+  const tombstones = new Set(store.deletedRawPhotoIds || []);
+  tombstones.add(id);
+  store.deletedRawPhotoIds = Array.from(tombstones);
+
+  saveStoreData(store);
+  return true;
+}
+
+export function getDeletedRawPhotoIds(): Set<string> {
+  return new Set(getStoreData().deletedRawPhotoIds || []);
+}
+
