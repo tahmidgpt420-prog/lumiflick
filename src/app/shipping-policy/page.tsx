@@ -1,5 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
+import {
+  Truck,
+  ShieldCheck,
+  CreditCard,
+  AlertTriangle,
+  Send,
+  Clock,
+  Package,
+  CheckCircle2,
+} from 'lucide-react';
 
 export default function ShippingPolicyPage() {
   return (
@@ -10,46 +20,131 @@ export default function ShippingPolicyPage() {
           Home
         </Link>
         <span>/</span>
-        <span className="text-gray-900 font-semibold">Shipping Policy</span>
+        <span className="text-gray-900 font-semibold">Delivery &amp; Shipping Policy</span>
       </nav>
 
-      <div className="space-y-3">
-        <h1 className="text-3xl font-extrabold text-gray-900">Shipping & Delivery Policy</h1>
-        <p className="text-xs text-gray-500">Last updated: February 2026</p>
+      <div className="space-y-2 border-b border-gray-100 pb-6">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 font-serif uppercase tracking-tight">
+          LumiFlick — Delivery &amp; Shipping Policy
+        </h1>
+        <p className="text-xs text-gray-500">Last Updated: August 2026</p>
       </div>
 
-      <div className="prose prose-sm max-w-none text-gray-700 space-y-6">
-        <section className="space-y-2">
-          <h2 className="text-base font-bold text-gray-900">1. Delivery Timeframes</h2>
+      <div className="space-y-6 text-sm text-gray-700 leading-relaxed">
+
+        {/* 1. Delivery Timeframes & Rates */}
+        <section className="space-y-4 bg-white p-5 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+          <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <Truck className="w-4 h-4 text-amber-600" />
+            1. Delivery Timeframes &amp; Charges
+          </h2>
           <p>
-            At LUMIFLICK, every frame set is made to order to maintain strict quality standards before dispatch.
+            At <strong>LumiFlick</strong>, every glass poster is <strong>made to order</strong> to ensure that each product meets our highest quality standards before dispatch.
           </p>
-          <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
-            <li><strong>Inside Dhaka City:</strong> Delivered within 2 to 3 working days (Delivery fee: ৳70).</li>
-            <li><strong>Outside Dhaka (All Over Bangladesh):</strong> Delivered within 3 to 5 working days via trusted courier partners like Steadfast & RedX (Delivery fee: ৳130).</li>
-          </ul>
+
+          <div className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-200/70">
+            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
+              All Over Bangladesh
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-700">
+              Orders are generally delivered within <strong>7–10 days</strong>, including approximately <strong>5–6 days for manufacturing</strong> and the remaining time for delivery.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-900 uppercase tracking-wider">
+              Standard Delivery Charges by Parcel Size:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-3 bg-white rounded-xl border border-gray-200 text-center shadow-2xs">
+                <span className="text-xs text-gray-500 font-medium block">Small Glass Poster</span>
+                <span className="text-lg font-bold text-gray-900">৳130</span>
+              </div>
+              <div className="p-3 bg-white rounded-xl border border-gray-200 text-center shadow-2xs">
+                <span className="text-xs text-gray-500 font-medium block">Medium Glass Poster</span>
+                <span className="text-lg font-bold text-gray-900">৳150</span>
+              </div>
+              <div className="p-3 bg-white rounded-xl border border-gray-200 text-center shadow-2xs">
+                <span className="text-xs text-gray-500 font-medium block">Large Glass Poster</span>
+                <span className="text-lg font-bold text-gray-900">৳170</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-500">
+            As our glass posters are <strong>heavy-weight parcels</strong>, delivery charges are calculated based on the package size and weight. Therefore, charges may vary depending on the specific order and delivery location.
+          </p>
+          <p className="text-xs text-gray-500">
+            Delivery times may vary slightly depending on the customer&apos;s location, courier operations, weather, traffic, or other circumstances beyond our control.
+          </p>
         </section>
 
-        <section className="space-y-2">
-          <h2 className="text-base font-bold text-gray-900">2. Packaging Safety</h2>
+        {/* 2. Packaging Safety */}
+        <section className="space-y-2.5 bg-white p-5 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+          <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-amber-600" />
+            2. Packaging Safety
+          </h2>
           <p>
-            We take utmost care in packaging our wall frames. Each order is wrapped in multiple layers of shock-absorbent bubble wrap, reinforced with plastic corner protectors, and sealed in heavy-duty corrugated cartons to prevent damage during transit.
+            We take great care in packaging every glass poster to minimize the possibility of damage during transportation.
+          </p>
+          <p>
+            Each order is carefully packed using appropriate protective materials and securely sealed before being handed over to the delivery service.
+          </p>
+          <p className="text-xs text-gray-500">
+            Despite our careful packaging, damage may occasionally occur during transit.
           </p>
         </section>
 
-        <section className="space-y-2">
-          <h2 className="text-base font-bold text-gray-900">3. Cash on Delivery (COD)</h2>
+        {/* 3. Delivery & Payment */}
+        <section className="space-y-2.5 bg-white p-5 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+          <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-amber-600" />
+            3. Delivery &amp; Payment
+          </h2>
           <p>
-            Cash on Delivery is available across all 64 districts in Bangladesh. You may inspect the outer package before receiving and making the payment to the delivery rider.
+            The applicable <strong>delivery charge must be paid in advance when placing the order</strong>.
+          </p>
+          <p>
+            The remaining payment will be collected according to the payment terms communicated by LumiFlick during order confirmation.
+          </p>
+          <p className="font-medium text-gray-900">
+            Customers are strongly advised to <strong>inspect the product carefully in front of the delivery person before accepting the delivery</strong>.
           </p>
         </section>
 
-        <section className="space-y-2">
-          <h2 className="text-base font-bold text-gray-900">4. Tracking Your Order</h2>
+        {/* 4. Damaged Products During Transit */}
+        <section className="space-y-2.5 bg-amber-50/70 p-5 sm:p-6 rounded-2xl border border-amber-200 shadow-sm">
+          <h2 className="text-base font-bold text-amber-950 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-700" />
+            4. Damaged Products During Transit
+          </h2>
+          <p className="font-medium text-amber-950">
+            If your glass poster is damaged during transportation, you must <strong>check the product in front of the delivery person and report the damage immediately</strong>.
+          </p>
           <p>
-            Once your package has been handed over to the delivery courier, you will receive an SMS and WhatsApp update with your courier consignment tracking code.
+            After verification of the transit damage, <strong>LumiFlick will arrange a replacement product</strong>.
+          </p>
+          <p className="text-xs text-amber-800">
+            Please note that claims for visible transit damage reported after the delivery has been accepted may not be eligible for replacement.
           </p>
         </section>
+
+        {/* 5. Order Tracking */}
+        <section className="space-y-2.5 bg-white p-5 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
+          <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <Send className="w-4 h-4 text-amber-600" />
+            5. Order Tracking
+          </h2>
+          <p>
+            Once your order has been <strong>dispatched and handed over to the courier</strong>, you will receive an <strong>SMS containing a tracking link on the phone number provided with your order</strong>.
+          </p>
+          <p className="text-xs text-gray-500">
+            You can use the tracking link to check the current real-time delivery status of your package.
+          </p>
+        </section>
+
       </div>
     </div>
   );
