@@ -6,7 +6,10 @@ import { products as staticProducts } from '@/data/products';
 import { categories as staticCategories } from '@/data/categories';
 
 const CACHE_KEY = 'lumiflick_catalog_cache_v5';
-const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes cache freshness
+// Was 15 minutes to protect Firestore's read quota — no longer needed on
+// Postgres (Supabase). Short now mainly so rapid page navigations within
+// the same visit don't each refetch, not to hide admin edits from view.
+const CACHE_TTL_MS = 60 * 1000; // 1 minute
 
 interface CatalogCache {
   products: Product[];
@@ -71,11 +74,11 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      // Single request to our own cached endpoint instead of 4 direct
-      // Firestore reads from the browser — Firestore only actually gets
-      // hit once per minute (server-side, shared across every visitor),
-      // not once per page load. See src/app/api/catalog/route.ts.
-      const res = await fetch('/api/catalog');
+      // Single request to our own cached endpoint instead of separate
+      // Postgres queries from the browser. `force` (called right after an
+      // admin save) bypasses that server-side cache with ?fresh=1 so the
+      // change is visible immediately instead of waiting out the TTL.
+      const res = await fetch(force ? '/api/catalog?fresh=1' : '/api/catalog');
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Failed to load catalog');
 
