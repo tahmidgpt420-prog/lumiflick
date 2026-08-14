@@ -4,14 +4,8 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { Product, Category } from '@/types';
 import { products as staticProducts } from '@/data/products';
 import { categories as staticCategories } from '@/data/categories';
-import {
-  getAllProductsFromFirestore,
-  getDeletedProductIdsFromFirestore,
-  getAllCategoriesFromFirestore,
-  getDeletedCategorySlugsFromFirestore,
-} from '@/lib/firestoreProducts';
 
-const CACHE_KEY = 'lumiflick_catalog_cache_v4';
+const CACHE_KEY = 'lumiflick_catalog_cache_v5';
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes cache freshness
 
 interface CatalogCache {
@@ -77,42 +71,21 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const [firestoreProds, deletedIds, firestoreCats, deletedCatSlugs] = await Promise.all([
-        getAllProductsFromFirestore(),
-        getDeletedProductIdsFromFirestore(),
-        getAllCategoriesFromFirestore(),
-        getDeletedCategorySlugsFromFirestore(),
-      ]);
+      // Single request to our own cached endpoint instead of 4 direct
+      // Firestore reads from the browser — Firestore only actually gets
+      // hit once per minute (server-side, shared across every visitor),
+      // not once per page load. See src/app/api/catalog/route.ts.
+      const res = await fetch('/api/catalog');
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to load catalog');
 
-      // Filter active Firestore products
-      const activeFirestore = firestoreProds.filter(
-        (p) => !deletedIds.has(p.id) && !deletedIds.has(p.slug)
-      );
-
-      // Filter active Static products
-      const activeStatic = (staticProducts as Product[]).filter(
-        (p) =>
-          !deletedIds.has(p.id) &&
-          !deletedIds.has(p.slug) &&
-          !activeFirestore.some((fp) => fp.slug === p.slug || (fp.id && fp.id === p.id))
-      );
-
-      // Merge Firestore + Static
-      const mergedProducts = [...activeFirestore, ...activeStatic];
+      const mergedProducts: Product[] = data.products;
+      const updatedCategories: Category[] = data.categories;
       setProducts(mergedProducts);
-
-      // Merge Firestore categories with static (filtering deleted categories & deduplicating)
-      const activeFirestoreCats = firestoreCats.filter((c) => !deletedCatSlugs.has(c.slug));
-      const firestoreCatSlugs = new Set(activeFirestoreCats.map((c) => c.slug));
-      const activeStaticCats = staticProducts
-        ? staticCategories.filter(
-            (c) => !deletedCatSlugs.has(c.slug) && !firestoreCatSlugs.has(c.slug)
-          )
-        : [];
-      const updatedCategories = [...activeFirestoreCats, ...activeStaticCats];
       setCategories(updatedCategories);
 
-      // Save to browser cache
+      // Save to browser cache — a second layer on top of the server cache,
+      // so a repeat visit in the same browser skips the network entirely.
       try {
         const cachePayload: CatalogCache = {
           products: mergedProducts,
@@ -124,7 +97,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
         console.warn('Unable to persist catalog to localStorage cache:', storageErr);
       }
     } catch (err) {
-      console.error('Error fetching products from database:', err);
+      console.error('Error fetching products from catalog API:', err);
     } finally {
       setIsLoaded(true);
     }
