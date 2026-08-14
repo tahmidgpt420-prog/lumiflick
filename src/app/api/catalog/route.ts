@@ -11,14 +11,24 @@ import { Product, Category } from '@/types';
 
 // Public, unauthenticated, read-only. This is what actually protects
 // Firestore from load: without it, every visitor's browser called the
-// Firestore client SDK directly (4 full collection reads each), so cost
-// scaled with concurrent traffic instead of with how often the catalog
-// changes. Caching this server-side means Firestore gets hit at most once
-// per CACHE_TTL_MS per warm instance, no matter how many people are
-// browsing at once.
-export const revalidate = 60;
+// Firestore client SDK directly (4 full collection reads each — and
+// Firestore bills per document, so at ~500 products that's ~500+ reads
+// per visitor), so cost scaled with concurrent traffic instead of with
+// how often the catalog changes. Caching this server-side means Firestore
+// gets hit at most once per CACHE_TTL_MS per warm instance, no matter how
+// many people are browsing at once.
+//
+// 15 min matches the browser-side localStorage cache TTL in
+// ProductContext.tsx. On the free Firestore tier (50K reads/day), a
+// ~500-product catalog costs ~600 reads per rebuild (products +
+// categories + both delete-tombstone collections) — worst case under
+// constant traffic that's 96 rebuilds/day (86400s / 900s) x ~600 reads =
+// ~58K/day, most of a day's quota on its own. Push this higher (e.g. 30-60
+// min) if quota pressure continues; push it lower only once the catalog
+// is on a paid plan or meaningfully smaller.
+export const revalidate = 900;
 
-const CACHE_TTL_MS = 60 * 1000;
+const CACHE_TTL_MS = 15 * 60 * 1000;
 
 interface CatalogPayload {
   products: Product[];
