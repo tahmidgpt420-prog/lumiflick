@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   RotateCcw,
   Check,
-  Star,
   Plus,
   Minus,
   CheckCircle,
@@ -230,19 +229,9 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
               {product.title}
             </h1>
 
-            {/* Ratings & Stock Badge */}
+            {/* Stock Badge */}
             <div className="flex items-center gap-3 mt-2">
-              <div className="flex items-center text-amber-500">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                ))}
-                <span className="text-xs font-bold text-gray-700 ml-1.5">5.0</span>
-                <span className="text-xs text-gray-400 ml-1">
-                  ({product.reviewCount || 18} reviews)
-                </span>
-              </div>
-              <span className="text-gray-300">•</span>
-              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+              <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
                 <CheckCircle className="w-3 h-3" /> In Stock
               </span>
             </div>
