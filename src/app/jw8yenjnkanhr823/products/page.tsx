@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import AdminHeader from '@/components/admin/AdminHeader';
@@ -22,47 +22,92 @@ import { useProducts } from '@/context/ProductContext';
 
 const PAGE_SIZE = 50;
 
-type SortOption = 'default' | 'name-asc' | 'name-desc' | 'category' | 'newest' | 'oldest';
-
-// Newer products have updatedAt from the Firestore mirror; anything created
-// through saveProduct() also embeds its creation time in the id itself
-// (prod_<slug>_<timestamp>) — fall back to that when updatedAt is missing.
-function getProductTimestamp(product: Product): number {
-  if (product.updatedAt) return product.updatedAt;
-  const match = product.id?.match(/_(\d{10,})$/);
-  return match ? Number(match[1]) : 0;
-}
+type SortOption = 'newest' | 'oldest' | 'name-asc' | 'name-desc' | 'category';
 
 export default function AdminProductsPage() {
   const { refreshProducts } = useProducts();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('all');
-  const [sortBy, setSortBy] = useState<SortOption>('default');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [cursor, setCursor] = useState<string | number | null>(null);
+  const [hasMoreServer, setHasMoreServer] = useState(false);
 
-  const fetchProducts = async () => {
+  const isSearching = search.trim() !== '';
+  // "category" sort groups the whole catalog by category name, which needs
+  // everything loaded to do correctly — falls back to a full fetch, same
+  // as search. Every other sort/category combo stays on the real paginated
+  // read (only fetches PAGE_SIZE documents from Firestore per request).
+  const needsFullFetch = isSearching || sortBy === 'category';
+
+  // Real server-side pagination — only reads PAGE_SIZE documents from
+  // Firestore, not the whole products collection. This is the default
+  // (no search, sort != category) browsing mode.
+  const fetchPage = useCallback(
+    async (reset: boolean) => {
+      reset ? setLoading(true) : setLoadingMore(true);
+      try {
+        const params = new URLSearchParams({
+          mode: 'page',
+          sort: sortBy,
+          category: selectedCat,
+        });
+        if (!reset && cursor !== null) params.set('cursor', String(cursor));
+
+        const res = await fetch(`/api/admin/products?${params}`);
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load products');
+
+        setProducts((prev) => (reset ? data.products : [...prev, ...data.products]));
+        setCursor(data.nextCursor);
+        setHasMoreServer(Boolean(data.nextCursor));
+        if (typeof data.totalCount === 'number') setTotalCount(data.totalCount);
+      } catch (e) {
+        console.error('Error fetching product page:', e);
+        if (reset) setProducts(staticProducts as Product[]);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [sortBy, selectedCat, cursor]
+  );
+
+  // Full merge fetch (JSON store + Firestore + static) — used for search and
+  // "Category (A-Z)" sort, both of which need the whole catalog in memory.
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
     try {
-      // The authenticated admin API merges JSON store + Firestore + static
-      // and always reflects a save immediately — reading Firestore directly
-      // here would miss anything the Firestore mirror hasn't caught up on.
       const res = await fetch('/api/admin/products');
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to load products');
       setProducts(data.products);
+      setTotalCount(data.products.length);
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching all products:', e);
       setProducts(staticProducts as Product[]);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchProducts();
   }, []);
+
+  // Switch fetch strategy when search is entered/cleared or sort mode
+  // crosses the full-fetch boundary.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+    if (needsFullFetch) {
+      fetchAll();
+    } else {
+      setCursor(null);
+      fetchPage(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsFullFetch, sortBy, selectedCat]);
 
   const handleDelete = async (id: string, title: string) => {
     if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
@@ -77,43 +122,50 @@ export default function AdminProductsPage() {
       console.error('Error deleting product:', e);
     } finally {
       setProducts((prev) => prev.filter((p) => p.id !== id && p.slug !== id));
+      setTotalCount((c) => (c !== null ? Math.max(0, c - 1) : c));
       setDeletingId(null);
     }
   };
 
   const filtered = useMemo(() => {
-    const result = products.filter((p) => {
-      const matchesSearch =
-        p.title.toLowerCase().includes(search.toLowerCase()) ||
-        p.category.toLowerCase().includes(search.toLowerCase());
-      const matchesCat =
-        selectedCat === 'all' || p.categorySlug === selectedCat;
-      return matchesSearch && matchesCat;
-    });
+    let result = products;
 
-    switch (sortBy) {
-      case 'name-asc':
-        return result.sort((a, b) => a.title.localeCompare(b.title));
-      case 'name-desc':
-        return result.sort((a, b) => b.title.localeCompare(a.title));
-      case 'category':
-        return result.sort((a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title));
-      case 'newest':
-        return result.sort((a, b) => getProductTimestamp(b) - getProductTimestamp(a));
-      case 'oldest':
-        return result.sort((a, b) => getProductTimestamp(a) - getProductTimestamp(b));
-      default:
-        return result;
+    if (isSearching) {
+      const term = search.toLowerCase();
+      result = result.filter(
+        (p) => p.title.toLowerCase().includes(term) || p.category.toLowerCase().includes(term)
+      );
     }
-  }, [products, search, selectedCat, sortBy]);
+    if (needsFullFetch && selectedCat !== 'all') {
+      result = result.filter((p) => p.categorySlug === selectedCat);
+    }
+    if (sortBy === 'category') {
+      result = [...result].sort(
+        (a, b) => a.category.localeCompare(b.category) || a.title.localeCompare(b.title)
+      );
+    }
+    // newest/oldest/name-* are already ordered server-side when !needsFullFetch;
+    // when needsFullFetch (search), re-apply the same ordering client-side.
+    else if (needsFullFetch) {
+      if (sortBy === 'name-asc') result = [...result].sort((a, b) => a.title.localeCompare(b.title));
+      else if (sortBy === 'name-desc') result = [...result].sort((a, b) => b.title.localeCompare(a.title));
+      else if (sortBy === 'newest') result = [...result].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      else if (sortBy === 'oldest') result = [...result].sort((a, b) => (a.updatedAt || 0) - (b.updatedAt || 0));
+    }
 
-  // Reset to the first page whenever the search/filter/sort changes.
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [search, selectedCat, sortBy]);
+    return result;
+  }, [products, search, selectedCat, sortBy, isSearching, needsFullFetch]);
 
-  const visibleProducts = filtered.slice(0, visibleCount);
-  const hasMore = visibleCount < filtered.length;
+  const visibleProducts = needsFullFetch ? filtered.slice(0, visibleCount) : filtered;
+  const hasMore = needsFullFetch ? visibleCount < filtered.length : hasMoreServer;
+
+  const handleLoadMore = () => {
+    if (needsFullFetch) {
+      setVisibleCount((c) => c + PAGE_SIZE);
+    } else {
+      fetchPage(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -123,7 +175,7 @@ export default function AdminProductsPage() {
       />
 
       <div className="p-6 max-w-7xl mx-auto space-y-6">
-        
+
         {/* Controls Bar */}
         <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Search & Filter */}
@@ -145,7 +197,7 @@ export default function AdminProductsPage() {
                 onChange={(e) => setSelectedCat(e.target.value)}
                 className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black bg-white"
               >
-                <option value="all">All Categories ({products.length})</option>
+                <option value="all">All Categories {totalCount !== null ? `(${totalCount})` : ''}</option>
                 {categories.map((c) => (
                   <option key={c.slug} value={c.slug}>
                     {c.name}
@@ -160,7 +212,6 @@ export default function AdminProductsPage() {
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
                 className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black bg-white"
               >
-                <option value="default">Sort: Default</option>
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
                 <option value="name-asc">Name (A-Z)</option>
@@ -186,7 +237,7 @@ export default function AdminProductsPage() {
               <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
               Loading inventory...
             </div>
-          ) : filtered.length === 0 ? (
+          ) : visibleProducts.length === 0 ? (
             <div className="py-16 text-center text-xs text-gray-500">
               No products found matching your search.
             </div>
@@ -308,10 +359,11 @@ export default function AdminProductsPage() {
         {hasMore && (
           <div className="flex justify-center">
             <button
-              onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-              className="px-8 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="px-8 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-colors shadow-sm disabled:opacity-50"
             >
-              Load More
+              {loadingMore ? 'Loading...' : 'Load More'}
             </button>
           </div>
         )}

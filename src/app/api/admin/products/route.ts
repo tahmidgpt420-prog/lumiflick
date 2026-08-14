@@ -1,9 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getAllProducts, saveProduct, getDeletedProductKeys } from '@/data/db';
 import {
   saveProductToFirestore,
   getAllProductsFromFirestore,
   getDeletedProductIdsFromFirestore,
+  getProductsPageFromFirestore,
+  getProductsCountFromFirestore,
+  ProductSortField,
 } from '@/lib/firestoreProducts';
 import { ensureFirebaseAdminAuth } from '@/lib/firebaseAdminAuth';
 import { products as staticProducts } from '@/data/products';
@@ -41,7 +44,49 @@ async function getMergedProducts(): Promise<Product[]> {
   );
 }
 
-export async function GET() {
+const SORT_MAP: Record<string, { sortField: ProductSortField; direction: 'asc' | 'desc' }> = {
+  newest: { sortField: 'updatedAt', direction: 'desc' },
+  oldest: { sortField: 'updatedAt', direction: 'asc' },
+  'name-asc': { sortField: 'title', direction: 'asc' },
+  'name-desc': { sortField: 'title', direction: 'desc' },
+};
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const mode = searchParams.get('mode');
+
+  // Real paginated read — only pulls `pageSize` documents from Firestore,
+  // not the whole collection. This is the default admin-panel browse mode;
+  // search still needs the full merge below (no way around scanning
+  // everything for a substring search).
+  if (mode === 'page') {
+    try {
+      const sortKey = searchParams.get('sort') || 'newest';
+      const sort = SORT_MAP[sortKey] || SORT_MAP.newest;
+      const category = searchParams.get('category') || 'all';
+      const cursorParam = searchParams.get('cursor');
+      const cursor = cursorParam
+        ? (sort.sortField === 'updatedAt' ? Number(cursorParam) : cursorParam)
+        : null;
+
+      const { products, nextCursor } = await getProductsPageFromFirestore({
+        sortField: sort.sortField,
+        direction: sort.direction,
+        category,
+        cursor,
+      });
+
+      // Total count only on the first page — avoid an extra read on every
+      // "Load More" click.
+      const totalCount = cursor === null ? await getProductsCountFromFirestore() : undefined;
+
+      return NextResponse.json({ success: true, products, nextCursor, totalCount });
+    } catch (error) {
+      console.error('GET /api/admin/products?mode=page error:', error);
+      return NextResponse.json({ success: false, error: 'Failed to load products page' }, { status: 500 });
+    }
+  }
+
   try {
     const products = await getMergedProducts();
     return NextResponse.json({ success: true, products });

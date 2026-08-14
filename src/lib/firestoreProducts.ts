@@ -7,6 +7,9 @@ import {
   query,
   where,
   limit,
+  orderBy,
+  startAfter,
+  getCountFromServer,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Product, Category } from '@/types';
@@ -65,6 +68,79 @@ export async function getProductBySlugFromFirestore(slug: string): Promise<Produ
     if (!snap.empty) return snap.docs[0].data() as Product;
   } catch { /* fall through */ }
   return null;
+}
+
+export type ProductSortField = 'updatedAt' | 'title';
+
+/**
+ * Real paginated read — only fetches `pageSize` documents, not the whole
+ * collection. Firestore bills per document returned, so this is what
+ * actually limits read cost to "what's on screen" instead of "everything".
+ *
+ * Caveat: `orderBy(field)` silently excludes any document missing that
+ * field entirely (Firestore semantics, not a bug here) — every product
+ * currently has `updatedAt` set, but a doc saved without it wouldn't show
+ * up in this view. Search (which reads everything) is the fallback.
+ *
+ * category !== 'all' skips orderBy to avoid needing a composite Firestore
+ * index for (categorySlug ==, field orderBy) — the page is sorted
+ * client-side instead, which is fine at page-size (50) scale.
+ */
+export async function getProductsPageFromFirestore(opts: {
+  sortField: ProductSortField;
+  direction: 'asc' | 'desc';
+  category?: string;
+  cursor?: string | number | null;
+  pageSize?: number;
+}): Promise<{ products: Product[]; nextCursor: string | number | null }> {
+  const { sortField, direction, category, cursor, pageSize = 50 } = opts;
+  try {
+    const constraints: any[] = [];
+    if (category && category !== 'all') {
+      constraints.push(where('categorySlug', '==', category));
+    } else {
+      constraints.push(orderBy(sortField, direction));
+      if (cursor !== undefined && cursor !== null) {
+        constraints.push(startAfter(cursor));
+      }
+    }
+    constraints.push(limit(pageSize));
+
+    const q = query(collection(db, COL), ...constraints);
+    const snap = await getDocs(q);
+    let products = snap.docs.map((d) => d.data() as Product);
+
+    if (category && category !== 'all') {
+      // Client-sort this (small, single-category) batch — no cross-page
+      // cursor ordering guarantee in this mode, acceptable at this scale.
+      products = products.sort((a, b) =>
+        sortField === 'title'
+          ? a.title.localeCompare(b.title) * (direction === 'desc' ? -1 : 1)
+          : ((b.updatedAt || 0) - (a.updatedAt || 0)) * (direction === 'asc' ? -1 : 1)
+      );
+    }
+
+    const last = products[products.length - 1] as any;
+    const nextCursor =
+      products.length === pageSize && (!category || category === 'all') && last
+        ? (last[sortField] ?? null)
+        : null;
+
+    return { products, nextCursor };
+  } catch (err) {
+    console.error('getProductsPageFromFirestore error:', err);
+    return { products: [], nextCursor: null };
+  }
+}
+
+/** Cheap total count — Firestore aggregation queries bill as ~1 read regardless of collection size. */
+export async function getProductsCountFromFirestore(): Promise<number> {
+  try {
+    const snap = await getCountFromServer(collection(db, COL));
+    return snap.data().count;
+  } catch {
+    return 0;
+  }
 }
 
 /** Delete a product from Firestore AND blacklist it */
