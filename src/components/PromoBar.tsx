@@ -71,27 +71,38 @@ export default function PromoBar() {
   // Admin cleared every line — hide the bar rather than show an empty strip.
   if (items.length === 0) return null;
 
-  // Render 3 back-to-back copies of the line-up (matches the CSS marquee's
-  // translateX(-50%) loop, same as before this was made admin-editable) so
-  // the scroll never shows a gap even with only 1-2 lines configured.
-  const sets = [0, 1, 2];
+  // Duplicate items within each track half so it comfortably spans any screen width
+  const repeatCount = items.length <= 2 ? 3 : items.length <= 4 ? 2 : 1;
+  const trackItems = Array(repeatCount).fill(items).flat();
 
   return (
     <div className="velmora-promo-banner" role="banner" aria-label="Promotional offers">
-      <div className="velmora-promo-track">
-        {sets.map((setIndex) => (
-          <React.Fragment key={setIndex}>
-            {items.map((item, itemIndex) => (
-              <React.Fragment key={`${setIndex}-${itemIndex}`}>
-                <div className="velmora-promo-item">
-                  <span className="text-base" aria-hidden="true">{item.icon}</span>
-                  <span>{item.text}</span>
-                </div>
-                <span className="velmora-promo-separator" aria-hidden="true"></span>
-              </React.Fragment>
-            ))}
-          </React.Fragment>
-        ))}
+      <div className="velmora-promo-marquee">
+        {/* Track A */}
+        <div className="velmora-promo-track">
+          {trackItems.map((item, idx) => (
+            <React.Fragment key={`a-${idx}`}>
+              <div className="velmora-promo-item">
+                <span className="text-base" aria-hidden="true">{item.icon}</span>
+                <span>{item.text}</span>
+              </div>
+              <span className="velmora-promo-separator" aria-hidden="true" />
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Track B (Identical duplicate for seamless infinite loop without restarting jump) */}
+        <div className="velmora-promo-track" aria-hidden="true">
+          {trackItems.map((item, idx) => (
+            <React.Fragment key={`b-${idx}`}>
+              <div className="velmora-promo-item">
+                <span className="text-base" aria-hidden="true">{item.icon}</span>
+                <span>{item.text}</span>
+              </div>
+              <span className="velmora-promo-separator" aria-hidden="true" />
+            </React.Fragment>
+          ))}
+        </div>
       </div>
     </div>
   );

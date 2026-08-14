@@ -58,17 +58,25 @@ body {
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.velmora-promo-marquee {
+  display: flex;
+  width: max-content;
+  align-items: center;
 }
 
 .velmora-promo-track {
   display: flex;
   align-items: center;
   white-space: nowrap;
+  flex-shrink: 0;
   animation: promoTicker 28s linear infinite;
   will-change: transform;
 }
 
-.velmora-promo-track:hover {
+.velmora-promo-marquee:hover .velmora-promo-track {
   animation-play-state: paused;
 }
 
@@ -90,10 +98,10 @@ body {
 
 @keyframes promoTicker {
   0% {
-    transform: translateX(0);
+    transform: translateX(0%);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-100%);
   }
 }
 
