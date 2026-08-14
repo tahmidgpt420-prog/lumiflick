@@ -77,6 +77,7 @@ export async function POST(request: Request) {
       description: body.description || '',
       parentSlug: body.parentSlug ?? null,
       parentId: body.parentId ?? null,
+      showOnHomepage: Boolean(body.showOnHomepage),
     };
 
     // 1. Reliable primary store

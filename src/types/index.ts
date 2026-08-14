@@ -49,6 +49,8 @@ export interface Category {
   description?: string;
   parentId?: string | null;
   parentSlug?: string | null;
+  /** Show a dedicated product section for this category on the homepage. */
+  showOnHomepage?: boolean;
 }
 
 export interface CartItem {

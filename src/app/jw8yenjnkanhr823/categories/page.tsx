@@ -19,6 +19,7 @@ export default function AdminCategoriesPage() {
   const [parentSlug, setParentSlug] = useState('');
   const [image, setImage] = useState('');
   const [description, setDescription] = useState('');
+  const [showOnHomepage, setShowOnHomepage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
   const { refreshProducts } = useProducts();
@@ -51,6 +52,7 @@ export default function AdminCategoriesPage() {
     setParentSlug(cat.parentSlug || cat.parentId || '');
     setImage(cat.image);
     setDescription(cat.description || '');
+    setShowOnHomepage(Boolean(cat.showOnHomepage));
   };
 
   const handleNewClick = (defaultParentSlug = '') => {
@@ -60,6 +62,7 @@ export default function AdminCategoriesPage() {
     setParentSlug(defaultParentSlug);
     setImage('https://genuinetask.com.bd/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-02-at-2.46.39-AM.webp');
     setDescription('');
+    setShowOnHomepage(false);
   };
 
   const handleDeleteClick = async (catSlug: string) => {
@@ -96,6 +99,7 @@ export default function AdminCategoriesPage() {
         description: description.trim(),
         parentSlug: parentSlug.trim() || null,
         parentId: parentSlug.trim() || null,
+        showOnHomepage,
       };
 
       // 1. Save via the authenticated admin API (JSON store + Firestore mirror server-side)
@@ -175,6 +179,11 @@ export default function AdminCategoriesPage() {
                         <span className="px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-semibold">
                           Main Collection
                         </span>
+                        {mainCat.showOnHomepage && (
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-semibold">
+                            On Homepage
+                          </span>
+                        )}
                       </div>
                       <span className="text-xs text-gray-400 font-mono">/{mainCat.slug}</span>
                       {subs.length > 0 && (
@@ -359,6 +368,16 @@ export default function AdminCategoriesPage() {
                     className="w-full px-3.5 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
                   />
                 </div>
+
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700 pt-1">
+                  <input
+                    type="checkbox"
+                    checked={showOnHomepage}
+                    onChange={(e) => setShowOnHomepage(e.target.checked)}
+                    className="w-4 h-4 accent-black rounded"
+                  />
+                  Show this category as a section on the homepage
+                </label>
 
                 <div className="flex justify-end gap-2 pt-2">
                   <button

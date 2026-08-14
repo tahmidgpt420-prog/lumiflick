@@ -320,6 +320,7 @@ export function saveCategory(categoryData: Partial<Category>, oldSlug?: string):
       description: categoryData.description || `Explore ${categoryData.name} collection at LUMIFLICK.`,
       parentSlug: categoryData.parentSlug ?? null,
       parentId: categoryData.parentId ?? null,
+      showOnHomepage: categoryData.showOnHomepage ?? false,
     };
 
     store.categories.push(newCat);
