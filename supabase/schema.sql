@@ -157,5 +157,8 @@ create policy "public read" on settings for select using (true);
 drop policy if exists "public read" on raw_photos;
 create policy "public read" on raw_photos for select using (true);
 
+grant all on table public.raw_photos to anon, authenticated, service_role;
+
 -- orders: intentionally no policies at all — service_role only.
+
 
