@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { HeroBanner } from '@/types';
+import { formatImageUrl } from '@/utils/driveUrl';
 import {
   getAllBannersFromFirestore,
   DEFAULT_HERO_BANNERS,
@@ -117,14 +118,16 @@ export default function HeroSlider() {
                 href={slide.link || '/shop'}
                 className="block relative w-full h-full cursor-pointer"
               >
-                {/* Background Image */}
+                {/* Background Image (Uncompressed Original Resolution) */}
                 <Image
-                  src={slide.image}
+                  src={formatImageUrl(slide.image, 'original')}
                   alt={slide.title || 'LUMIFLICK Banner'}
                   fill
                   priority={idx === 0}
                   className="object-cover object-center"
                   sizes="100vw"
+                  quality={100}
+                  unoptimized
                 />
 
                 {/* Text Overlay if provided */}

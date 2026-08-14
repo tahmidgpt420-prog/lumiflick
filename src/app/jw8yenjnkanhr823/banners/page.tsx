@@ -20,6 +20,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import { HeroBanner } from '@/types';
+import { formatImageUrl } from '@/utils/driveUrl';
 import { getAllBannersFromFirestore, DEFAULT_HERO_BANNERS } from '@/lib/firestoreBanners';
 
 async function saveBannerViaApi(banner: HeroBanner) {
@@ -115,7 +116,7 @@ export default function AdminBannersPage() {
       setIsSaving(true);
       const bannerData: HeroBanner = {
         id: editingBanner ? editingBanner.id : `banner-${Date.now()}`,
-        image: image.trim(),
+        image: formatImageUrl(image.trim(), 'original'),
         link: link.trim(),
         title: title.trim() || undefined,
         subtitle: subtitle.trim() || undefined,
@@ -473,7 +474,7 @@ export default function AdminBannersPage() {
                       {/* Image Thumbnail */}
                       <div className="relative w-28 sm:w-36 h-16 sm:h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
                         <Image
-                          src={banner.image}
+                          src={formatImageUrl(banner.image, 'original')}
                           alt={banner.title || 'Hero Banner'}
                           fill
                           className="object-cover"
