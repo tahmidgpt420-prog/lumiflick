@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -14,6 +14,12 @@ import {
   Plus,
   Minus,
   CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  ZoomIn,
+  Loader2,
+  Maximize2,
 } from 'lucide-react';
 import { Product, ProductVariation } from '@/types';
 import { useCart } from '@/context/CartContext';
@@ -120,12 +126,95 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
     product.galleryImages && product.galleryImages.length > 0
       ? product.galleryImages
       : [product.image || '/logo.png'];
-  // Thumbnails stay small; the big display image uses its own 600px
-  // version, not the thumbnail's — otherwise the enlarged view was stuck
-  // at thumbnail resolution and looked pixelated.
   const images = rawImages.map((url) => formatImageUrl(url, 150));
-  const fullImages = rawImages.map((url) => formatImageUrl(url, 600));
-  const selectedImage = fullImages[selectedImageIndex] || fullImages[0];
+  const fullImages = rawImages.map((url) => formatImageUrl(url, 700));
+  const originalImages = rawImages.map((url) => formatImageUrl(url, 'original'));
+
+  const [isPointerDown, setIsPointerDown] = useState(false);
+  const [dragStartX, setDragStartX] = useState<number | null>(null);
+  const [dragStartY, setDragStartY] = useState<number | null>(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isHoverZooming, setIsHoverZooming] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxLoaded, setLightboxLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsTouchDevice('ontouchstart' in window || (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0));
+  }, []);
+
+  const nextImage = useCallback(() => {
+    if (fullImages.length <= 1) return;
+    setLightboxLoaded(false);
+    setSelectedImageIndex((prev) => (prev + 1) % fullImages.length);
+  }, [fullImages.length]);
+
+  const prevImage = useCallback(() => {
+    if (fullImages.length <= 1) return;
+    setLightboxLoaded(false);
+    setSelectedImageIndex((prev) => (prev - 1 + fullImages.length) % fullImages.length);
+  }, [fullImages.length]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowRight') nextImage();
+      if (e.key === 'ArrowLeft') prevImage();
+      if (e.key === 'Escape') setIsLightboxOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [nextImage, prevImage]);
+
+  // Mouse Move for Desktop Hover Zoom
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isTouchDevice || isPointerDown) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({
+      x: Math.max(0, Math.min(100, x)),
+      y: Math.max(0, Math.min(100, y)),
+    });
+  };
+
+  // Unified Pointer (Mouse drag & Touch swipe & Click to Open Lightbox)
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    setIsPointerDown(true);
+    setDragStartX(e.clientX);
+    setDragStartY(e.clientY);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!isPointerDown || dragStartX === null || dragStartY === null) return;
+    const diffX = dragStartX - e.clientX;
+    const diffY = dragStartY - e.clientY;
+    const distance = Math.sqrt(diffX * diffX + diffY * diffY);
+
+    if (diffX > 35) {
+      // Swiped/dragged left -> next photo
+      nextImage();
+    } else if (diffX < -35) {
+      // Swiped/dragged right -> prev photo
+      prevImage();
+    } else if (distance < 12) {
+      // Pure click or tap -> open fullscreen uncompressed lightbox on mobile/tablet or via zoom click
+      setIsLightboxOpen(true);
+      setLightboxLoaded(false);
+    }
+
+    setIsPointerDown(false);
+    setDragStartX(null);
+    setDragStartY(null);
+  };
+
+  const handlePointerCancel = () => {
+    setIsPointerDown(false);
+    setDragStartX(null);
+    setDragStartY(null);
+  };
 
   const handleAddToCart = () => {
     addItem(
@@ -179,20 +268,123 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
       {/* Main Product Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         
-        {/* Left: Interactive Image Gallery */}
+        {/* Left: Interactive Image Gallery with Laptop Hover Zoom & Mobile Swiping */}
         <div className="lg:col-span-6 space-y-4">
-          {/* Main Zoomable Frame Container */}
-          <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-md">
-            <Image
-              src={selectedImage || '/logo.png'}
-              alt={product.title}
-              fill
-              priority
-              unoptimized
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
-            {product.sale && <span className="badge-sale">Sale!</span>}
+          {/* Main Frame Container */}
+          <div
+            className={`relative aspect-square w-full rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-md select-none touch-pan-y group ${
+              isTouchDevice ? 'cursor-pointer' : isHoverZooming ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'
+            }`}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+            onMouseEnter={() => {
+              if (!isTouchDevice) setIsHoverZooming(true);
+            }}
+            onMouseLeave={() => {
+              if (!isTouchDevice) setIsHoverZooming(false);
+            }}
+            onMouseMove={handleMouseMove}
+          >
+            {/* Sliding Image Track */}
+            <div
+              className={`flex w-full h-full transition-transform duration-300 ease-out pointer-events-none ${
+                isHoverZooming && !isTouchDevice ? 'opacity-0' : 'opacity-100'
+              }`}
+              style={{ transform: `translateX(-${selectedImageIndex * 100}%)` }}
+            >
+              {fullImages.map((imgSrc, idx) => (
+                <div key={idx} className="relative w-full h-full flex-shrink-0 select-none">
+                  <Image
+                    src={imgSrc || '/logo.png'}
+                    alt={`${product.title} - View ${idx + 1}`}
+                    fill
+                    priority={idx === 0}
+                    unoptimized
+                    draggable={false}
+                    className="object-cover select-none pointer-events-none"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Ultra-Crisp Uncompressed Hover Zoom Layer */}
+            {!isTouchDevice && isHoverZooming && (
+              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-2xl bg-white">
+                <img
+                  src={originalImages[selectedImageIndex] || fullImages[selectedImageIndex] || '/logo.png'}
+                  alt={`${product.title} Zoomed Uncompressed View`}
+                  className="w-full h-full object-cover transition-transform duration-75 ease-out"
+                  style={{
+                    transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                    transform: 'scale(2.4)',
+                  }}
+                />
+                <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-white text-[11px] font-semibold flex items-center gap-1">
+                  <ZoomIn className="w-3.5 h-3.5" /> HD Zoom
+                </div>
+              </div>
+            )}
+
+            {product.sale && (
+              <span className="badge-sale z-10 pointer-events-none">Sale!</span>
+            )}
+
+            {/* View Fullscreen Icon Hint */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsLightboxOpen(true);
+                setLightboxLoaded(false);
+              }}
+              className="absolute top-3 right-3 z-30 p-2 rounded-xl bg-white/80 hover:bg-white text-gray-800 shadow-md backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
+              aria-label="View Fullscreen Photo"
+              title="View full resolution uncompressed photo"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+
+            {/* Navigation Arrows (if multiple images) */}
+            {fullImages.length > 1 && !isHoverZooming && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    prevImage();
+                  }}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-gray-800 shadow-md backdrop-blur-sm flex items-center justify-center transition-all opacity-85 hover:opacity-100 z-20 cursor-pointer"
+                  aria-label="Previous photo"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextImage();
+                  }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-gray-800 shadow-md backdrop-blur-sm flex items-center justify-center transition-all opacity-85 hover:opacity-100 z-20 cursor-pointer"
+                  aria-label="Next photo"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                {/* Dots Indicator */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-sm z-10 pointer-events-none">
+                  {fullImages.map((_, idx) => (
+                    <span
+                      key={idx}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        selectedImageIndex === idx ? 'bg-white w-4' : 'bg-white/50 w-1.5'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Thumbnail Strip */}
@@ -201,6 +393,7 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
               {images.map((img, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => setSelectedImageIndex(idx)}
                   className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
                     selectedImageIndex === idx
@@ -476,6 +669,81 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
             products={relatedProducts}
             viewAllLink={`/product-category/${product.categorySlug}`}
           />
+        </div>
+      )}
+
+      {/* Fullscreen Uncompressed Lightbox Modal (for mobile tap / desktop zoom view) */}
+      {isLightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 select-none animate-fade-in"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={() => setIsLightboxOpen(false)}
+            className="absolute top-4 right-4 z-50 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            aria-label="Close photo"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Counter */}
+          {fullImages.length > 1 && (
+            <div className="absolute top-4 left-4 z-50 px-3 py-1 bg-white/10 backdrop-blur-md text-white text-xs font-mono rounded-full">
+              {selectedImageIndex + 1} / {fullImages.length}
+            </div>
+          )}
+
+          {/* Prev Arrow */}
+          {fullImages.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                prevImage();
+              }}
+              className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-50 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors cursor-pointer"
+              aria-label="Previous photo"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* Next Arrow */}
+          {fullImages.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                nextImage();
+              }}
+              className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-50 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors cursor-pointer"
+              aria-label="Next photo"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* Active Image in Original Aspect Ratio (Uncompressed Full Quality) */}
+          <div
+            className="relative max-w-5xl max-h-[90vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {!lightboxLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-white/60 animate-spin" />
+              </div>
+            )}
+            <img
+              src={originalImages[selectedImageIndex] || fullImages[selectedImageIndex] || '/logo.png'}
+              alt={`${product.title} Full View`}
+              onLoad={() => setLightboxLoaded(true)}
+              className={`max-h-[85vh] max-w-[90vw] object-contain rounded-xl shadow-2xl transition-opacity duration-300 ${
+                lightboxLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }`}
+            />
+          </div>
         </div>
       )}
     </div>
