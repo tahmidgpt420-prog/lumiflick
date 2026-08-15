@@ -118,10 +118,15 @@ export default function AdminBannersPage() {
         id: editingBanner ? editingBanner.id : `banner-${Date.now()}`,
         image: formatImageUrl(image.trim(), 'original'),
         link: link.trim(),
-        title: title.trim() || undefined,
-        subtitle: subtitle.trim() || undefined,
-        buttonText: buttonText.trim() || undefined,
-        badge: badge.trim() || undefined,
+        // Empty string, not undefined — the mapper only writes fields that
+        // are actually present in this object (`!== undefined`), so
+        // `undefined` here used to mean "leave whatever's already in the
+        // database alone" instead of "clear it", and a blanked-out field
+        // would keep showing its old saved text forever.
+        title: title.trim(),
+        subtitle: subtitle.trim(),
+        buttonText: buttonText.trim(),
+        badge: badge.trim(),
         order: Number(order) || 1,
         isActive,
       };
