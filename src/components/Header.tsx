@@ -33,7 +33,7 @@ export default function Header() {
               aria-label="Search"
             >
               <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="hidden sm:inline text-xs text-gray-400 font-medium">Search...</span>
+              <span className="hidden sm:inline text-xs text-gray-500 font-medium">Search...</span>
             </button>
           </div>
 

@@ -7,12 +7,18 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { HeroBanner } from '@/types';
 import { formatImageUrl } from '@/utils/driveUrl';
 import {
-  getAllBannersFromFirestore,
+  fetchHeroBanners,
+  getCachedHeroBanners,
   DEFAULT_HERO_BANNERS,
-} from '@/lib/firestoreBanners';
+} from '@/lib/heroBanners';
 
 export default function HeroSlider() {
-  const [slides, setSlides] = useState<HeroBanner[]>(DEFAULT_HERO_BANNERS);
+  // Instant paint from cache (same pattern as PromoBar/TrackingScripts),
+  // falling back to the placeholder set only if nothing's cached yet.
+  const [slides, setSlides] = useState<HeroBanner[]>(() => {
+    const cached = getCachedHeroBanners();
+    return cached && cached.length > 0 ? cached : DEFAULT_HERO_BANNERS;
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -22,7 +28,7 @@ export default function HeroSlider() {
     let isMounted = true;
     async function loadBanners() {
       try {
-        const data = await getAllBannersFromFirestore();
+        const data = await fetchHeroBanners();
         if (isMounted && data && data.length > 0) {
           const activeSlides = data.filter((b) => b.isActive !== false);
           if (activeSlides.length > 0) {

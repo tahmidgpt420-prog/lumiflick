@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { HeroBanner } from '@/types';
 import { formatImageUrl } from '@/utils/driveUrl';
-import { getAllBannersFromFirestore, DEFAULT_HERO_BANNERS } from '@/lib/firestoreBanners';
+import { fetchHeroBanners, broadcastHeroBanners, DEFAULT_HERO_BANNERS } from '@/lib/heroBanners';
 
 async function saveBannerViaApi(banner: HeroBanner) {
   const res = await fetch('/api/admin/banners', {
@@ -61,7 +61,7 @@ export default function AdminBannersPage() {
   const fetchBanners = async () => {
     try {
       setLoading(true);
-      const data = await getAllBannersFromFirestore();
+      const data = await fetchHeroBanners();
       setBanners(data);
     } catch (err) {
       console.error('Error fetching banners:', err);
@@ -136,7 +136,9 @@ export default function AdminBannersPage() {
         } else {
           updated = [...prev, bannerData];
         }
-        return updated.sort((a, b) => (a.order || 0) - (b.order || 0));
+        updated = updated.sort((a, b) => (a.order || 0) - (b.order || 0));
+        broadcastHeroBanners(updated);
+        return updated;
       });
 
       await saveBannerViaApi(bannerData);
@@ -159,7 +161,11 @@ export default function AdminBannersPage() {
     const previous = banners;
     try {
       setDeletingId(id);
-      setBanners((prev) => prev.filter((b) => b.id !== id));
+      setBanners((prev) => {
+        const updated = prev.filter((b) => b.id !== id);
+        broadcastHeroBanners(updated);
+        return updated;
+      });
       if (editingBanner?.id === id) {
         resetForm();
       }
@@ -185,6 +191,7 @@ export default function AdminBannersPage() {
     // Re-assign order numbers
     const newOrdered = updated.map((b, i) => ({ ...b, order: i + 1 }));
     setBanners(newOrdered);
+    broadcastHeroBanners(newOrdered);
 
     // Save updated orders
     try {

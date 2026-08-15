@@ -1,7 +1,7 @@
 /**
  * Converts Google Drive, Dropbox, Imgur, and cloud storage sharing URLs into direct displayable image links.
  */
-export function formatImageUrl(url: string, driveWidth: number | 'original' = 300): string {
+export function formatImageUrl(url: string, driveWidth: number | 'original' = 240): string {
   if (!url) return '';
   let trimmed = url.trim();
 
