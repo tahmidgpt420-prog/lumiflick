@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminHeader from '@/components/admin/AdminHeader';
 import FileUploadBox from '@/components/admin/FileUploadBox';
-import { Save, CheckCircle2, Shield, Phone, MapPin, Truck, Code2, EyeOff, Activity, HelpCircle, Loader2, Images, Megaphone, Plus, Trash2 } from 'lucide-react';
+import { Save, CheckCircle2, Shield, Code2, EyeOff, Activity, HelpCircle, Loader2, Images, Megaphone, Plus, Trash2 } from 'lucide-react';
 import { StoreSettings } from '@/data/db';
 
 export default function AdminSettingsPage() {
@@ -111,8 +111,8 @@ export default function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <AdminHeader
-        title="Store & Delivery Settings"
-        description="Configure delivery shipping fees, store contact info, WhatsApp number, and top banner notices"
+        title="Store & Banner Settings"
+        description="Configure top announcement bar, interactive frame effect slider, tracking pixels, and scripts"
       />
 
       <div className="p-6 max-w-4xl mx-auto space-y-6">
@@ -124,97 +124,6 @@ export default function AdminSettingsPage() {
         )}
 
         <form onSubmit={handleSave} className="space-y-6">
-          {/* Delivery Charges */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
-              <Truck className="w-4 h-4 text-amber-600" />
-              Delivery Shipping Rates (৳ BDT)
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
-                  Inside Dhaka City Rate (৳)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  required
-                  value={settings.insideDhakaDelivery}
-                  onChange={(e) =>
-                    setSettings({ ...settings, insideDhakaDelivery: Number(e.target.value) })
-                  }
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs font-bold outline-none focus:border-black"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
-                  Outside Dhaka / Sub-Dhaka Rate (৳)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  required
-                  value={settings.outsideDhakaDelivery}
-                  onChange={(e) =>
-                    setSettings({ ...settings, outsideDhakaDelivery: Number(e.target.value) })
-                  }
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs font-bold outline-none focus:border-black"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Details */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
-            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
-              <Phone className="w-4 h-4 text-amber-600" />
-              Store Contacts & Hotline
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
-                  Hotline / WhatsApp Number
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={settings.phone}
-                  onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
-                  Support Email
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={settings.email}
-                  onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-gray-700 block mb-1">
-                  Workshop Address
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={settings.address}
-                  onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Top Scrolling Announcement Bar */}
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
             <div>
