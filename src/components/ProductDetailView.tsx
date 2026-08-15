@@ -47,14 +47,12 @@ export default function ProductDetailView({
   );
   const [selectedPiecesSet, setSelectedPiecesSet] = useState<Set<number>>(new Set([1]));
   const [quantity, setQuantity] = useState<number>(1);
-  const rawPrimaryImage = formatImageUrl(product.galleryImages?.[0] || product.image || '/logo.png');
-  const [selectedImage, setSelectedImage] = useState<string>(rawPrimaryImage);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'desc' | 'specs'>('desc');
   const [addedToast, setAddedToast] = useState(false);
 
   useEffect(() => {
-    const updated = formatImageUrl(product.galleryImages?.[0] || product.image || '/logo.png');
-    setSelectedImage(updated);
+    setSelectedImageIndex(0);
   }, [product.image, product.galleryImages]);
 
   // Sanitized client-side only, via dynamic import — isomorphic-dompurify's
@@ -118,11 +116,16 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
     });
   };
 
-  const images = (
+  const rawImages =
     product.galleryImages && product.galleryImages.length > 0
       ? product.galleryImages
-      : [product.image || '/logo.png']
-  ).map((url) => formatImageUrl(url));
+      : [product.image || '/logo.png'];
+  // Thumbnails stay small; the big display image uses its own 600px
+  // version, not the thumbnail's — otherwise the enlarged view was stuck
+  // at thumbnail resolution and looked pixelated.
+  const images = rawImages.map((url) => formatImageUrl(url, 150));
+  const fullImages = rawImages.map((url) => formatImageUrl(url, 600));
+  const selectedImage = fullImages[selectedImageIndex] || fullImages[0];
 
   const handleAddToCart = () => {
     addItem(
@@ -198,9 +201,9 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
               {images.map((img, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setSelectedImage(img)}
+                  onClick={() => setSelectedImageIndex(idx)}
                   className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
-                    selectedImage === img
+                    selectedImageIndex === idx
                       ? 'border-black scale-105 shadow-md'
                       : 'border-transparent opacity-70 hover:opacity-100'
                   }`}
