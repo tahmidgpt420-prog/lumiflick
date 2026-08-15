@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Phone, Mail, MapPin, ShieldCheck, Truck, RefreshCw, Heart } from 'lucide-react';
+import { Phone, Mail, MapPin, ShieldCheck, Truck, RefreshCw, Heart, Facebook, Instagram } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -74,6 +74,30 @@ export default function Footer() {
                 <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <span>Location : PTI Mor, Khulna, Bangladesh - 9100</span>
               </div>
+            </div>
+
+            {/* Social Links (Black & White) */}
+            <div className="pt-2 flex items-center gap-2.5">
+              <a
+                href="https://www.facebook.com/LumiFlick"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Follow LUMIFLICK on Facebook"
+                title="Facebook"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all duration-200 border border-white/15 hover:border-white"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
+              <a
+                href="https://www.instagram.com/lumi.flick/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Follow LUMIFLICK on Instagram"
+                title="Instagram"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all duration-200 border border-white/15 hover:border-white"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
             </div>
           </div>
 
@@ -194,6 +218,34 @@ export default function Footer() {
                 <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 text-blue-400 font-bold">
                   Bank
                 </span>
+              </div>
+            </div>
+
+            <div className="pt-4">
+              <span className="text-[11px] font-bold text-white uppercase tracking-wider block mb-2.5">
+                Follow Us
+              </span>
+              <div className="flex items-center gap-2.5">
+                <a
+                  href="https://www.facebook.com/LumiFlick"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Follow LUMIFLICK on Facebook"
+                  title="Facebook"
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all duration-200 border border-white/15 hover:border-white"
+                >
+                  <Facebook className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://www.instagram.com/lumi.flick/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Follow LUMIFLICK on Instagram"
+                  title="Instagram"
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all duration-200 border border-white/15 hover:border-white"
+                >
+                  <Instagram className="w-4 h-4" />
+                </a>
               </div>
             </div>
           </div>
