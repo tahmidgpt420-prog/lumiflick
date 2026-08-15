@@ -97,7 +97,7 @@ create table if not exists settings (
 );
 insert into settings (id, store_name, phone, email, address, inside_dhaka_delivery, outside_dhaka_delivery, promo_notice, promo_bar_items)
 values (
-  1, 'LUMIFLICK', '+8801400307299', 'info@lumiflick.shop', 'PTI Mor, Khulna, Bangladesh - 9100', 70, 130,
+  1, 'LUMIFLICK', '+8801400307299', 'lumiflick@gmail.com', 'PTI Mor, Khulna, Bangladesh - 9100', 70, 130,
   '🎁 Upto 35% Off— Biggest Sale of the Year',
   '[{"icon":"🎁","text":"Upto 35% Off— Biggest Sale of the Year"},{"icon":"💳","text":"Cash on Delivery Available"},{"icon":"🚚","text":"Fast Delivery All Over Bangladesh"}]'::jsonb
 )

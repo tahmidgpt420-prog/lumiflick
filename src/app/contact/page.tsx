@@ -127,7 +127,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="font-bold text-gray-900">Official Email Support</h4>
-                <p className="mt-0.5 font-semibold text-gray-800">info@lumiflick.shop</p>
+                <p className="mt-0.5 font-semibold text-gray-800">lumiflick@gmail.com</p>
                 <p className="text-gray-500 text-[11px]">We reply within 24 hours</p>
               </div>
             </div>

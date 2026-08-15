@@ -10,7 +10,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<StoreSettings>({
     storeName: 'LUMIFLICK',
     phone: '+8801400307299',
-    email: 'info@lumiflick.shop',
+    email: 'lumiflick@gmail.com',
     address: 'PTI Mor, Khulna, Bangladesh - 9100',
     insideDhakaDelivery: 70,
     outsideDhakaDelivery: 130,
