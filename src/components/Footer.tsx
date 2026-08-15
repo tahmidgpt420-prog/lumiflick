@@ -230,7 +230,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>© {new Date().getFullYear()} LUMIFLICK. All Rights Reserved.</p>
           <p className="text-gray-400">
-            Handcrafted with excellence in Dhaka, Bangladesh.
+            Handcrafted with excellence in Khulna, Bangladesh.
           </p>
         </div>
       </div>

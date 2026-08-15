@@ -35,6 +35,7 @@ export const metadata: Metadata = {
     'frameless glass wall art',
     'glass poster bangladesh',
     'lumiflick glass poster',
+    'wall art khulna',
     'wall art dhaka',
     'islamic glass art',
     'porsche wall art',
