@@ -62,10 +62,20 @@ export default function HeroSlider() {
     return !cached || cached.length === 0;
   });
   const [imagesLoaded, setImagesLoaded] = useState<Record<number, boolean>>({});
+  const [isMobile, setIsMobile] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -185,9 +195,9 @@ export default function HeroSlider() {
                 href={slide.link || '/shop'}
                 className="block relative w-full h-full cursor-pointer"
               >
-                {/* Background Image (Uncompressed Original Resolution with smooth fade-in) */}
+                {/* Background Image (Compressed 800px on mobile for fast loading, Original Uncompressed on desktop/laptop) */}
                 <Image
-                  src={formatImageUrl(slide.image, 'original')}
+                  src={isMobile ? formatImageUrl(slide.image, 800) : formatImageUrl(slide.image, 'original')}
                   alt={slide.title || 'LUMIFLICK Banner'}
                   fill
                   priority={idx === 0}
