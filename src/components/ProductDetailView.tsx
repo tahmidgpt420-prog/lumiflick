@@ -136,12 +136,26 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [isHoverZooming, setIsHoverZooming] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [zoomLoadedMap, setZoomLoadedMap] = useState<Record<number, boolean>>({});
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [lightboxLoaded, setLightboxLoaded] = useState(false);
 
   useEffect(() => {
     setIsTouchDevice('ontouchstart' in window || (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0));
   }, []);
+
+  // Preload original uncompressed images in background
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    originalImages.forEach((src, idx) => {
+      if (!src) return;
+      const img = new window.Image();
+      img.src = src;
+      img.onload = () => {
+        setZoomLoadedMap((prev) => ({ ...prev, [idx]: true }));
+      };
+    });
+  }, [originalImages]);
 
   const nextImage = useCallback(() => {
     if (fullImages.length <= 1) return;
@@ -311,19 +325,37 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
 
             {/* Desktop Ultra-Crisp Uncompressed Hover Zoom Layer */}
             {!isTouchDevice && isHoverZooming && (
-              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-2xl bg-white">
+              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-2xl bg-gray-900/10 backdrop-blur-[1px]">
+                {/* Uncompressed High Resolution Image */}
                 <img
                   src={originalImages[selectedImageIndex] || fullImages[selectedImageIndex] || '/logo.png'}
                   alt={`${product.title} Zoomed Uncompressed View`}
-                  className="w-full h-full object-cover transition-transform duration-75 ease-out"
+                  onLoad={() => setZoomLoadedMap((prev) => ({ ...prev, [selectedImageIndex]: true }))}
+                  className={`w-full h-full object-cover transition-opacity duration-200 ease-out ${
+                    zoomLoadedMap[selectedImageIndex] ? 'opacity-100' : 'opacity-0'
+                  }`}
                   style={{
                     transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
                     transform: 'scale(2.4)',
                   }}
                 />
-                <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-white text-[11px] font-semibold flex items-center gap-1">
-                  <ZoomIn className="w-3.5 h-3.5" /> HD Zoom
-                </div>
+
+                {/* Circular Loading Animation while fetching the uncompressed HD image */}
+                {!zoomLoadedMap[selectedImageIndex] && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity">
+                    <div className="px-4 py-2.5 rounded-full bg-black/85 backdrop-blur-md text-white border border-white/20 flex items-center gap-2.5 shadow-2xl animate-fade-in">
+                      <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+                      <span className="text-xs font-semibold tracking-wide">Loading High Definition...</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* HD Zoom Badge once loaded */}
+                {zoomLoadedMap[selectedImageIndex] && (
+                  <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-sm text-white text-[11px] font-semibold flex items-center gap-1.5 shadow-md">
+                    <ZoomIn className="w-3.5 h-3.5 text-amber-400" /> HD Zoom
+                  </div>
+                )}
               </div>
             )}
 
