@@ -421,26 +421,28 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
 
           {/* Thumbnail Strip */}
           {images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
+            <div className="flex gap-3 overflow-x-auto pb-2 pt-1 px-1">
               {images.map((img, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
+                  className={`relative w-20 h-20 rounded-xl shrink-0 transition-all duration-200 focus:outline-none ${
                     selectedImageIndex === idx
-                      ? 'border-black scale-105 shadow-md'
-                      : 'border-transparent opacity-70 hover:opacity-100'
+                      ? 'ring-2 ring-black ring-offset-2 opacity-100 shadow-sm'
+                      : 'opacity-60 hover:opacity-100 border border-gray-200'
                   }`}
                 >
-                  <Image
-                    src={img}
-                    alt={`${product.title} thumbnail ${idx + 1}`}
-                    fill
-                    unoptimized
-                    className="object-cover"
-                    sizes="80px"
-                  />
+                  <div className="relative w-full h-full rounded-[10px] overflow-hidden bg-gray-100">
+                    <Image
+                      src={img}
+                      alt={`${product.title} thumbnail ${idx + 1}`}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  </div>
                 </button>
               ))}
             </div>
