@@ -14,11 +14,11 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100">
       {/* Main Header Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="flex items-center justify-between h-20">
           
           {/* Left: Mobile menu button & Search Trigger */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 z-10">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-800"
@@ -37,9 +37,9 @@ export default function Header() {
             </button>
           </div>
 
-          {/* Center: Brand Logo */}
-          <div className="flex-1 flex justify-center">
-            <Link href="/" className="flex items-center gap-2.5 group">
+          {/* Center: Brand Logo (Mathematically Dead Center) */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group pointer-events-auto">
               <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden shadow-sm shrink-0 border border-gray-100 group-hover:scale-105 transition-transform">
                 <Image
                   src="/logo.png"
@@ -49,7 +49,7 @@ export default function Header() {
                   priority
                 />
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col text-left">
                 <span className="text-lg sm:text-2xl font-black tracking-wider text-black uppercase font-serif leading-none">
                   LUMIFLICK
                 </span>
@@ -61,7 +61,7 @@ export default function Header() {
           </div>
 
           {/* Right: Cart Button */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 z-10">
             <button
               onClick={openCartDrawer}
               className="relative p-2.5 rounded-full hover:bg-gray-100 transition-colors text-gray-800"
