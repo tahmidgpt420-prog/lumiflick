@@ -16,7 +16,7 @@ export default function Footer() {
                 <Truck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-white text-sm">Nationwide Delivery</h4>
+                <h3 className="font-bold text-white text-sm">Nationwide Delivery</h3>
                 <p className="text-gray-400 mt-0.5 text-[11px]">All Bangladesh Home Delivery</p>
               </div>
             </div>
@@ -26,7 +26,7 @@ export default function Footer() {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-white text-sm">Premium Quality</h4>
+                <h3 className="font-bold text-white text-sm">Premium Quality</h3>
                 <p className="text-gray-400 mt-0.5 text-[11px]">2.5mm Real Glass with Lifetime Color Guarantee</p>
               </div>
             </div>
@@ -36,7 +36,7 @@ export default function Footer() {
                 <Heart className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-white text-sm">5000+</h4>
+                <h3 className="font-bold text-white text-sm">5000+</h3>
                 <p className="text-gray-400 mt-0.5 text-[11px]">Successful Orders</p>
               </div>
             </div>
@@ -205,7 +205,7 @@ export default function Footer() {
       <div className="border-t border-gray-800 py-6 text-center text-gray-500 text-[11px]">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>© {new Date().getFullYear()} LUMIFLICK. All Rights Reserved.</p>
-          <p className="text-gray-600">
+          <p className="text-gray-400">
             Handcrafted with excellence in Dhaka, Bangladesh.
           </p>
         </div>

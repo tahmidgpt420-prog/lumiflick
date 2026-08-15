@@ -1,14 +1,19 @@
 /**
  * Converts Google Drive, Dropbox, Imgur, and cloud storage sharing URLs into direct displayable image links.
  */
-export function formatImageUrl(url: string, driveWidth: number | 'original' = 600): string {
+export function formatImageUrl(url: string, driveWidth: number | 'original' = 400): string {
   if (!url) return '';
   let trimmed = url.trim();
 
   // Strip wrapping quotes or whitespace if pasted with quotes
   trimmed = trimmed.replace(/^["']|["']$/g, '');
 
-  const szParam = driveWidth === 0 || driveWidth === 'original' ? 's0' : `w${driveWidth}`;
+  const szParam =
+    driveWidth === 0 || driveWidth === 'original'
+      ? 's0'
+      : typeof driveWidth === 'string' && (driveWidth as string).includes('-rw')
+      ? `w${driveWidth}`
+      : `w${driveWidth}-rw`;
 
   // If already a Google Drive thumbnail URL, update the sz parameter if needed
   if (trimmed.includes('drive.google.com/thumbnail')) {

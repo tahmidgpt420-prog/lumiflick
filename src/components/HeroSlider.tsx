@@ -196,7 +196,7 @@ export default function HeroSlider() {
           </button>
 
           {/* Pagination Dots */}
-          <div className="absolute bottom-3 sm:bottom-5 left-0 right-0 flex justify-center items-center gap-2 z-20">
+          <div className="absolute bottom-3 sm:bottom-5 left-0 right-0 flex justify-center items-center gap-1 z-20">
             {slides.map((_, i) => (
               <button
                 key={i}
@@ -204,13 +204,17 @@ export default function HeroSlider() {
                   e.preventDefault();
                   setCurrentIndex(i);
                 }}
-                className={`transition-all rounded-full ${
-                  currentIndex === i
-                    ? 'w-7 h-2 bg-white shadow'
-                    : 'w-2 h-2 bg-white/50 hover:bg-white/80'
-                }`}
+                className="p-2 flex items-center justify-center focus:outline-none"
                 aria-label={`Go to slide ${i + 1}`}
-              />
+              >
+                <span
+                  className={`block rounded-full transition-all duration-300 ${
+                    currentIndex === i
+                      ? 'w-7 h-2 bg-white shadow'
+                      : 'w-2 h-2 bg-white/50 hover:bg-white/80'
+                  }`}
+                />
+              </button>
             ))}
           </div>
         </>

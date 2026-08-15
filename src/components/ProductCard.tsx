@@ -52,7 +52,6 @@ export default function ProductCard({ product }: ProductCardProps) {
             src={hasError ? '/logo.png' : formatImageUrl(product.image || '/logo.png')}
             alt={product.title || 'LUMIFLICK Frame'}
             fill
-            unoptimized
             onLoad={() => setImageLoaded(true)}
             onError={() => {
               setImageLoaded(true);
@@ -86,6 +85,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             href={`/product/${productSlug}`}
             className="w-10 h-10 rounded-full bg-white text-black hover:bg-gray-100 flex items-center justify-center shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0"
             title="View Details"
+            aria-label={`View details for ${product.title}`}
           >
             <Eye className="w-4 h-4" />
           </Link>
@@ -98,7 +98,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Category */}
           <Link
             href={`/product-category/${categorySlug}`}
-            className="text-[11px] font-medium text-gray-400 hover:text-black uppercase tracking-wider block mb-1"
+            className="text-[11px] font-semibold text-gray-500 hover:text-black uppercase tracking-wider block mb-1"
           >
             {product.category || 'Wall Frame'}
           </Link>

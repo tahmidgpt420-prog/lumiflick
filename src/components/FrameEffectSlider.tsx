@@ -144,10 +144,9 @@ export default function FrameEffectSlider() {
                   {/* "After" Image (Full background - Styled room with glass art) */}
                   <div className="absolute inset-0 w-full h-full">
                     <Image
-                      src={formatImageUrl(afterImage)}
+                      src={formatImageUrl(afterImage, 600)}
                       alt="Room with LUMIFLICK Luxury Glass Art"
                       fill
-                      unoptimized
                       onLoad={() => setAfterLoaded(true)}
                       onError={() => setAfterLoaded(true)}
                       className={`object-cover transition-opacity duration-500 ${
@@ -170,10 +169,9 @@ export default function FrameEffectSlider() {
                     style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
                   >
                     <Image
-                      src={formatImageUrl(beforeImage)}
+                      src={formatImageUrl(beforeImage, 600)}
                       alt="Empty Bare Wall"
                       fill
-                      unoptimized
                       onLoad={() => setBeforeLoaded(true)}
                       onError={() => setBeforeLoaded(true)}
                       className={`object-cover grayscale brightness-90 contrast-90 transition-opacity duration-500 ${

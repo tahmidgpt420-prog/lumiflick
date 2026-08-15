@@ -1,9 +1,28 @@
 import type { Metadata } from 'next';
+import { Outfit, DM_Sans, Cinzel } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { ProductProvider } from '@/context/ProductContext';
 import StorefrontShell from '@/components/StorefrontShell';
 import TrackingScripts from '@/components/TrackingScripts';
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-outfit',
+});
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-dmsans',
+});
+
+const cinzel = Cinzel({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-cinzel',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://lumiflick.shop'),
@@ -47,7 +66,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${outfit.variable} ${dmSans.variable} ${cinzel.variable}`}>
       <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased selection:bg-black selection:text-white">
         <TrackingScripts />
         <CartProvider>

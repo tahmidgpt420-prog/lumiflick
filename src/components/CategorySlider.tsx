@@ -21,7 +21,7 @@ function CategoryCardItem({ category }: { category: Category }) {
           <div className="absolute inset-0 card-skeleton-shimmer-dark z-0" />
         )}
         <Image
-          src={formatImageUrl(category.image, 600)}
+          src={formatImageUrl(category.image, 350)}
           alt={category.name}
           fill
           onLoad={() => setImgLoaded(true)}

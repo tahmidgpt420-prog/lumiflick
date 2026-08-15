@@ -15,4 +15,4 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 export const db = getFirestore(app);
 // Used only server-side (see src/lib/firebaseAdminAuth.ts) to sign in the
 // dedicated admin identity that firestore.rules grants write access to.
-export const auth = getAuth(app);
+export const auth = typeof window === 'undefined' ? getAuth(app) : (null as any);
