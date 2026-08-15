@@ -12,52 +12,7 @@ import { HeroBanner } from '@/types';
 
 const LOCAL_STORAGE_KEY = 'lumiflick_hero_banners_v1';
 
-export const DEFAULT_HERO_BANNERS: HeroBanner[] = [
-  {
-    id: 'banner-1',
-    image: '/logo.png',
-    title: 'Transform Your Empty Walls Into Living Art',
-    subtitle: 'Handcrafted luxury canvas & textured wooden frames tailored for modern homes.',
-    link: '/product-category/best-selling',
-    buttonText: 'Shop Best Sellers',
-    badge: 'Premium Collection',
-    order: 1,
-    isActive: true,
-  },
-  {
-    id: 'banner-2',
-    image: '/logo.png',
-    title: 'Porsche & Supercars Enthusiast Series',
-    subtitle: 'High-octane automotive wall prints in museum quality matte finish.',
-    link: '/product-category/cars-frame-collection',
-    buttonText: 'Explore Cars Series',
-    badge: 'Automotive Art',
-    order: 2,
-    isActive: true,
-  },
-  {
-    id: 'banner-3',
-    image: '/logo.png',
-    title: 'Sacred Calligraphy & Spiritual Elegance',
-    subtitle: 'Ayat-ul-Kursi and 4 Quls masterworks with golden accent foil effects.',
-    link: '/product-category/religious-luxury-frame',
-    buttonText: 'View Religious Frames',
-    badge: 'Islamic Art',
-    order: 3,
-    isActive: true,
-  },
-  {
-    id: 'banner-4',
-    image: '/logo.png',
-    title: '5 Frames Signature Gallery Sets',
-    subtitle: 'Complete room transformation bundles for master bedrooms and living rooms.',
-    link: '/product-category/5-frames-set',
-    buttonText: 'Discover 5-Frame Sets',
-    badge: 'Gallery Sets',
-    order: 4,
-    isActive: true,
-  },
-];
+export const DEFAULT_HERO_BANNERS: HeroBanner[] = [];
 
 export function getCachedHeroBanners(): HeroBanner[] | null {
   if (typeof window === 'undefined') return null;

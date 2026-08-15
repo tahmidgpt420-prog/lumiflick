@@ -34,7 +34,7 @@ export default function CustomerLoginPage() {
           </h1>
           <p className="text-xs text-gray-500">
             {isRegister
-              ? 'Join LUMIFLICK to track your frame orders and wishlists'
+              ? 'Join LUMIFLICK to track your glass poster orders and wishlists'
               : 'Sign in to manage your orders & delivery addresses'}
           </p>
         </div>

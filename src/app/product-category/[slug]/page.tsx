@@ -21,7 +21,7 @@ const BEST_SELLING_CATEGORY: Category = {
   name: 'Best Selling',
   slug: 'best-selling',
   image: '/logo.png',
-  description: 'Our top most popular, best-selling handcrafted wall frames across Bangladesh.',
+  description: 'Our top most popular, best-selling handcrafted glass posters across Bangladesh.',
 };
 
 interface CategoryPageProps {
@@ -120,7 +120,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
           </p>
         )}
         <p className="mt-2 text-xs text-gray-400 font-medium">
-          Showing {categoryProducts.length} handcrafted wall frame{categoryProducts.length === 1 ? '' : 's'}
+          Showing {categoryProducts.length} handcrafted glass poster{categoryProducts.length === 1 ? '' : 's'}
         </p>
 
         {/* Sub-category Navigation Buttons */}
@@ -173,7 +173,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
       {categoryProducts.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200 space-y-4">
           <p className="text-gray-600 text-sm font-medium">
-            No frames currently listed under &ldquo;{category.name}&rdquo; yet.
+            No glass posters currently listed under &ldquo;{category.name}&rdquo; yet.
           </p>
           <Link
             href="/shop"

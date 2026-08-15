@@ -15,7 +15,7 @@ export default function AboutUsPage() {
           About LUMIFLICK
         </h1>
         <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-          Pioneering premium wall art decor and handcrafted frames in Bangladesh.
+          Pioneering premium frameless glass posters & luxury wall art in Bangladesh.
         </p>
       </div>
 
@@ -26,10 +26,10 @@ export default function AboutUsPage() {
             Elevating Living Spaces Across Bangladesh
           </h2>
           <p>
-            At <strong>LUMIFLICK</strong>, we believe every bare wall holds infinite storytelling potential. Our vision is to bring luxury, sophistication, and personality to residential homes, luxury apartments, and modern executive offices.
+            At <strong>LUMIFLICK</strong>, we believe every bare wall holds infinite storytelling potential. Our vision is to bring modern luxury, vivid depth, and timeless personality to residential homes, apartments, and executive spaces.
           </p>
           <p>
-            We use specialized 12-color pigment archival printing, non-glare UV matte textures, and lightweight engineered Korean synthetic wood framing to deliver pieces that stay vivid for over a decade.
+            Crafted from 2.5mm ultra-clear real glass with vivid, fade-proof UV colors, a mirror-like HD gloss finish, and polished safety edges, our glass posters are waterproof, scratch-resistant, and built to last. No paper, no PVC, no bulky frames—just pure, premium glass art designed to elevate your space.
           </p>
           <div className="pt-2">
             <Link
@@ -57,9 +57,9 @@ export default function AboutUsPage() {
           <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center mx-auto">
             <Sparkles className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-bold text-gray-900">Museum Grade Prints</h3>
+          <h3 className="text-sm font-bold text-gray-900">2.5mm Real Glass</h3>
           <p className="text-xs text-gray-500">
-            Anti-glare UV textured matte lamination without brittle glass hazard.
+            Ultra-clear premium real glass with mirror-like HD reflective gloss.
           </p>
         </div>
 
@@ -67,9 +67,9 @@ export default function AboutUsPage() {
           <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center mx-auto">
             <Award className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-bold text-gray-900">Korean Synthetic Framing</h3>
+          <h3 className="text-sm font-bold text-gray-900">Fade-Proof UV Print</h3>
           <p className="text-xs text-gray-500">
-            Engineered polymer composite that is ultra-lightweight, termite-proof & warp-free.
+            High-definition UV cured pigments delivering lifetime vibrant colors.
           </p>
         </div>
 

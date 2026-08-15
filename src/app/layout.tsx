@@ -26,26 +26,27 @@ const cinzel = Cinzel({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://lumiflick.shop'),
-  title: 'LUMIFLICK | Premium Handcrafted Wall Art & Frames in Bangladesh',
+  title: 'LUMIFLICK | Elegant Glass Poster',
   description:
-    'Discover premium handcrafted wall frames, religious calligraphy sets, automotive supercar prints, and modern minimalist art with cash on delivery across Bangladesh.',
+    'Discover premium handcrafted frameless glass posters, luxury Islamic calligraphy, automotive prints, and modern minimalist art with cash on delivery across Bangladesh.',
   keywords: [
     'lumiflick',
-    'wall frame',
-    'photo frame bangladesh',
+    'glass poster',
+    'frameless glass wall art',
+    'glass poster bangladesh',
+    'lumiflick glass poster',
     'wall art dhaka',
-    'calligraphy frame',
+    'islamic glass art',
     'porsche wall art',
     'home decor bangladesh',
-    'lumiflick frames',
   ],
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',
   },
   openGraph: {
-    title: 'LUMIFLICK | Premium Wall Frames & Art',
-    description: 'Museum grade textured matte wall art and handcrafted wooden frames.',
+    title: 'LUMIFLICK | Elegant Glass Poster',
+    description: 'Museum-grade 2.5mm real glass frameless wall art with mirror-like HD finish and lifetime color guarantee.',
     url: 'https://lumiflick.shop',
     siteName: 'LUMIFLICK',
     images: [

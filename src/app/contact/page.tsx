@@ -22,7 +22,7 @@ export default function ContactPage() {
           Get in Touch With Us
         </h1>
         <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-          Have questions about custom wall frame sizes, bulk orders, or tracking your delivery? Connect directly with us through WhatsApp, Facebook, Instagram, or call us.
+          Have questions about custom glass poster sizes, bulk orders, or tracking your delivery? Connect directly with us through WhatsApp, Facebook, Instagram, or call us.
         </p>
       </div>
 

@@ -54,7 +54,7 @@ export default function CartPage() {
           </div>
           <h2 className="text-xl font-bold text-gray-900">Your cart is currently empty</h2>
           <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
-            Explore our handcrafted luxury wall frames, Islamic calligraphy sets, and motivational series.
+            Explore our handcrafted luxury frameless glass posters, Islamic calligraphy sets, and anime series.
           </p>
           <div className="pt-2">
             <Link

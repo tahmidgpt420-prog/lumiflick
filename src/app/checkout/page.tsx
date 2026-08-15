@@ -128,7 +128,7 @@ export default function CheckoutPage() {
         </div>
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Your Cart is Empty</h2>
         <p className="text-xs sm:text-sm text-gray-500">
-          Add some beautiful handcrafted frames to your cart to proceed with checkout.
+          Add some beautiful handcrafted glass posters to your cart to proceed with checkout.
         </p>
         <Link
           href="/"

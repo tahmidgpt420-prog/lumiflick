@@ -25,7 +25,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
         <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-        <p className="text-xs text-gray-500 font-medium">Loading frame details...</p>
+        <p className="text-xs text-gray-500 font-medium">Loading product details...</p>
       </div>
     );
   }

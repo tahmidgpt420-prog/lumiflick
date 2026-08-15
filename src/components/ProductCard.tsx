@@ -100,7 +100,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             href={`/product-category/${categorySlug}`}
             className="text-[11px] font-semibold text-gray-500 hover:text-black uppercase tracking-wider inline-block py-1 mb-0.5"
           >
-            {product.category || 'Wall Frame'}
+            {product.category || 'Glass Poster'}
           </Link>
 
           {/* Title */}

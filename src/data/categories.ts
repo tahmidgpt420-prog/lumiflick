@@ -25,7 +25,7 @@ export function getCategoryBySlug(slug: string): Category | undefined {
       name: 'Best Selling',
       slug: 'best-selling',
       image: '/logo.png',
-      description: 'Our top most popular, best-selling handcrafted wall frames across Bangladesh.',
+      description: 'Our top most popular, best-selling handcrafted glass posters across Bangladesh.',
     };
   }
 

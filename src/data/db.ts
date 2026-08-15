@@ -220,12 +220,12 @@ export function saveProduct(productData: Partial<Product>): Product {
 
     const newProduct: Product = {
       id: productData.id || `prod_${slug}_${Date.now()}`,
-      title: productData.title || 'Untitled Wall Frame',
+      title: productData.title || 'Untitled Glass Poster',
       slug: slug,
-      category: productData.category || 'Modern Frames',
+      category: productData.category || 'Anime Glass Poster',
       categorySlug:
         productData.categorySlug ||
-        (productData.category || 'modern-frames')
+        (productData.category || 'anime-glass-poster')
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, ''),
@@ -237,15 +237,14 @@ export function saveProduct(productData: Partial<Product>): Product {
       sale: productData.sale ?? true,
       featured: productData.featured ?? true,
       bestSeller: productData.bestSeller ?? false,
-      shortDescription: productData.shortDescription || 'Handcrafted luxury wall frame with UV matte textured finish.',
+      shortDescription: productData.shortDescription || 'Handcrafted luxury 2.5mm real glass poster with mirror-like HD reflective gloss finish.',
       description: productData.description || '<p>Transform any blank wall into a sophisticated statement with LUMIFLICK.</p>',
       specifications: productData.specifications || {
-        material: 'High-grade Korean Synthetic Wood Composite',
-        finish: 'Anti-glare UV Textured Matte Lamination',
-        mounting: 'Pre-installed heavy-duty sawtooth hanger included',
-        dimensions: 'Standard Set (13″ x 19″)',
-        weight: '1.5 kg',
-        frameColorOptions: ['Matte Black', 'Luxury Gold', 'Natural Walnut Wood'],
+        material: '2.5mm Ultra-Clear Real Glass',
+        finish: 'Mirror-Like HD Reflective Gloss (UV Fade-Proof)',
+        mounting: 'Pre-installed frameless wall mounting hardware included',
+        dimensions: 'Standard Edition',
+        weight: '1.2 kg',
       },
       variations: productData.variations || [
         {
@@ -429,8 +428,8 @@ export function saveReview(reviewData: Partial<CustomerReview>): CustomerReview 
           year: 'numeric',
         }),
       verified: reviewData.verified ?? true,
-      comment: reviewData.comment || 'Outstanding frame quality and vibrant printing!',
-      productName: reviewData.productName || 'Handcrafted Luxury Wall Frame',
+      comment: reviewData.comment || 'Outstanding glass poster quality and vibrant printing!',
+      productName: reviewData.productName || 'Handcrafted Luxury Glass Poster',
       location: reviewData.location || 'Dhaka, Bangladesh',
       screenshotImage: reviewData.screenshotImage || '',
       featured: reviewData.featured ?? true,
@@ -476,52 +475,7 @@ export function updateSettings(newSettings: Partial<StoreSettings>): StoreSettin
   return store.settings;
 }
 
-const DEFAULT_STORE_BANNERS: HeroBanner[] = [
-  {
-    id: 'banner-1',
-    image: '/logo.png',
-    title: 'Transform Your Empty Walls Into Living Art',
-    subtitle: 'Handcrafted luxury canvas & textured wooden frames tailored for modern homes.',
-    link: '/product-category/best-selling',
-    buttonText: 'Shop Best Sellers',
-    badge: 'Premium Collection',
-    order: 1,
-    isActive: true,
-  },
-  {
-    id: 'banner-2',
-    image: '/logo.png',
-    title: 'Porsche & Supercars Enthusiast Series',
-    subtitle: 'High-octane automotive wall prints in museum quality matte finish.',
-    link: '/product-category/cars-frame-collection',
-    buttonText: 'Explore Cars Series',
-    badge: 'Automotive Art',
-    order: 2,
-    isActive: true,
-  },
-  {
-    id: 'banner-3',
-    image: '/logo.png',
-    title: 'Sacred Calligraphy & Spiritual Elegance',
-    subtitle: 'Ayat-ul-Kursi and 4 Quls masterworks with golden accent foil effects.',
-    link: '/product-category/religious-luxury-frame',
-    buttonText: 'View Religious Frames',
-    badge: 'Islamic Art',
-    order: 3,
-    isActive: true,
-  },
-  {
-    id: 'banner-4',
-    image: '/logo.png',
-    title: '5 Frames Signature Gallery Sets',
-    subtitle: 'Complete room transformation bundles for master bedrooms and living rooms.',
-    link: '/product-category/5-frames-set',
-    buttonText: 'Discover 5-Frame Sets',
-    badge: 'Gallery Sets',
-    order: 4,
-    isActive: true,
-  },
-];
+const DEFAULT_STORE_BANNERS: HeroBanner[] = [];
 
 export function getAllBanners(): HeroBanner[] {
   const store = getStoreData();

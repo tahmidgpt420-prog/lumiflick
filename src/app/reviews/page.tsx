@@ -16,8 +16,24 @@ import { formatImageUrl } from '@/utils/driveUrl';
 
 const PAGE_SIZE = 16;
 
+// Initial Masonry Grid Skeleton Loader
+function ReviewsSkeletonGrid() {
+  const dummyHeights = ['h-72', 'h-96', 'h-64', 'h-80', 'h-84', 'h-60', 'h-76', 'h-90'];
+  return (
+    <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+      {dummyHeights.map((h, i) => (
+        <div
+          key={i}
+          className={`break-inside-avoid bg-white rounded-2xl border border-gray-200 overflow-hidden relative ${h} card-skeleton-shimmer`}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<CustomerReview[]>(initialReviews);
+  const [loading, setLoading] = useState(true);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -26,11 +42,13 @@ export default function ReviewsPage() {
       try {
         const res = await fetch('/api/admin/reviews');
         const data = await res.json();
-        if (data.success && Array.isArray(data.reviews) && data.reviews.length > 0) {
+        if (data.success && Array.isArray(data.reviews)) {
           setReviews(data.reviews);
         }
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     }
     loadReviews();
@@ -98,15 +116,18 @@ export default function ReviewsPage() {
 
       {/* Original Aspect Ratio Masonry Gallery */}
       <section className="py-8 sm:py-12 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        {photoReviews.length === 0 ? (
+        {loading ? (
+          <ReviewsSkeletonGrid />
+        ) : photoReviews.length === 0 ? (
           <div className="text-center py-20 text-xs text-gray-400">
             No review photos published yet.
           </div>
         ) : (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
             {visiblePhotoReviews.map((review, index) => {
-              const imgUrl = review.screenshotImage || (review as any).image;
-              if (!imgUrl) return null;
+              const rawImgUrl = review.screenshotImage || (review as any).image;
+              if (!rawImgUrl) return null;
+              const imgUrl = formatImageUrl(rawImgUrl, 800);
 
               return (
                 <div

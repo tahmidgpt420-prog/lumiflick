@@ -118,7 +118,7 @@ export default function OrderSuccessPage() {
               </div>
             ))
           ) : (
-            <p className="text-xs text-gray-400 py-2">Standard Premium Wall Frame Order</p>
+            <p className="text-xs text-gray-400 py-2">Standard Premium Glass Poster Order</p>
           )}
         </div>
 
