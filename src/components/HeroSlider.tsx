@@ -12,13 +12,56 @@ import {
   DEFAULT_HERO_BANNERS,
 } from '@/lib/heroBanners';
 
+export function HeroSliderSkeleton() {
+  return (
+    <div className="relative w-full overflow-hidden bg-white select-none">
+      <div className="relative w-full h-[240px] sm:h-[380px] md:h-[480px] lg:h-[580px] bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 animate-pulse flex items-end border-b border-gray-100">
+        {/* Shimmer sweep effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/80 to-transparent animate-shimmer" />
+
+        {/* Text overlay skeleton */}
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 pb-8 sm:pb-12 md:pb-16 w-full relative z-10">
+          <div className="max-w-xl space-y-3 sm:space-y-4">
+            {/* Badge skeleton */}
+            <div className="w-24 h-5 rounded-full bg-gray-200/90 animate-pulse" />
+
+            {/* Title skeleton */}
+            <div className="space-y-2">
+              <div className="w-3/4 h-7 sm:h-9 md:h-11 rounded-xl bg-gray-200/90 animate-pulse" />
+              <div className="w-1/2 h-7 sm:h-9 md:h-11 rounded-xl bg-gray-200/80 animate-pulse" />
+            </div>
+
+            {/* Subtitle skeleton */}
+            <div className="w-2/3 h-4 sm:h-5 rounded-lg bg-gray-200/70 animate-pulse pt-1" />
+
+            {/* Button skeleton */}
+            <div className="pt-2">
+              <div className="w-36 sm:w-44 h-10 sm:h-12 rounded-full bg-gray-300/80 animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        {/* Dots skeleton */}
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+          <div className="w-7 h-2 rounded-full bg-gray-300 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HeroSlider() {
-  // Instant paint from cache (same pattern as PromoBar/TrackingScripts),
-  // falling back to the placeholder set only if nothing's cached yet.
   const [slides, setSlides] = useState<HeroBanner[]>(() => {
     const cached = getCachedHeroBanners();
     return cached && cached.length > 0 ? cached : DEFAULT_HERO_BANNERS;
   });
+  const [isLoading, setIsLoading] = useState(() => {
+    const cached = getCachedHeroBanners();
+    return !cached || cached.length === 0;
+  });
+  const [imagesLoaded, setImagesLoaded] = useState<Record<number, boolean>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -29,14 +72,18 @@ export default function HeroSlider() {
     async function loadBanners() {
       try {
         const data = await fetchHeroBanners();
-        if (isMounted && data && data.length > 0) {
-          const activeSlides = data.filter((b) => b.isActive !== false);
-          if (activeSlides.length > 0) {
-            setSlides(activeSlides);
+        if (isMounted) {
+          if (data && data.length > 0) {
+            const activeSlides = data.filter((b) => b.isActive !== false);
+            if (activeSlides.length > 0) {
+              setSlides(activeSlides);
+            }
           }
+          setIsLoading(false);
         }
       } catch (e) {
         console.warn('Error loading dynamic banners in slider:', e);
+        if (isMounted) setIsLoading(false);
       }
     }
     loadBanners();
@@ -47,6 +94,7 @@ export default function HeroSlider() {
         if (active.length > 0) {
           setSlides(active);
         }
+        setIsLoading(false);
       }
     };
     window.addEventListener('lumiflick_banners_updated', handleUpdate);
@@ -98,6 +146,10 @@ export default function HeroSlider() {
     return () => clearInterval(interval);
   }, [nextSlide, isPaused, totalSlides]);
 
+  if (isLoading && totalSlides === 0) {
+    return <HeroSliderSkeleton />;
+  }
+
   if (totalSlides === 0) return null;
 
   return (
@@ -118,19 +170,22 @@ export default function HeroSlider() {
           const hasText = Boolean(slide.title || slide.subtitle || slide.buttonText);
 
           return (
-            <div key={slide.id || idx} className="relative w-full h-full shrink-0">
+            <div key={slide.id || idx} className="relative w-full h-full shrink-0 bg-gray-950">
               {/* Entire Banner as Link */}
               <Link
                 href={slide.link || '/shop'}
                 className="block relative w-full h-full cursor-pointer"
               >
-                {/* Background Image (Uncompressed Original Resolution) */}
+                {/* Background Image (Uncompressed Original Resolution with smooth fade-in) */}
                 <Image
                   src={formatImageUrl(slide.image, 'original')}
                   alt={slide.title || 'LUMIFLICK Banner'}
                   fill
                   priority={idx === 0}
-                  className="object-cover object-center"
+                  className={`object-cover object-center transition-opacity duration-500 ease-out ${
+                    imagesLoaded[idx] || idx !== 0 ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  onLoad={() => setImagesLoaded((prev) => ({ ...prev, [idx]: true }))}
                   sizes="100vw"
                   quality={100}
                   unoptimized

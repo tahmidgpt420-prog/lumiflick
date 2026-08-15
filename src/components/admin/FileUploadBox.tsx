@@ -10,6 +10,10 @@ interface FileUploadBoxProps {
   onChange: (url: string) => void;
   label?: string;
   aspectRatio?: 'square' | 'video' | 'wide';
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: number;
+  skipCompression?: boolean;
 }
 
 export default function FileUploadBox({
@@ -17,6 +21,10 @@ export default function FileUploadBox({
   onChange,
   label = 'Product / Review Photo',
   aspectRatio = 'wide',
+  maxWidth,
+  maxHeight,
+  quality,
+  skipCompression = false,
 }: FileUploadBoxProps) {
   const [tab, setTab] = useState<'upload' | 'url'>('upload');
   const [linkInput, setLinkInput] = useState(value || '');
@@ -29,7 +37,7 @@ export default function FileUploadBox({
   }, [value]);
 
   const handleApplyLink = () => {
-    const formatted = formatImageUrl(linkInput.trim());
+    const formatted = formatImageUrl(linkInput.trim(), 'original');
     if (formatted) {
       onChange(formatted);
     }
@@ -44,21 +52,40 @@ export default function FileUploadBox({
     setIsUploading(true);
 
     try {
-      // 1. Client-side compression protocol (resizes & converts to WebP/JPEG ~100KB)
-      const { compressedBase64 } = await compressImage(file, {
-        maxWidth: 1200,
-        maxHeight: 1200,
-        quality: 0.82,
-      });
+      let finalDataUrl = '';
 
-      // Instant preview with compressed image
-      onChange(compressedBase64);
+      if (skipCompression) {
+        // Read file as raw base64
+        const rawBase64 = await new Promise<string>((res, rej) => {
+          const reader = new FileReader();
+          reader.onload = (e) => res(e.target?.result as string);
+          reader.onerror = rej;
+          reader.readAsDataURL(file);
+        });
+        finalDataUrl = rawBase64;
+        onChange(rawBase64);
+      } else {
+        // Smart High-Resolution compression
+        const resolvedMaxWidth = maxWidth || (aspectRatio === 'wide' ? 3840 : 2560);
+        const resolvedMaxHeight = maxHeight || (aspectRatio === 'wide' ? 2160 : 2560);
+        const resolvedQuality = quality || (aspectRatio === 'wide' ? 0.95 : 0.90);
+
+        const { compressedBase64 } = await compressImage(file, {
+          maxWidth: resolvedMaxWidth,
+          maxHeight: resolvedMaxHeight,
+          quality: resolvedQuality,
+        });
+
+        finalDataUrl = compressedBase64;
+        onChange(compressedBase64);
+      }
 
       // 2. Upload to server
       const formData = new FormData();
-      const resBlob = await fetch(compressedBase64).then((r) => r.blob());
-      const compressedFile = new File([resBlob], file.name.replace(/\.[^/.]+$/, '') + '.webp', {
-        type: resBlob.type || 'image/webp',
+      const resBlob = await fetch(finalDataUrl).then((r) => r.blob());
+      const ext = file.name.split('.').pop() || 'webp';
+      const compressedFile = new File([resBlob], file.name.replace(/\.[^/.]+$/, '') + `.${ext}`, {
+        type: resBlob.type || file.type || 'image/webp',
       });
 
       formData.append('file', compressedFile);

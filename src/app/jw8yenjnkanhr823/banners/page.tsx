@@ -257,6 +257,9 @@ export default function AdminBannersPage() {
                   onChange={(url) => setImage(url)}
                   label="Hero Banner Image"
                   aspectRatio="wide"
+                  maxWidth={3840}
+                  maxHeight={2160}
+                  quality={0.96}
                 />
               </div>
 
@@ -291,10 +294,10 @@ export default function AdminBannersPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setLink('/product-category/5-frames-set')}
+                    onClick={() => setLink('/product-category/islamic')}
                     className="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-[10px] font-semibold rounded text-gray-700 transition-colors"
                   >
-                    5-Frame Sets
+                    Islamic Art
                   </button>
                 </div>
               </div>
