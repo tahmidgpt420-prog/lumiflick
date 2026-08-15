@@ -35,7 +35,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     'best-selling';
 
   return (
-    <div className="group flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-gray-200 hover:shadow-xl transition-all duration-300">
+    <div className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-gray-300 hover:shadow-2xl hover:scale-[1.03] hover:-translate-y-1.5 transition-all duration-300 ease-out z-0 hover:z-10">
       
       {/* Thumbnail Wrap */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
@@ -57,7 +57,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               setImageLoaded(true);
               setHasError(true);
             }}
-            className={`object-cover group-hover:scale-105 transition-all duration-500 ${
+            className={`object-cover group-hover:scale-110 transition-all duration-500 ease-out ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
             }`}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -118,11 +118,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             <button
               type="button"
               onClick={handleQuickAdd}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white hover:bg-gray-800 flex items-center justify-center transition-all shadow-sm shrink-0 active:scale-95"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gray-50 hover:bg-black text-gray-900 hover:text-white border border-gray-200 hover:border-black flex items-center justify-center transition-all duration-200 shadow-sm shrink-0 active:scale-95 cursor-pointer"
               title="Add to Cart"
               aria-label={`Add ${product.title} to cart`}
             >
-              <ShoppingBag className="w-4 h-4" />
+              <ShoppingBag className="w-4 h-4 transition-colors" />
             </button>
           </div>
 

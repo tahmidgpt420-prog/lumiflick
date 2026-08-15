@@ -14,7 +14,7 @@ function CategoryCardItem({ category }: { category: Category }) {
   return (
     <Link
       href={`/product-category/${category.slug}`}
-      className="group flex-shrink-0 w-44 sm:w-56 bg-white/5 rounded-2xl p-3 border border-white/10 hover:border-amber-400/50 hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1"
+      className="group flex-shrink-0 w-44 sm:w-56 bg-white/5 rounded-2xl p-3 border border-white/10 hover:border-amber-400/80 hover:bg-white/10 hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300 transform hover:-translate-y-1.5"
     >
       <div className="relative aspect-square rounded-xl overflow-hidden mb-3 bg-gray-800">
         {!imgLoaded && (
@@ -75,25 +75,27 @@ export default function CategorySlider() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => scroll('left')}
-              className="p-2.5 rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors border border-white/15"
+              className="p-2.5 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white transition-all border border-white/15 cursor-pointer"
               aria-label="Previous categories"
+              title="Previous Categories"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={() => scroll('right')}
-              className="p-2.5 rounded-full bg-white/10 hover:bg-white/25 text-white transition-colors border border-white/15"
+              className="p-2.5 rounded-full bg-white/10 hover:bg-white/25 active:scale-95 text-white transition-all border border-white/15 cursor-pointer"
               aria-label="Next categories"
+              title="Next Categories"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        {/* Categories Track */}
+        {/* Categories Track with top and bottom clearance to prevent hover border clipping */}
         <div
           ref={scrollRef}
-          className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth pb-4"
+          className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth pt-3 pb-5 -mt-2 -mb-2 px-1"
         >
           {!isLoaded || categoriesList.length === 0 ? (
             /* Skeleton Loading State */
