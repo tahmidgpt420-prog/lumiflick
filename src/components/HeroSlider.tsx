@@ -208,10 +208,10 @@ export default function HeroSlider() {
                 aria-label={`Go to slide ${i + 1}`}
               >
                 <span
-                  className={`block rounded-full transition-all duration-300 ${
+                  className={`block rounded-full transition-opacity duration-300 ${
                     currentIndex === i
-                      ? 'w-7 h-2 bg-white shadow'
-                      : 'w-2 h-2 bg-white/50 hover:bg-white/80'
+                      ? 'w-7 h-2 bg-white opacity-100'
+                      : 'w-2 h-2 bg-white/60 opacity-60 hover:opacity-100'
                   }`}
                 />
               </button>

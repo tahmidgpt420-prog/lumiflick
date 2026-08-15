@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { fetchStoreSettings, getCachedStoreSettings } from '@/utils/storeSettings';
 
 interface TrackingScriptsProps {
   headerScripts?: string;
@@ -15,67 +16,39 @@ export default function TrackingScripts({
   footerScripts: initialFooter = '',
 }: TrackingScriptsProps) {
   const pathname = usePathname();
-  const [scripts, setScripts] = useState({
-    headerScripts: initialHeader,
-    bodyScripts: initialBody,
-    footerScripts: initialFooter,
+  const [scripts, setScripts] = useState(() => {
+    const cached = getCachedStoreSettings();
+    return {
+      headerScripts: cached?.headerScripts || initialHeader,
+      bodyScripts: cached?.bodyScripts || initialBody,
+      footerScripts: cached?.footerScripts || initialFooter,
+    };
   });
 
   // Strict Admin Isolation: Never run tracking scripts inside admin routes
   const isAdmin = Boolean(pathname && pathname.startsWith('/jw8yenjnkanhr823'));
 
   useEffect(() => {
-    // 1. Initial check from localStorage cache if available
-    if (typeof window !== 'undefined') {
-      try {
-        const cached = localStorage.getItem('lumiflick_store_settings_v1');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed) {
-            setScripts({
-              headerScripts: parsed.headerScripts || '',
-              bodyScripts: parsed.bodyScripts || '',
-              footerScripts: parsed.footerScripts || '',
-            });
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
     let isMounted = true;
     async function loadLatestScripts() {
-      try {
-        const res = await fetch('/api/admin/settings');
-        const data = await res.json();
-        if (data.success && data.settings && isMounted) {
-          setScripts({
-            headerScripts: data.settings.headerScripts || '',
-            bodyScripts: data.settings.bodyScripts || '',
-            footerScripts: data.settings.footerScripts || '',
-          });
-        }
-      } catch (err) {
-        console.error('Failed to load tracking codes:', err);
+      const settings = await fetchStoreSettings();
+      if (settings && isMounted) {
+        setScripts({
+          headerScripts: settings.headerScripts || '',
+          bodyScripts: settings.bodyScripts || '',
+          footerScripts: settings.footerScripts || '',
+        });
       }
     }
 
     const handleSettingsUpdate = () => {
-      try {
-        const cached = localStorage.getItem('lumiflick_store_settings_v1');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (parsed) {
-            setScripts({
-              headerScripts: parsed.headerScripts || '',
-              bodyScripts: parsed.bodyScripts || '',
-              footerScripts: parsed.footerScripts || '',
-            });
-          }
-        }
-      } catch (e) {
-        console.error(e);
+      const cached = getCachedStoreSettings();
+      if (cached) {
+        setScripts({
+          headerScripts: cached.headerScripts || '',
+          bodyScripts: cached.bodyScripts || '',
+          footerScripts: cached.footerScripts || '',
+        });
       }
       loadLatestScripts();
     };

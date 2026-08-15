@@ -11,6 +11,7 @@ interface ProductGridSectionProps {
   categorySlug?: string;
   products: Product[];
   viewAllLink?: string;
+  isLoading?: boolean;
 }
 
 export default function ProductGridSection({
@@ -18,8 +19,9 @@ export default function ProductGridSection({
   categorySlug,
   products,
   viewAllLink,
+  isLoading = false,
 }: ProductGridSectionProps) {
-  if (products.length === 0) return null;
+  if (!isLoading && products.length === 0) return null;
 
   const targetLink = viewAllLink || (categorySlug ? `/product-category/${categorySlug}` : '/shop');
 
@@ -33,10 +35,24 @@ export default function ProductGridSection({
       </div>
 
       {/* Product Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-6">
-        {products.map((product) => (
-          <ProductCard key={product.slug} product={product} />
-        ))}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-6 min-h-[300px]">
+        {isLoading || products.length === 0 ? (
+          Array.from({ length: 8 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 p-3 sm:p-4 space-y-3"
+            >
+              <div className="aspect-[4/3] w-full rounded-lg card-skeleton-shimmer" />
+              <div className="h-3 w-1/3 rounded bg-gray-200 card-skeleton-shimmer" />
+              <div className="h-4 w-3/4 rounded bg-gray-200 card-skeleton-shimmer" />
+              <div className="h-4 w-1/2 rounded bg-gray-200 card-skeleton-shimmer" />
+            </div>
+          ))
+        ) : (
+          products.map((product) => (
+            <ProductCard key={product.slug} product={product} />
+          ))
+        )}
       </div>
 
       {/* View All Button */}

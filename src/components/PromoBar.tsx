@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { fetchStoreSettings, getCachedStoreSettings } from '@/utils/storeSettings';
 
 interface PromoBarItem {
   icon: string;
@@ -14,19 +15,10 @@ const DEFAULT_ITEMS: PromoBarItem[] = [
 ];
 
 export default function PromoBar() {
-  // Start from the browser cache (same store used by the settings page /
-  // TrackingScripts) so there's no flash of default content on repeat
-  // visits, then reconcile with a fresh fetch.
   const [items, setItems] = useState<PromoBarItem[]>(() => {
-    if (typeof window === 'undefined') return DEFAULT_ITEMS;
-    try {
-      const cached = localStorage.getItem('lumiflick_store_settings_v1');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed?.promoBarItems)) return parsed.promoBarItems;
-      }
-    } catch {
-      // fall through to defaults
+    const cached = getCachedStoreSettings();
+    if (cached && Array.isArray(cached.promoBarItems)) {
+      return cached.promoBarItems;
     }
     return DEFAULT_ITEMS;
   });
@@ -35,26 +27,16 @@ export default function PromoBar() {
     let isMounted = true;
 
     async function load() {
-      try {
-        const res = await fetch('/api/admin/settings');
-        const data = await res.json();
-        if (isMounted && data.success && Array.isArray(data.settings?.promoBarItems)) {
-          setItems(data.settings.promoBarItems);
-        }
-      } catch (err) {
-        console.error('Failed to load promo bar items:', err);
+      const settings = await fetchStoreSettings();
+      if (isMounted && settings && Array.isArray(settings.promoBarItems)) {
+        setItems(settings.promoBarItems);
       }
     }
 
     const handleSettingsUpdate = () => {
-      try {
-        const cached = localStorage.getItem('lumiflick_store_settings_v1');
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed?.promoBarItems)) setItems(parsed.promoBarItems);
-        }
-      } catch {
-        // ignore
+      const cached = getCachedStoreSettings();
+      if (cached && Array.isArray(cached.promoBarItems)) {
+        setItems(cached.promoBarItems);
       }
       load();
     };

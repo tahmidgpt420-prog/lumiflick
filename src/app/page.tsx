@@ -9,7 +9,7 @@ import { getFeaturedProducts } from '@/data/products';
 import { useProducts } from '@/context/ProductContext';
 
 export default function HomePage() {
-  const { products, categories, getProductsByCategory } = useProducts();
+  const { products, categories, getProductsByCategory, isLoaded } = useProducts();
 
   // Best Selling products — driven by the per-product "bestSeller" toggle,
   // not a category, so it always stays first regardless of which category
@@ -40,6 +40,7 @@ export default function HomePage() {
         title="BEST SELLING"
         products={bestSellingFinal}
         categorySlug="best-selling"
+        isLoading={!isLoaded && bestSellingFinal.length === 0}
       />
 
       {/* Interactive Before/After Splitter */}

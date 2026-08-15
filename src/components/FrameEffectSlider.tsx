@@ -5,18 +5,23 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeftRight, Sparkles, ArrowRight } from 'lucide-react';
 import { formatImageUrl } from '@/utils/driveUrl';
-
-const SETTINGS_CACHE_KEY = 'lumiflick_store_settings_v1';
+import { fetchStoreSettings, getCachedStoreSettings } from '@/utils/storeSettings';
 
 export default function FrameEffectSlider() {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [beforeImage, setBeforeImage] = useState<string>('');
-  const [afterImage, setAfterImage] = useState<string>('');
+
+  const initialSettings = getCachedStoreSettings();
+  const [beforeImage, setBeforeImage] = useState<string>(
+    initialSettings?.frameEffectBeforeImage || ''
+  );
+  const [afterImage, setAfterImage] = useState<string>(
+    initialSettings?.frameEffectAfterImage || ''
+  );
   const [beforeLoaded, setBeforeLoaded] = useState(false);
   const [afterLoaded, setAfterLoaded] = useState(false);
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(Boolean(initialSettings));
 
   useEffect(() => {
     const applyFromSettings = (settings: any) => {
@@ -29,35 +34,20 @@ export default function FrameEffectSlider() {
       setSettingsLoaded(true);
     };
 
-    // Instant paint from cache
-    try {
-      const cached = localStorage.getItem(SETTINGS_CACHE_KEY);
-      if (cached) {
-        applyFromSettings(JSON.parse(cached));
-      }
-    } catch {}
-
     let cancelled = false;
     const loadLatest = async () => {
-      try {
-        const res = await fetch('/api/admin/settings');
-        const data = await res.json();
-        if (!cancelled && data.success && data.settings) {
-          applyFromSettings(data.settings);
-        } else if (!cancelled) {
-          setSettingsLoaded(true);
-        }
-      } catch {
-        if (!cancelled) setSettingsLoaded(true);
+      const settings = await fetchStoreSettings();
+      if (!cancelled && settings) {
+        applyFromSettings(settings);
+      } else if (!cancelled) {
+        setSettingsLoaded(true);
       }
     };
     loadLatest();
 
     const handleUpdate = () => {
-      try {
-        const cached = localStorage.getItem(SETTINGS_CACHE_KEY);
-        if (cached) applyFromSettings(JSON.parse(cached));
-      } catch {}
+      const cached = getCachedStoreSettings();
+      if (cached) applyFromSettings(cached);
       loadLatest();
     };
     window.addEventListener('lumiflick_settings_updated', handleUpdate);

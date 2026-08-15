@@ -202,7 +202,7 @@ export default function Footer() {
       </div>
 
       {/* Copyright Bar */}
-      <div className="border-t border-gray-800 py-6 text-center text-gray-500 text-[11px]">
+      <div className="border-t border-gray-800 py-6 text-center text-gray-400 text-[11px]">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>© {new Date().getFullYear()} LUMIFLICK. All Rights Reserved.</p>
           <p className="text-gray-400">

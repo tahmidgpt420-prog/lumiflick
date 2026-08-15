@@ -98,7 +98,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Category */}
           <Link
             href={`/product-category/${categorySlug}`}
-            className="text-[11px] font-semibold text-gray-500 hover:text-black uppercase tracking-wider block mb-1"
+            className="text-[11px] font-semibold text-gray-500 hover:text-black uppercase tracking-wider inline-block py-1 mb-0.5"
           >
             {product.category || 'Wall Frame'}
           </Link>
@@ -106,7 +106,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Title */}
           <Link
             href={`/product/${productSlug}`}
-            className="text-sm sm:text-base font-semibold text-gray-900 hover:text-black line-clamp-1 block transition-colors"
+            className="text-sm sm:text-base font-semibold text-gray-900 hover:text-black line-clamp-1 block py-0.5 transition-colors"
           >
             {product.title}
           </Link>
