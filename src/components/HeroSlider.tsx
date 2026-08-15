@@ -152,25 +152,34 @@ export default function HeroSlider() {
 
   if (totalSlides === 0) return null;
 
+  const isFirstImageReady = Boolean(imagesLoaded[0]);
+
   return (
     <div
-      className="relative w-full overflow-hidden bg-gray-950 group select-none touch-pan-y"
+      className="relative w-full overflow-hidden bg-white group select-none touch-pan-y border-b border-gray-100"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      {/* White Skeleton Shimmer Overlay - visible until the first banner image finishes downloading */}
+      {!isFirstImageReady && (
+        <div className="absolute inset-0 z-30 pointer-events-none transition-opacity duration-500">
+          <HeroSliderSkeleton />
+        </div>
+      )}
+
       {/* Slides Container */}
       <div
-        className="flex transition-transform duration-700 ease-out h-[240px] sm:h-[380px] md:h-[480px] lg:h-[580px]"
+        className="flex transition-transform duration-700 ease-out h-[240px] sm:h-[380px] md:h-[480px] lg:h-[580px] bg-white"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {slides.map((slide, idx) => {
           const hasText = Boolean(slide.title || slide.subtitle || slide.buttonText);
 
           return (
-            <div key={slide.id || idx} className="relative w-full h-full shrink-0 bg-gray-950">
+            <div key={slide.id || idx} className="relative w-full h-full shrink-0 bg-white">
               {/* Entire Banner as Link */}
               <Link
                 href={slide.link || '/shop'}
@@ -183,7 +192,7 @@ export default function HeroSlider() {
                   fill
                   priority={idx === 0}
                   className={`object-cover object-center transition-opacity duration-500 ease-out ${
-                    imagesLoaded[idx] || idx !== 0 ? 'opacity-100' : 'opacity-0'
+                    imagesLoaded[idx] ? 'opacity-100' : 'opacity-0'
                   }`}
                   onLoad={() => setImagesLoaded((prev) => ({ ...prev, [idx]: true }))}
                   sizes="100vw"
