@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Search, User, ShoppingBag, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import NavMenu from './NavMenu';
 
@@ -60,16 +60,8 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Right: User Account & Cart Button */}
+          {/* Right: Cart Button */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <Link
-              href="/customer-login"
-              className="p-2.5 rounded-full hover:bg-gray-100 transition-colors text-gray-800"
-              aria-label="Customer Login"
-            >
-              <User className="w-5 h-5" />
-            </Link>
-
             <button
               onClick={openCartDrawer}
               className="relative p-2.5 rounded-full hover:bg-gray-100 transition-colors text-gray-800"
