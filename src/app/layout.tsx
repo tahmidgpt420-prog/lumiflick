@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
-import { Outfit, DM_Sans, Cinzel } from 'next/font/google';
+import { Outfit, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { ProductProvider } from '@/context/ProductContext';
 import StorefrontShell from '@/components/StorefrontShell';
 import TrackingScripts from '@/components/TrackingScripts';
+import { getHeroBannersServer, getFirstBannerPreloadUrl } from '@/lib/heroBannersServer';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -16,12 +17,6 @@ const dmSans = DM_Sans({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-dmsans',
-});
-
-const cinzel = Cinzel({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-cinzel',
 });
 
 export const metadata: Metadata = {
@@ -62,13 +57,37 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch banners server-side so the LCP image URL is available in the HTML.
+  // This lets the browser discover and start downloading the hero image before
+  // any JavaScript runs — the single most impactful fix for LCP.
+  let lcpPreloadUrl: string | null = null;
+  try {
+    const banners = await getHeroBannersServer();
+    lcpPreloadUrl = getFirstBannerPreloadUrl(banners);
+  } catch {
+    // Non-fatal — the HeroSlider will still fetch and render client-side
+  }
+
   return (
-    <html lang="en" className={`${outfit.variable} ${dmSans.variable} ${cinzel.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
+      <head>
+        {/* Preload the LCP hero image so the browser fetches it immediately,
+            before React hydrates and the HeroSlider's useEffect fires.
+            This is the primary fix for the 10.5 s LCP. */}
+        {lcpPreloadUrl && (
+          <link
+            rel="preload"
+            as="image"
+            href={lcpPreloadUrl}
+            fetchPriority="high"
+          />
+        )}
+      </head>
       <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased selection:bg-black selection:text-white">
         <TrackingScripts />
         <CartProvider>

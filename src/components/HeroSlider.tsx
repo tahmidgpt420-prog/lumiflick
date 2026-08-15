@@ -52,15 +52,32 @@ export function HeroSliderSkeleton() {
   );
 }
 
-export default function HeroSlider() {
+interface HeroSliderProps {
+  /** Pre-fetched banners from the server (SSR). When provided, slide[0] renders
+   *  immediately without waiting for the client-side fetch, which is the primary
+   *  fix for LCP. The client fetch still runs to refresh stale data. */
+  initialBanners?: HeroBanner[];
+}
+
+export default function HeroSlider({ initialBanners }: HeroSliderProps = {}) {
+  // Seed state with SSR data > localStorage cache > empty default — in that order.
+  // SSR data means the first slide is in the HTML immediately, no JS needed.
   const [slides, setSlides] = useState<HeroBanner[]>(() => {
+    if (initialBanners && initialBanners.length > 0) return initialBanners;
     const cached = getCachedHeroBanners();
     return cached && cached.length > 0 ? cached : DEFAULT_HERO_BANNERS;
   });
+
+  // If we already have SSR or cached slides, we don't need to show a loading skeleton.
   const [isLoading, setIsLoading] = useState(() => {
+    if (initialBanners && initialBanners.length > 0) return false;
     const cached = getCachedHeroBanners();
     return !cached || cached.length === 0;
   });
+
+  // Track which slides have their images loaded (for fade-in)
+  // If we have SSR data, mark the first image as "not yet loaded" so it fades in
+  // smoothly rather than popping. The priority={true} on the Image handles preloading.
   const [imagesLoaded, setImagesLoaded] = useState<Record<number, boolean>>({});
   const [isMobile, setIsMobile] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -173,8 +190,10 @@ export default function HeroSlider() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* White Skeleton Shimmer Overlay - visible until the first banner image finishes downloading */}
-      {!isFirstImageReady && (
+      {/* White Skeleton Shimmer Overlay - visible until the first banner image finishes downloading.
+          Skip this overlay when we have SSR slides — the image starts downloading immediately
+          via the <link rel="preload"> in the <head>, so there's no blank flash. */}
+      {!isFirstImageReady && !initialBanners?.length && (
         <div className="absolute inset-0 z-30 pointer-events-none transition-opacity duration-500">
           <HeroSliderSkeleton />
         </div>
@@ -195,19 +214,21 @@ export default function HeroSlider() {
                 href={slide.link || '/shop'}
                 className="block relative w-full h-full cursor-pointer"
               >
-                {/* Background Image (Compressed 800px on mobile for fast loading, Original Uncompressed on desktop/laptop) */}
+                {/* Background Image
+                    - idx === 0 gets priority + fetchpriority="high" (LCP element)
+                    - Mobile uses 800px width, desktop uses original quality */}
                 <Image
                   src={isMobile ? formatImageUrl(slide.image, 800) : formatImageUrl(slide.image, 'original')}
                   alt={slide.title || 'LUMIFLICK Banner'}
                   fill
                   priority={idx === 0}
+                  fetchPriority={idx === 0 ? 'high' : 'low'}
                   className={`object-cover object-center transition-opacity duration-500 ease-out ${
                     imagesLoaded[idx] ? 'opacity-100' : 'opacity-0'
                   }`}
                   onLoad={() => setImagesLoaded((prev) => ({ ...prev, [idx]: true }))}
                   sizes="100vw"
-                  quality={100}
-                  unoptimized
+                  quality={85}
                 />
 
                 {/* Text Overlay if provided */}

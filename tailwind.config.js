@@ -32,6 +32,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Outfit', 'DM Sans', 'Inter', '-apple-system', 'sans-serif'],
+        serif: ['Outfit', 'DM Sans', 'Inter', '-apple-system', 'sans-serif'],
       },
       animation: {
         'marquee': 'marquee 25s linear infinite',

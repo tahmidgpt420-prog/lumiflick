@@ -1,63 +1,72 @@
-'use client';
+/**
+ * Homepage — Server Component.
+ *
+ * force-dynamic: re-rendered on every request so admin banner changes
+ * are reflected immediately without a rebuild.
+ */
+export const dynamic = 'force-dynamic';
 
 import React from 'react';
+import lazyLoad from 'next/dynamic';
 import HeroSlider from '@/components/HeroSlider';
-import FrameEffectSlider from '@/components/FrameEffectSlider';
-import CategorySlider from '@/components/CategorySlider';
-import ProductGridSection from '@/components/ProductGridSection';
-import { getFeaturedProducts } from '@/data/products';
-import { useProducts } from '@/context/ProductContext';
+import BestSellingSection from '@/components/BestSellingSection';
+import HomepageCategoryGrids from '@/components/HomepageCategoryGrids';
+import { getHeroBannersServer } from '@/lib/heroBannersServer';
+import type { HeroBanner } from '@/types';
 
-export default function HomePage() {
-  const { products, categories, getProductsByCategory, isLoaded } = useProducts();
+// Lazy-load below-the-fold components — excluded from initial bundle
+const FrameEffectSlider = lazyLoad(() => import('@/components/FrameEffectSlider'), {
+  ssr: false,
+  loading: () => (
+    <div className="py-12 md:py-16 bg-gradient-to-b from-gray-50 to-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full aspect-[4/3] rounded-2xl bg-gray-100 animate-pulse max-w-2xl" />
+      </div>
+    </div>
+  ),
+});
 
-  // Best Selling products — driven by the per-product "bestSeller" toggle,
-  // not a category, so it always stays first regardless of which category
-  // sections below are turned on.
-  const bestSellingProds = products
-    .filter((p) => p.bestSeller || p.categorySlug === 'best-selling' || p.category?.toLowerCase() === 'best selling')
-    .slice(0, 8);
+const CategorySlider = lazyLoad(() => import('@/components/CategorySlider'), {
+  ssr: false,
+  loading: () => (
+    <div className="py-12 bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex gap-4 overflow-hidden">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex-shrink-0 w-44 sm:w-56 aspect-square rounded-2xl bg-gray-800 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </div>
+  ),
+});
 
-  const bestSellingFinal =
-    bestSellingProds.length > 0 ? bestSellingProds : getFeaturedProducts().slice(0, 8);
-
-  // Homepage category sections are admin-controlled (Categories page ->
-  // "Show this category as a section on the homepage"), not hardcoded —
-  // so a deleted or untoggled category never shows here, and there's no
-  // stale static-data fallback masking real deletions.
-  const homepageCategories = categories
-    .filter((c) => c.showOnHomepage)
-    .map((c) => ({ category: c, products: getProductsByCategory(c.slug).slice(0, 8) }))
-    .filter((entry) => entry.products.length > 0);
+export default async function HomePage() {
+  // Fetch banners server-side — the first slide is in the HTML immediately,
+  // fixing the 10.5 s LCP by eliminating JS-gated image URL discovery.
+  let initialBanners: HeroBanner[] = [];
+  try {
+    initialBanners = await getHeroBannersServer();
+  } catch {
+    // Graceful fallback — HeroSlider will fetch client-side
+  }
 
   return (
     <div className="space-y-4">
-      {/* Hero Carousel */}
-      <HeroSlider />
+      {/* 1. Hero Carousel — SSR first slide for instant LCP */}
+      <HeroSlider initialBanners={initialBanners} />
 
-      {/* Best Selling — always shown if any product is flagged */}
-      <ProductGridSection
-        title="BEST SELLING"
-        products={bestSellingFinal}
-        categorySlug="best-selling"
-        isLoading={!isLoaded && bestSellingFinal.length === 0}
-      />
+      {/* 2. Best Selling */}
+      <BestSellingSection />
 
-      {/* Interactive Before/After Splitter */}
+      {/* 3. Interactive Before/After Splitter — lazy loaded */}
       <FrameEffectSlider />
 
-      {/* Explore Our Category Slider */}
+      {/* 4. Explore Our Category Slider — lazy loaded */}
       <CategorySlider />
 
-      {/* Dynamic category sections, admin-controlled */}
-      {homepageCategories.map(({ category, products: catProducts }) => (
-        <ProductGridSection
-          key={category.slug}
-          title={category.name.toUpperCase()}
-          products={catProducts}
-          categorySlug={category.slug}
-        />
-      ))}
+      {/* 5. Admin-controlled category product grid sections */}
+      <HomepageCategoryGrids />
     </div>
   );
 }

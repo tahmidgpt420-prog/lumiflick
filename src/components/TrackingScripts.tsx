@@ -124,23 +124,34 @@ export default function TrackingScripts({
       });
     }
 
-    // Inject Head Scripts (GTM, Meta Pixel Base, Google Analytics gtag, verification tags)
-    if (scripts.headerScripts) {
-      injectSnippet(scripts.headerScripts, document.head, 'head');
+    function doInject() {
+      // Inject Head Scripts (GTM, Meta Pixel Base, Google Analytics gtag, verification tags)
+      if (scripts.headerScripts) {
+        injectSnippet(scripts.headerScripts, document.head, 'head');
+      }
+
+      // Inject Body Top Scripts (GTM noscript fallback iframe)
+      if (scripts.bodyScripts) {
+        injectSnippet(scripts.bodyScripts, document.body, 'body-top');
+      }
+
+      // Inject Footer / Body Bottom Scripts (Chat widgets, remarketing tags)
+      if (scripts.footerScripts) {
+        injectSnippet(scripts.footerScripts, document.body, 'footer');
+      }
     }
 
-    // Inject Body Top Scripts (GTM noscript fallback iframe)
-    if (scripts.bodyScripts) {
-      injectSnippet(scripts.bodyScripts, document.body, 'body-top');
-    }
-
-    // Inject Footer / Body Bottom Scripts (Chat widgets, remarketing tags)
-    if (scripts.footerScripts) {
-      injectSnippet(scripts.footerScripts, document.body, 'footer');
+    // Defer all 3rd-party script injection until after window.onload so tracking
+    // scripts don't compete with LCP image and React hydration for main-thread time.
+    if (document.readyState === 'complete') {
+      // Page already loaded (e.g. re-render after navigation)
+      doInject();
+    } else {
+      window.addEventListener('load', doInject, { once: true });
     }
 
     return () => {
-      // Cleanup
+      window.removeEventListener('load', doInject);
     };
   }, [isAdmin, scripts, pathname]);
 
