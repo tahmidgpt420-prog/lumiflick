@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
 import { useProducts } from '@/context/ProductContext';
 import { formatImageUrl } from '@/utils/driveUrl';
 import { Category } from '@/types';
+import { getMainCategories } from '@/utils/categoryHelpers';
 
 function CategoryCardItem({ category }: { category: Category }) {
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -45,6 +46,15 @@ function CategoryCardItem({ category }: { category: Category }) {
 export default function CategorySlider() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { categories: categoriesList, isLoaded } = useProducts();
+
+  // Filter to show ONLY real main (top-level) categories (exclude subcategories and draft/test categories)
+  const displayCategories = getMainCategories(categoriesList).filter(
+    (c) =>
+      Boolean(c.name && c.image && c.slug) &&
+      c.slug !== 'werty' &&
+      c.name.toLowerCase() !== 'werty' &&
+      c.name.toLowerCase() !== 'asdfghjk'
+  );
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -97,7 +107,7 @@ export default function CategorySlider() {
           ref={scrollRef}
           className="flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth pt-3 pb-5 -mt-2 -mb-2 px-1"
         >
-          {!isLoaded || categoriesList.length === 0 ? (
+          {!isLoaded || displayCategories.length === 0 ? (
             /* Skeleton Loading State */
             Array.from({ length: 6 }).map((_, index) => (
               <div
@@ -109,7 +119,7 @@ export default function CategorySlider() {
               </div>
             ))
           ) : (
-            categoriesList.map((category) => (
+            displayCategories.map((category) => (
               <CategoryCardItem key={category.slug} category={category} />
             ))
           )}
