@@ -147,12 +147,12 @@ export default function HeroSlider() {
                           </span>
                         )}
                         {slide.title && (
-                          <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight drop-shadow-lg text-white leading-tight">
+                          <h2 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight drop-shadow-lg text-white leading-tight line-clamp-2 min-h-[50px] sm:min-h-[75px] md:min-h-[90px]">
                             {slide.title}
                           </h2>
                         )}
                         {slide.subtitle && (
-                          <p className="text-xs sm:text-sm md:text-base text-gray-200 line-clamp-2 drop-shadow font-medium">
+                          <p className="text-xs sm:text-sm md:text-base text-gray-200 line-clamp-2 drop-shadow font-medium min-h-[36px] sm:min-h-[42px] md:min-h-[48px]">
                             {slide.subtitle}
                           </p>
                         )}
