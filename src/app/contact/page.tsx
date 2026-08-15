@@ -1,19 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { Phone, Mail, MapPin, Clock, MessageSquare, Send, Check } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, MessageSquare, Facebook, Instagram, ExternalLink } from 'lucide-react';
 
 export default function ContactPage() {
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
-
   return (
-    <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="py-8 sm:py-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Breadcrumb */}
       <nav className="text-xs text-gray-500 mb-6 flex items-center gap-1.5">
         <Link href="/" className="hover:text-black">
@@ -24,152 +17,140 @@ export default function ContactPage() {
       </nav>
 
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
+      <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
           Get in Touch With Us
         </h1>
-        <p className="text-xs sm:text-sm text-gray-600">
-          Have questions about custom wall frame sizes, bulk corporate orders, or order tracking? We are here to help!
+        <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+          Have questions about custom wall frame sizes, bulk orders, or tracking your delivery? Connect directly with us through WhatsApp, Facebook, Instagram, or call us.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
         
-        {/* Contact Info Cards */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">Customer Support Desk</h2>
-
-            <div className="space-y-4 text-xs text-gray-700">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shrink-0">
-                  <Phone className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Helpline / WhatsApp</h4>
-                  <p className="mt-0.5">+8801400307299</p>
-                  <p className="text-gray-500 text-[11px]">Daily: 10:00 AM - 10:00 PM</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shrink-0">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Email Support</h4>
-                  <p className="mt-0.5">info@lumiflick.shop</p>
-                  <p className="text-gray-500 text-[11px]">We reply within 24 hours</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Workshop & Studio</h4>
-                  <p className="mt-0.5">PTI Mor, Khulna, Bangladesh - 9100</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shrink-0">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Online Order Processing</h4>
-                  <p className="mt-0.5">24 Hours / 7 Days a week</p>
-                </div>
-              </div>
+        {/* Instant Messaging & Social Channels */}
+        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col justify-between space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <h2 className="text-lg font-bold text-gray-900">Direct & Social Channels</h2>
             </div>
+            <p className="text-xs text-gray-600">
+              For the quickest response, reach out to our team via WhatsApp, Facebook Messenger, or Instagram DM.
+            </p>
 
-            <div className="pt-2">
+            <div className="space-y-3 pt-2">
+              {/* WhatsApp */}
               <a
                 href="https://wa.me/8801400307299?text=Hello%20LUMIFLICK!%20I%20would%20like%20to%20inquire%20about%20your%20products."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 px-4 bg-[#25D366] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-[#1EBE5D] transition-colors"
+                className="w-full p-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-gray-900 rounded-xl font-semibold text-xs flex items-center justify-between transition-all group"
               >
-                <MessageSquare className="w-4 h-4 fill-white" /> Direct WhatsApp Chat
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <MessageSquare className="w-4 h-4 fill-white" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block font-bold text-gray-900">WhatsApp Support</span>
+                    <span className="text-[11px] text-gray-500">Fastest reply • Daily 10 AM - 10 PM</span>
+                  </div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-900 transition-colors" />
+              </a>
+
+              {/* Facebook */}
+              <a
+                href="https://www.facebook.com/LumiFlick"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-900 rounded-xl font-semibold text-xs flex items-center justify-between transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Facebook className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block font-bold text-gray-900">Facebook Page</span>
+                    <span className="text-[11px] text-gray-500">@LumiFlick • Updates & Messenger</span>
+                  </div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-900 transition-colors" />
+              </a>
+
+              {/* Instagram */}
+              <a
+                href="https://www.instagram.com/lumi.flick/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full p-4 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-900 rounded-xl font-semibold text-xs flex items-center justify-between transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-black text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Instagram className="w-4 h-4" />
+                  </div>
+                  <div className="text-left">
+                    <span className="block font-bold text-gray-900">Instagram Profile</span>
+                    <span className="text-[11px] text-gray-500">@lumi.flick • Photo gallery & DMs</span>
+                  </div>
+                </div>
+                <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-gray-900 transition-colors" />
               </a>
             </div>
           </div>
         </div>
 
-        {/* Message Form */}
-        <div className="lg:col-span-7">
-          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-sm">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Send Us a Message</h2>
+        {/* Customer Support Desk & Office Info */}
+        <div className="bg-gray-50 p-6 sm:p-8 rounded-2xl border border-gray-200 space-y-6">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Helpline & Studio Details</h2>
+            <p className="text-xs text-gray-600 mt-1">
+              Official customer service desk and order inquiry contacts.
+            </p>
+          </div>
 
-            {submitted ? (
-              <div className="p-8 text-center bg-emerald-50 rounded-xl border border-emerald-200 space-y-2">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
-                  <Check className="w-6 h-6" />
-                </div>
-                <h3 className="text-base font-bold text-emerald-900">Message Received!</h3>
-                <p className="text-xs text-emerald-700">
-                  Thank you for contacting LUMIFLICK. Our representative will contact you shortly.
-                </p>
+          <div className="space-y-4 text-xs text-gray-700">
+            <div className="flex items-start gap-3.5 bg-white p-3.5 rounded-xl border border-gray-100 shadow-2xs">
+              <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shrink-0 mt-0.5">
+                <Phone className="w-4 h-4 text-amber-400" />
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-semibold text-gray-700 block mb-1">
-                      Your Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Enter your name"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-700 block mb-1">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="01XXXXXXXXX"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-                    />
-                  </div>
-                </div>
+              <div>
+                <h4 className="font-bold text-gray-900">Direct Phone Helpline</h4>
+                <p className="mt-0.5 font-semibold text-gray-800">+8801400307299</p>
+                <p className="text-gray-500 text-[11px]">Available Daily: 10:00 AM - 10:00 PM</p>
+              </div>
+            </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="name@example.com"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-                  />
-                </div>
+            <div className="flex items-start gap-3.5 bg-white p-3.5 rounded-xl border border-gray-100 shadow-2xs">
+              <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shrink-0 mt-0.5">
+                <Mail className="w-4 h-4 text-amber-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-900">Official Email Support</h4>
+                <p className="mt-0.5 font-semibold text-gray-800">info@lumiflick.shop</p>
+                <p className="text-gray-500 text-[11px]">We reply within 24 hours</p>
+              </div>
+            </div>
 
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">
-                    Your Message / Custom Requirement
-                  </label>
-                  <textarea
-                    required
-                    rows={4}
-                    placeholder="Tell us what frame design, custom size, or question you have..."
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs outline-none focus:border-black"
-                  />
-                </div>
+            <div className="flex items-start gap-3.5 bg-white p-3.5 rounded-xl border border-gray-100 shadow-2xs">
+              <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shrink-0 mt-0.5">
+                <MapPin className="w-4 h-4 text-amber-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-900">Workshop & Studio</h4>
+                <p className="mt-0.5 text-gray-800">PTI Mor, Khulna, Bangladesh - 9100</p>
+              </div>
+            </div>
 
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-black text-white font-bold text-xs rounded-xl hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Send className="w-3.5 h-3.5" /> Send Message
-                </button>
-              </form>
-            )}
+            <div className="flex items-start gap-3.5 bg-white p-3.5 rounded-xl border border-gray-100 shadow-2xs">
+              <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center shrink-0 mt-0.5">
+                <Clock className="w-4 h-4 text-amber-400" />
+              </div>
+              <div>
+                <h4 className="font-bold text-gray-900">Online Order Processing</h4>
+                <p className="mt-0.5 text-gray-800">24 Hours / 7 Days a week</p>
+              </div>
+            </div>
           </div>
         </div>
 

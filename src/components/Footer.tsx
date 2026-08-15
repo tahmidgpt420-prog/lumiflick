@@ -76,17 +76,17 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Social Links (Black & White) */}
-            <div className="pt-2 flex items-center gap-2.5">
+            {/* Social Links (Clean, No Circular Border) */}
+            <div className="pt-3 flex items-center gap-4">
               <a
                 href="https://www.facebook.com/LumiFlick"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Follow LUMIFLICK on Facebook"
                 title="Facebook"
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all duration-200 border border-white/15 hover:border-white"
+                className="text-gray-400 hover:text-white transition-colors duration-200"
               >
-                <Facebook className="w-4 h-4" />
+                <Facebook className="w-5 h-5" strokeWidth={1.5} />
               </a>
               <a
                 href="https://www.instagram.com/lumi.flick/"
@@ -94,9 +94,9 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 aria-label="Follow LUMIFLICK on Instagram"
                 title="Instagram"
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all duration-200 border border-white/15 hover:border-white"
+                className="text-gray-400 hover:text-white transition-colors duration-200"
               >
-                <Instagram className="w-4 h-4" />
+                <Instagram className="w-5 h-5" strokeWidth={1.5} />
               </a>
             </div>
           </div>
@@ -218,34 +218,6 @@ export default function Footer() {
                 <span className="px-2 py-1 bg-gray-800 rounded border border-gray-700 text-blue-400 font-bold">
                   Bank
                 </span>
-              </div>
-            </div>
-
-            <div className="pt-4">
-              <span className="text-[11px] font-bold text-white uppercase tracking-wider block mb-2.5">
-                Follow Us
-              </span>
-              <div className="flex items-center gap-2.5">
-                <a
-                  href="https://www.facebook.com/LumiFlick"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Follow LUMIFLICK on Facebook"
-                  title="Facebook"
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all duration-200 border border-white/15 hover:border-white"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://www.instagram.com/lumi.flick/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Follow LUMIFLICK on Instagram"
-                  title="Instagram"
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all duration-200 border border-white/15 hover:border-white"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
               </div>
             </div>
           </div>
