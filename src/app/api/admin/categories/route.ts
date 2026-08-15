@@ -8,7 +8,7 @@ const RESERVED_SLUGS = new Set(['best-selling']);
 
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin.from('categories').select('*').order('name');
+    const { data, error } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
     if (error) throw error;
     const categories = (data || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
     return NextResponse.json({ success: true, categories });
@@ -45,13 +45,42 @@ export async function POST(request: Request) {
     const { data, error } = await supabaseAdmin.from('categories').upsert(row, { onConflict: 'slug' }).select().single();
     if (error) throw error;
 
-    const { data: all } = await supabaseAdmin.from('categories').select('*').order('name');
+    const { data: all } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
     const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
 
     return NextResponse.json({ success: true, category: categoryFromDb(data), categories });
   } catch (error) {
     console.error('POST /api/admin/categories error:', error);
     return NextResponse.json({ success: false, error: 'Failed to save category' }, { status: 500 });
+  }
+}
+
+// Drag-to-reorder: body is { order: [{ slug, order }, ...] } — one entry
+// per category whose position changed (typically all siblings in whatever
+// list — main categories or one parent's sub-categories — was reordered).
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const updates: { slug: string; order: number }[] = body.order;
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return NextResponse.json({ success: false, error: 'order array is required' }, { status: 400 });
+    }
+
+    const results = await Promise.all(
+      updates.map(({ slug, order }) =>
+        supabaseAdmin.from('categories').update({ display_order: order }).eq('slug', slug)
+      )
+    );
+    const firstError = results.find((r) => r.error)?.error;
+    if (firstError) throw firstError;
+
+    const { data: all } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
+    const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
+
+    return NextResponse.json({ success: true, categories });
+  } catch (error) {
+    console.error('PATCH /api/admin/categories error:', error);
+    return NextResponse.json({ success: false, error: 'Failed to reorder categories' }, { status: 500 });
   }
 }
 
@@ -65,7 +94,7 @@ export async function DELETE(request: Request) {
     const { error } = await supabaseAdmin.from('categories').delete().eq('slug', slug);
     if (error) throw error;
 
-    const { data: all } = await supabaseAdmin.from('categories').select('*').order('name');
+    const { data: all } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
     const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
 
     return NextResponse.json({ success: true, categories });

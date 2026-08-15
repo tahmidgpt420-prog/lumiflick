@@ -46,6 +46,9 @@ create table if not exists categories (
   description text,
   parent_slug text,
   show_on_homepage boolean default false,
+  -- Drag-to-reorder position, compared among siblings (same parent_slug).
+  -- Controls nav bar + homepage section order.
+  display_order integer default 0,
   updated_at timestamptz not null default now()
 );
 

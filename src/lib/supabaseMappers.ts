@@ -67,6 +67,7 @@ export function categoryToDb(c: Partial<Category>) {
   if (c.description !== undefined) row.description = c.description;
   if (c.parentSlug !== undefined) row.parent_slug = c.parentSlug;
   if (c.showOnHomepage !== undefined) row.show_on_homepage = c.showOnHomepage;
+  if (c.order !== undefined) row.display_order = c.order;
   row.updated_at = new Date().toISOString();
   return row;
 }
@@ -80,6 +81,7 @@ export function categoryFromDb(row: any): Category {
     parentSlug: row.parent_slug ?? null,
     parentId: row.parent_slug ?? null,
     showOnHomepage: row.show_on_homepage ?? false,
+    order: row.display_order ?? 0,
   };
 }
 

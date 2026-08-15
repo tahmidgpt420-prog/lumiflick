@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import AdminHeader from '@/components/admin/AdminHeader';
 import FileUploadBox from '@/components/admin/FileUploadBox';
-import { Plus, Edit2, Layers, Check, ExternalLink, Trash2, CornerDownRight, FolderTree } from 'lucide-react';
+import { Plus, Edit2, Layers, Check, ExternalLink, Trash2, CornerDownRight, FolderTree, GripVertical } from 'lucide-react';
 import { Category } from '@/types';
 import Link from 'next/link';
 import { useProducts } from '@/context/ProductContext';
@@ -22,6 +22,8 @@ export default function AdminCategoriesPage() {
   const [showOnHomepage, setShowOnHomepage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
+  const [draggedSlug, setDraggedSlug] = useState<string | null>(null);
+  const [dragOverSlug, setDragOverSlug] = useState<string | null>(null);
   const { refreshProducts } = useProducts();
 
   const fetchCategories = async () => {
@@ -92,6 +94,17 @@ export default function AdminCategoriesPage() {
     if (!name.trim() || !slug.trim()) return;
     setIsSaving(true);
     try {
+      // Editing an existing category keeps its drag-set position. A new one
+      // goes to the end of its sibling group (main list, or that parent's
+      // sub-category list) rather than defaulting to 0 / the very top.
+      const siblingGroup = parentSlug.trim()
+        ? categoriesList.filter((c) => c.parentSlug === parentSlug.trim() || c.parentId === parentSlug.trim())
+        : categoriesList.filter((c) => !c.parentSlug && !c.parentId);
+      const order =
+        editingCategory?.slug === slug.trim() && editingCategory?.order !== undefined
+          ? editingCategory.order
+          : Math.max(0, ...siblingGroup.map((c) => c.order ?? 0)) + 1;
+
       const categoryData: Category = {
         name: name.trim(),
         slug: slug.trim(),
@@ -100,6 +113,7 @@ export default function AdminCategoriesPage() {
         parentSlug: parentSlug.trim() || null,
         parentId: parentSlug.trim() || null,
         showOnHomepage,
+        order,
       };
 
       // 1. Save via the authenticated admin API (JSON store + Firestore mirror server-side)
@@ -129,6 +143,51 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  // Drag-to-reorder — `group` is whichever sibling list is being dragged
+  // within (main categories, or one parent's sub-categories). Reordering
+  // is always relative to siblings; dragging a main category never mixes
+  // with a sub-category's position and vice versa.
+  const saveOrder = async (updates: { slug: string; order: number }[]) => {
+    try {
+      const res = await fetch('/api/admin/categories', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: updates }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save order');
+      try {
+        await refreshProducts();
+      } catch {}
+    } catch (err) {
+      console.error('Error saving category order:', err);
+      // Resync from the server so the UI doesn't stay out of sync with the DB.
+      fetchCategories();
+    }
+  };
+
+  const reorderGroup = (group: Category[], draggedFromSlug: string, dropOnSlug: string) => {
+    if (draggedFromSlug === dropOnSlug) return;
+    const fromIdx = group.findIndex((c) => c.slug === draggedFromSlug);
+    const toIdx = group.findIndex((c) => c.slug === dropOnSlug);
+    if (fromIdx === -1 || toIdx === -1) return;
+
+    const reordered = [...group];
+    const [moved] = reordered.splice(fromIdx, 1);
+    reordered.splice(toIdx, 0, moved);
+
+    const updates = reordered.map((c, i) => ({ slug: c.slug, order: i + 1 }));
+    const updateMap = new Map(updates.map((u) => [u.slug, u.order]));
+
+    setCategoriesList((prev) =>
+      prev
+        .map((c) => (updateMap.has(c.slug) ? { ...c, order: updateMap.get(c.slug)! } : c))
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    );
+
+    saveOrder(updates);
+  };
+
   // Main Categories (those with NO parent)
   const mainCategories = categoriesList.filter((c) => !c.parentSlug && !c.parentId);
 
@@ -151,7 +210,9 @@ export default function AdminCategoriesPage() {
               <FolderTree className="w-4 h-4 text-amber-600" />
               All Collections ({categoriesList.length} total, {mainCategories.length} main)
             </h2>
-            <p className="text-xs text-gray-500">Organized by Main Collections &amp; their Sub-Categories</p>
+            <p className="text-xs text-gray-500">
+              Organized by Main Collections &amp; their Sub-Categories · Drag <GripVertical className="w-3 h-3 inline -mt-0.5" /> to reorder nav bar &amp; homepage position
+            </p>
           </div>
           <button
             onClick={() => handleNewClick()}
@@ -166,10 +227,42 @@ export default function AdminCategoriesPage() {
           {mainCategories.map((mainCat) => {
             const subs = getSubcategories(mainCat.slug);
             return (
-              <div key={mainCat.slug} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden p-5 space-y-4">
+              <div
+                key={mainCat.slug}
+                draggable
+                onDragStart={() => setDraggedSlug(mainCat.slug)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (dragOverSlug !== mainCat.slug) setDragOverSlug(mainCat.slug);
+                }}
+                onDragLeave={() => setDragOverSlug((s) => (s === mainCat.slug ? null : s))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  if (draggedSlug) reorderGroup(mainCategories, draggedSlug, mainCat.slug);
+                  setDraggedSlug(null);
+                  setDragOverSlug(null);
+                }}
+                onDragEnd={() => {
+                  setDraggedSlug(null);
+                  setDragOverSlug(null);
+                }}
+                className={`bg-white rounded-2xl border shadow-sm overflow-hidden p-5 space-y-4 transition-all ${
+                  draggedSlug === mainCat.slug
+                    ? 'opacity-40 border-gray-200'
+                    : dragOverSlug === mainCat.slug
+                    ? 'border-black ring-2 ring-black/10'
+                    : 'border-gray-200'
+                }`}
+              >
                 {/* Main Category Row */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-gray-100">
                   <div className="flex items-center gap-3">
+                    <div
+                      className="text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing shrink-0 -ml-1"
+                      title="Drag to reorder"
+                    >
+                      <GripVertical className="w-4 h-4" />
+                    </div>
                     <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
                       <Image src={mainCat.image || '/logo.png'} alt={mainCat.name} fill className="object-cover" sizes="56px" />
                     </div>
@@ -234,9 +327,38 @@ export default function AdminCategoriesPage() {
                       {subs.map((subCat) => (
                         <div
                           key={subCat.slug}
-                          className="bg-gray-50 rounded-xl border border-gray-200/80 p-3 flex items-center justify-between gap-2"
+                          draggable
+                          onDragStart={(e) => {
+                            e.stopPropagation();
+                            setDraggedSlug(subCat.slug);
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (dragOverSlug !== subCat.slug) setDragOverSlug(subCat.slug);
+                          }}
+                          onDragLeave={() => setDragOverSlug((s) => (s === subCat.slug ? null : s))}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (draggedSlug) reorderGroup(subs, draggedSlug, subCat.slug);
+                            setDraggedSlug(null);
+                            setDragOverSlug(null);
+                          }}
+                          onDragEnd={() => {
+                            setDraggedSlug(null);
+                            setDragOverSlug(null);
+                          }}
+                          className={`bg-gray-50 rounded-xl border p-3 flex items-center justify-between gap-2 transition-all ${
+                            draggedSlug === subCat.slug
+                              ? 'opacity-40 border-gray-200/80'
+                              : dragOverSlug === subCat.slug
+                              ? 'border-black ring-2 ring-black/10'
+                              : 'border-gray-200/80'
+                          }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
+                            <GripVertical className="w-3.5 h-3.5 text-gray-300 shrink-0 cursor-grab active:cursor-grabbing" />
                             <CornerDownRight className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                             <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-white shrink-0 border border-gray-200">
                               <Image src={subCat.image || '/logo.png'} alt={subCat.name} fill className="object-cover" sizes="40px" />

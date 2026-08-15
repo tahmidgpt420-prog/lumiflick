@@ -53,6 +53,8 @@ export interface Category {
   parentSlug?: string | null;
   /** Show a dedicated product section for this category on the homepage. */
   showOnHomepage?: boolean;
+  /** Drag-to-reorder position, compared among siblings (same parent). Controls nav bar + homepage order. */
+  order?: number;
 }
 
 export interface CartItem {

@@ -22,7 +22,7 @@ let inflight: Promise<{ products: any[]; categories: any[] }> | null = null;
 async function buildCatalog() {
   const [{ data: productRows, error: pErr }, { data: categoryRows, error: cErr }] = await Promise.all([
     supabaseAdmin.from('products').select('*'),
-    supabaseAdmin.from('categories').select('*'),
+    supabaseAdmin.from('categories').select('*').order('display_order').order('name'),
   ]);
 
   if (pErr || cErr) throw pErr || cErr;
