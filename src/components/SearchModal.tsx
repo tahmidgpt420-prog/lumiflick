@@ -117,115 +117,113 @@ export default function SearchModal() {
   if (!isSearchOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm transition-opacity flex items-start justify-center p-4 sm:p-6 md:p-12 cursor-pointer"
+      onClick={() => setIsSearchOpen(false)}
+    >
+      {/* Modal Card (Click inside won't close modal) */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={() => setIsSearchOpen(false)}
-      />
-
-      {/* Modal Container */}
-      <div className="relative min-h-screen flex items-start justify-center p-4 sm:p-6 md:p-12">
-        <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-slide-up">
-          {/* Search Header */}
-          <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center gap-3">
-            <Search className="w-6 h-6 text-gray-400 shrink-0" />
-            <input
-              ref={inputRef}
-              type="text"
-              placeholder="Search products by title, anime, category, style..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-base sm:text-lg outline-none text-gray-800 placeholder-gray-400 bg-transparent"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-                aria-label="Clear search"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+        className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-slide-up cursor-default my-4 sm:my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Search Header */}
+        <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center gap-3">
+          <Search className="w-6 h-6 text-gray-400 shrink-0" />
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search products by title, anime, category, style..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full text-base sm:text-lg outline-none text-gray-800 placeholder-gray-400 bg-transparent"
+          />
+          {searchQuery && (
             <button
               type="button"
-              onClick={() => setIsSearchOpen(false)}
-              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors text-xs font-semibold uppercase tracking-wider"
+              onClick={() => setSearchQuery('')}
+              className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600"
+              aria-label="Clear search"
             >
-              ESC
+              <X className="w-4 h-4" />
             </button>
-          </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen(false)}
+            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors text-xs font-semibold uppercase tracking-wider"
+          >
+            ESC
+          </button>
+        </div>
 
-          {/* Search Content */}
-          <div className="max-h-[65vh] overflow-y-auto p-4 sm:p-6">
-            {!searchQuery.trim() ? (
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  Popular Searches &amp; Categories
-                </p>
-                {!isLoaded && popularSearches.length === 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="h-7 w-24 rounded-full card-skeleton-shimmer" />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {popularSearches.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => setSearchQuery(tag === 'Best Selling' ? 'Best' : tag)}
-                        className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full text-xs text-gray-700 font-medium transition-colors hover:border-gray-300"
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : filteredProducts.length > 0 ? (
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                  Found Products ({filteredProducts.length})
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {filteredProducts.map((p) => (
-                    <SearchProductCard
-                      key={p.id || p.slug}
-                      product={p}
-                      onSelect={() => setIsSearchOpen(false)}
-                    />
+        {/* Search Content */}
+        <div className="max-h-[65vh] overflow-y-auto p-4 sm:p-6">
+          {!searchQuery.trim() ? (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                Popular Searches &amp; Categories
+              </p>
+              {!isLoaded && popularSearches.length === 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="h-7 w-24 rounded-full card-skeleton-shimmer" />
                   ))}
                 </div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {popularSearches.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setSearchQuery(tag === 'Best Selling' ? 'Best' : tag)}
+                      className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full text-xs text-gray-700 font-medium transition-colors hover:border-gray-300"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : filteredProducts.length > 0 ? (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                Found Products ({filteredProducts.length})
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {filteredProducts.map((p) => (
+                  <SearchProductCard
+                    key={p.id || p.slug}
+                    product={p}
+                    onSelect={() => setIsSearchOpen(false)}
+                  />
+                ))}
               </div>
-            ) : (
-              <div className="text-center py-12 space-y-2">
-                <p className="text-gray-600 font-medium text-sm">
-                  No products found matching &ldquo;{searchQuery}&rdquo;.
-                </p>
-                <p className="text-xs text-gray-400">
-                  Try checking for spelling or searching by category name like Anime, Islamic, or Dragonball.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          {filteredProducts.length > 0 && (
-            <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
-              <Link
-                href="/shop"
-                onClick={() => setIsSearchOpen(false)}
-                className="text-xs font-semibold text-gray-700 hover:text-black inline-flex items-center gap-1.5"
-              >
-                View all collection in shop <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+            </div>
+          ) : (
+            <div className="text-center py-12 space-y-2">
+              <p className="text-gray-600 font-medium text-sm">
+                No products found matching &ldquo;{searchQuery}&rdquo;.
+              </p>
+              <p className="text-xs text-gray-400">
+                Try checking for spelling or searching by category name like Anime, Islamic, or Dragonball.
+              </p>
             </div>
           )}
         </div>
+
+        {/* Footer */}
+        {filteredProducts.length > 0 && (
+          <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
+            <Link
+              href="/shop"
+              onClick={() => setIsSearchOpen(false)}
+              className="text-xs font-semibold text-gray-700 hover:text-black inline-flex items-center gap-1.5"
+            >
+              View all collection in shop <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
