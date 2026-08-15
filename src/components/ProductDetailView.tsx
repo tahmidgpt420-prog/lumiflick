@@ -157,6 +157,24 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
     });
   }, [originalImages]);
 
+  // Smooth scroll to size variation selector if linked with #select-size
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const checkHash = () => {
+      if (window.location.hash === '#select-size') {
+        setTimeout(() => {
+          const el = document.getElementById('select-size');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 300);
+      }
+    };
+    checkHash();
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, []);
+
   const nextImage = useCallback(() => {
     if (fullImages.length <= 1) return;
     setLightboxLoaded(false);
@@ -492,7 +510,7 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
           )}
 
           {/* Variation Selector: Size */}
-          <div className="space-y-2">
+          <div id="select-size" className="space-y-2 scroll-mt-28">
             <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block">
               Select Size & Bundle Option:
             </label>

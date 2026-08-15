@@ -70,26 +70,6 @@ export default function ProductCard({ product }: ProductCardProps) {
             Sale!
           </span>
         )}
-
-        {/* Quick Action Button on Hover */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-          <button
-            onClick={handleQuickAdd}
-            className="w-10 h-10 rounded-full bg-black text-white hover:bg-amber-600 flex items-center justify-center shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0"
-            aria-label={`Add ${product.title} to cart`}
-            title="Quick Add to Cart"
-          >
-            <ShoppingBag className="w-4 h-4" />
-          </button>
-          <Link
-            href={`/product/${productSlug}`}
-            className="w-10 h-10 rounded-full bg-white text-black hover:bg-gray-100 flex items-center justify-center shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0"
-            title="View Details"
-            aria-label={`View details for ${product.title}`}
-          >
-            <Eye className="w-4 h-4" />
-          </Link>
-        </div>
       </div>
 
       {/* Product Information */}
@@ -98,7 +78,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Category */}
           <Link
             href={`/product-category/${categorySlug}`}
-            className="text-[11px] font-semibold text-gray-500 hover:text-black uppercase tracking-wider inline-block py-1 mb-0.5"
+            className="text-[11px] font-semibold text-gray-500 hover:text-black uppercase tracking-wider inline-block py-0.5 mb-0.5"
           >
             {product.category || 'Glass Poster'}
           </Link>
@@ -112,33 +92,49 @@ export default function ProductCard({ product }: ProductCardProps) {
           </Link>
         </div>
 
-        {/* Price & Action */}
-        <div className="mt-3 pt-2 border-t border-gray-50 flex items-center justify-between gap-2">
-          <div>
-            {product.priceRange ? (
-              <span className="text-sm font-bold text-gray-900">
-                {product.priceRange}
-              </span>
-            ) : (
-              <div className="flex items-baseline gap-1.5">
-                {product.regularPrice && (
-                  <span className="text-xs text-gray-400 line-through">
-                    ৳ {product.regularPrice.toLocaleString()}
-                  </span>
-                )}
-                <span className="text-sm font-bold text-gray-900">
-                  ৳ {product.price.toLocaleString()}
+        <div>
+          {/* Price & Quick Add Cart Icon */}
+          <div className="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+            <div>
+              {product.priceRange ? (
+                <span className="text-sm sm:text-base font-bold text-gray-900">
+                  {product.priceRange}
                 </span>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-baseline gap-1.5">
+                  {product.regularPrice && (
+                    <span className="text-xs text-gray-400 line-through">
+                      ৳ {product.regularPrice.toLocaleString()}
+                    </span>
+                  )}
+                  <span className="text-sm sm:text-base font-bold text-gray-900">
+                    ৳ {product.price.toLocaleString()}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Add to Cart Icon Button */}
+            <button
+              type="button"
+              onClick={handleQuickAdd}
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black text-white hover:bg-gray-800 flex items-center justify-center transition-all shadow-sm shrink-0 active:scale-95"
+              title="Add to Cart"
+              aria-label={`Add ${product.title} to cart`}
+            >
+              <ShoppingBag className="w-4 h-4" />
+            </button>
           </div>
 
-          <Link
-            href={`/product/${productSlug}`}
-            className="text-xs font-semibold text-gray-900 hover:text-amber-600 underline underline-offset-4"
-          >
-            Select Options
-          </Link>
+          {/* Select Options Button under Price */}
+          <div className="mt-2.5">
+            <Link
+              href={`/product/${productSlug}#select-size`}
+              className="w-full py-2 px-3 rounded-xl bg-gray-50 hover:bg-black text-gray-900 hover:text-white text-xs font-bold flex items-center justify-center transition-all duration-200 border border-gray-200 hover:border-black shadow-sm"
+            >
+              Select Options
+            </Link>
+          </div>
         </div>
       </div>
 
