@@ -36,6 +36,8 @@ export default function CheckoutPage() {
   const shippingCost = 0;
   const totalAmount = subtotal;
 
+  const [submitChannel, setSubmitChannel] = useState<'whatsapp' | 'messenger'>('whatsapp');
+
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -60,7 +62,7 @@ export default function CheckoutPage() {
     // Generate unique order ID
     const orderId = `GT-${Date.now().toString().slice(-6)}`;
 
-    // Build products list for WhatsApp initial message
+    // Build products list for order message
     const orderItemsText = items
       .map((item, i) => {
         const pieceStr = item.selectedPiecesLabel ? ` (${item.selectedPiecesLabel})` : '';
@@ -68,7 +70,7 @@ export default function CheckoutPage() {
       })
       .join('\n');
 
-    const whatsappMessage = [
+    const orderMessage = [
       `Hello LUMIFLICK! I want to confirm my order:`,
       ``,
       `👤 *Customer Details:*`,
@@ -86,7 +88,10 @@ export default function CheckoutPage() {
       .filter((line) => line !== '')
       .join('\n');
 
-    const whatsappUrl = `https://wa.me/8801400307299?text=${encodeURIComponent(whatsappMessage)}`;
+    const encodedMessage = encodeURIComponent(orderMessage);
+    const redirectUrl = submitChannel === 'messenger'
+      ? `https://m.me/LumiFlick?text=${encodedMessage}`
+      : `https://wa.me/8801400307299?text=${encodedMessage}`;
 
     // Store order record
     const orderRecord = {
@@ -113,10 +118,10 @@ export default function CheckoutPage() {
     try {
       localStorage.setItem(`gt_order_${orderId}`, JSON.stringify(orderRecord));
       clearCart();
-      window.location.href = whatsappUrl;
+      window.location.href = redirectUrl;
     } catch (err) {
       console.error(err);
-      window.location.href = whatsappUrl;
+      window.location.href = redirectUrl;
     }
   };
 
@@ -300,13 +305,31 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={isSubmitting}
+              onClick={() => setSubmitChannel('whatsapp')}
               className="w-full py-4 bg-[#25D366] hover:bg-[#1EBE5D] text-white font-extrabold text-sm sm:text-base rounded-xl transition-all flex items-center justify-center gap-2.5 shadow-lg shadow-[#25D366]/25 active:scale-[0.98] disabled:opacity-50"
             >
               <MessageCircle className="w-5 h-5 fill-white text-white" />
-              {isSubmitting ? (
+              {isSubmitting && submitChannel === 'whatsapp' ? (
                 'Opening WhatsApp...'
               ) : (
                 <>Confirm Order on WhatsApp (৳ {totalAmount.toLocaleString()})</>
+              )}
+            </button>
+
+            {/* Messenger Submit CTA */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              onClick={() => setSubmitChannel('messenger')}
+              className="w-full py-4 bg-[#0084FF] hover:bg-[#0073E6] text-white font-extrabold text-sm sm:text-base rounded-xl transition-all flex items-center justify-center gap-2.5 shadow-lg shadow-[#0084FF]/25 active:scale-[0.98] disabled:opacity-50"
+            >
+              <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+                <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.2 5.51 3.24 7.34-.17 1.05-.62 2.7-1.78 3.84 0 0 2.5-.2 4.46-1.55.67.19 1.38.29 2.08.29 5.64 0 10-4.13 10-9.7S17.64 2 12 2zm1.09 13.06l-2.73-2.91-5.33 2.91 5.86-6.22 2.8 2.91 5.26-2.91-5.86 6.22z" />
+              </svg>
+              {isSubmitting && submitChannel === 'messenger' ? (
+                'Opening Messenger...'
+              ) : (
+                <>Confirm Order on Messenger (৳ {totalAmount.toLocaleString()})</>
               )}
             </button>
 

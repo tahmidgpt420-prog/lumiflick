@@ -56,6 +56,7 @@ export default function ProductDetailView({
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'desc' | 'specs'>('desc');
   const [addedToast, setAddedToast] = useState(false);
+  const [copiedToast, setCopiedToast] = useState(false);
 
   useEffect(() => {
     setSelectedImageIndex(0);
@@ -273,9 +274,21 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
     router.push('/checkout');
   };
 
-  const whatsappMessage = encodeURIComponent(
-    `Hello LUMIFLICK! I want to order/inquire about this glass poster:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}${pieceEnabled && piecesFormatted ? `\n• Pieces: ${piecesFormatted}` : ''}\n• Quantity: ${quantity}\n• Price: ${(effectivePrice * quantity).toLocaleString()} BDT + Delivery Charge\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`
+  const orderMessage = `Hello LUMIFLICK! I want to order/inquire about this glass poster:\n• Product: ${product.title}\n• Product Slug: ${product.slug}\n• Size: ${selectedVariation.label}${pieceEnabled && piecesFormatted ? `\n• Pieces: ${piecesFormatted}` : ''}\n• Quantity: ${quantity}\n• Price: ${(effectivePrice * quantity).toLocaleString()} BDT + Delivery Charge\n• Product URL: https://www.lumiflick.shop/product/${product.slug}`;
+
+  const whatsappMessage = encodeURIComponent(orderMessage);
+
+  const messengerRef = encodeURIComponent(
+    `product:${product.slug}|size:${selectedVariation.label}|qty:${quantity}|price:${effectivePrice * quantity}${pieceEnabled && piecesFormatted ? `|pieces:${piecesFormatted}` : ''}`
   );
+
+  const handleMessengerClick = () => {
+    // Copy the order message to clipboard so the user can paste it in Messenger
+    navigator.clipboard.writeText(orderMessage).then(() => {
+      setCopiedToast(true);
+      setTimeout(() => setCopiedToast(false), 3000);
+    }).catch(() => {});
+  };
 
   return (
     <div className="py-6 sm:py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -604,9 +617,9 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
               </button>
             </div>
 
-            {/* Chat on Messenger Button */}
+            {/* Order on Messenger Button — pre-filled message via ?text= */}
             <a
-              href="https://www.m.me/LumiFlick"
+              href={`https://m.me/LumiFlick?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full h-12 rounded-xl bg-[#0084FF] hover:bg-[#0073E6] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#0084FF]/20 active:scale-[0.98]"
@@ -614,9 +627,8 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
               <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
                 <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.2 5.51 3.24 7.34-.17 1.05-.62 2.7-1.78 3.84 0 0 2.5-.2 4.46-1.55.67.19 1.38.29 2.08.29 5.64 0 10-4.13 10-9.7S17.64 2 12 2zm1.09 13.06l-2.73-2.91-5.33 2.91 5.86-6.22 2.8 2.91 5.26-2.91-5.86 6.22z" />
               </svg>
-              Chat on Messenger
+              Order On Messenger
             </a>
-
             {/* WhatsApp Order Button */}
             <a
               href={`https://wa.me/8801400307299?text=${whatsappMessage}`}
