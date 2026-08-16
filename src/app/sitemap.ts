@@ -97,7 +97,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Live Category routes
   const categoryRoutes: MetadataRoute.Sitemap = categoriesList
-    .filter((cat) => Boolean(cat.slug) && cat.slug !== 'werty' && cat.name.toLowerCase() !== 'werty')
+    .filter((cat) => Boolean(cat.slug))
     .map((cat) => ({
       url: `${baseUrl}/product-category/${encodeURIComponent(cat.slug)}`,
       lastModified: currentDate,

@@ -47,13 +47,9 @@ export default function CategorySlider() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { categories: categoriesList, isLoaded } = useProducts();
 
-  // Filter to show ONLY real main (top-level) categories (exclude subcategories and draft/test categories)
+  // Filter to show ONLY real main (top-level) categories
   const displayCategories = getMainCategories(categoriesList).filter(
-    (c) =>
-      Boolean(c.name && c.image && c.slug) &&
-      c.slug !== 'werty' &&
-      c.name.toLowerCase() !== 'werty' &&
-      c.name.toLowerCase() !== 'asdfghjk'
+    (c) => Boolean(c.name && c.image && c.slug)
   );
 
   const scroll = (direction: 'left' | 'right') => {
