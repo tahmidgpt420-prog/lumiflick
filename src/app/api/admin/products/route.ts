@@ -28,8 +28,36 @@ export async function GET(request: NextRequest) {
       const to = from + PAGE_SIZE - 1;
 
       let query = supabaseAdmin.from('products').select('*', { count: 'exact' });
-      if (category !== 'all') query = query.eq('category_slug', category);
-      if (search) query = query.or(`title.ilike.%${search}%,category.ilike.%${search}%`);
+
+      if (category !== 'all') {
+        // Fetch sub-categories if this is a parent category
+        const { data: subCats } = await supabaseAdmin
+          .from('categories')
+          .select('slug, name')
+          .or(`parent_slug.ilike."${category}",parent_id.ilike."${category}",parent_slug.eq."${category}"`);
+
+        const matchingSlugs = Array.from(
+          new Set([category, ...(subCats || []).map((c) => c.slug)].filter(Boolean))
+        );
+        const matchingNames = Array.from(
+          new Set((subCats || []).map((c) => c.name).filter(Boolean))
+        );
+
+        const orParts: string[] = [];
+        for (const s of matchingSlugs) {
+          orParts.push(`category_slug.ilike."${s}"`);
+          orParts.push(`category.ilike."${s}"`);
+        }
+        for (const n of matchingNames) {
+          orParts.push(`category.ilike."${n}"`);
+        }
+
+        if (orParts.length > 0) {
+          query = query.or(orParts.join(','));
+        }
+      }
+
+      if (search) query = query.or(`title.ilike."%${search}%",category.ilike."%${search}%"`);
       query = query.order(sort.column, { ascending: sort.ascending }).range(from, to);
 
       const { data, error, count } = await query;

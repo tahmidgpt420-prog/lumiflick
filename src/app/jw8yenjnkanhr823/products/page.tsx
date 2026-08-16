@@ -15,14 +15,14 @@ import {
   AlertCircle,
   Filter,
 } from 'lucide-react';
-import { Product } from '@/types';
-import { categories } from '@/data/categories';
+import { Product, Category } from '@/types';
 import { useProducts } from '@/context/ProductContext';
 
 type SortOption = 'newest' | 'oldest' | 'name-asc' | 'name-desc' | 'category';
 
 export default function AdminProductsPage() {
-  const { refreshProducts } = useProducts();
+  const { categories: contextCategories, refreshProducts } = useProducts();
+  const [categoriesList, setCategoriesList] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -33,6 +33,20 @@ export default function AdminProductsPage() {
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+
+  // Sync live categories from context or fetch directly from admin categories endpoint
+  useEffect(() => {
+    if (contextCategories && contextCategories.length > 0) {
+      setCategoriesList(contextCategories);
+    } else {
+      fetch('/api/admin/categories')
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.success && d.categories) setCategoriesList(d.categories);
+        })
+        .catch(() => {});
+    }
+  }, [contextCategories]);
 
   // Real server-side search + sort + category filter + pagination — one
   // query does all of it now that this is Postgres, not Firestore, so
@@ -122,14 +136,66 @@ export default function AdminProductsPage() {
               <select
                 value={selectedCat}
                 onChange={(e) => setSelectedCat(e.target.value)}
-                className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black bg-white"
+                className="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-xl text-xs outline-none focus:border-black bg-white font-medium"
               >
-                <option value="all">All Categories {totalCount !== null ? `(${totalCount})` : ''}</option>
-                {categories.map((c) => (
-                  <option key={c.slug} value={c.slug}>
-                    {c.name}
-                  </option>
-                ))}
+                <option value="all">📁 All Categories {totalCount !== null ? `(${totalCount})` : ''}</option>
+                {(() => {
+                  const mainCats = categoriesList.filter((c) => !c.parentSlug && !c.parentId);
+                  const orphanSubs = categoriesList.filter(
+                    (c) =>
+                      (c.parentSlug || c.parentId) &&
+                      !mainCats.some(
+                        (m) =>
+                          m.slug === (c.parentSlug || c.parentId) ||
+                          m.slug.toLowerCase() === (c.parentSlug || c.parentId || '').toLowerCase()
+                      )
+                  );
+
+                  return (
+                    <>
+                      {mainCats.map((mainCat) => {
+                        const subs = categoriesList.filter(
+                          (c) =>
+                            c.parentSlug === mainCat.slug ||
+                            c.parentId === mainCat.slug ||
+                            (c.parentSlug && c.parentSlug.toLowerCase() === mainCat.slug.toLowerCase()) ||
+                            (c.parentId && c.parentId.toLowerCase() === mainCat.slug.toLowerCase())
+                        );
+
+                        if (subs.length === 0) {
+                          return (
+                            <option key={mainCat.id || mainCat.slug} value={mainCat.slug}>
+                              📁 {mainCat.name}
+                            </option>
+                          );
+                        }
+
+                        return (
+                          <optgroup key={mainCat.id || mainCat.slug} label={`── ${mainCat.name} ──`}>
+                            <option value={mainCat.slug}>
+                              📁 All {mainCat.name}
+                            </option>
+                            {subs.map((sub) => (
+                              <option key={sub.id || sub.slug} value={sub.slug}>
+                                &nbsp;&nbsp;&nbsp;↳ {sub.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        );
+                      })}
+
+                      {orphanSubs.length > 0 && (
+                        <optgroup label="── Other Sub-Categories ──">
+                          {orphanSubs.map((c) => (
+                            <option key={c.id || c.slug} value={c.slug}>
+                              ↳ {c.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </>
+                  );
+                })()}
               </select>
             </div>
 
