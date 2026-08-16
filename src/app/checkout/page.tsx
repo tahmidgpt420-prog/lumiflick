@@ -66,7 +66,7 @@ export default function CheckoutPage() {
     const orderItemsText = items
       .map((item, i) => {
         const pieceStr = item.selectedPiecesLabel ? ` (${item.selectedPiecesLabel})` : '';
-        return `   ${i + 1}. ${item.title}\n      • Variation: ${item.selectedSize}${pieceStr}\n      • Qty: ${item.quantity}\n      • Price: ${(item.price * item.quantity).toLocaleString()} BDT + Delivery Charge`;
+        return `   ${i + 1}. ${item.title}\n      • Variation: ${item.selectedSize}${pieceStr}\n      • Qty: ${item.quantity}\n      • Price: ${(item.price * item.quantity).toLocaleString()} BDT`;
       })
       .join('\n');
 
@@ -118,10 +118,12 @@ export default function CheckoutPage() {
     try {
       localStorage.setItem(`gt_order_${orderId}`, JSON.stringify(orderRecord));
       clearCart();
-      window.location.href = redirectUrl;
+      window.open(redirectUrl, '_blank', 'noopener,noreferrer');
+      router.push(`/order-success/${orderId}`);
     } catch (err) {
       console.error(err);
-      window.location.href = redirectUrl;
+      window.open(redirectUrl, '_blank', 'noopener,noreferrer');
+      router.push(`/order-success/${orderId}`);
     }
   };
 
