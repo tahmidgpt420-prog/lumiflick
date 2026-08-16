@@ -123,10 +123,18 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
     });
   };
 
-  const rawImages =
-    product.galleryImages && product.galleryImages.length > 0
-      ? product.galleryImages
-      : [product.image || '/logo.png'];
+  const primary = product.image && product.image.trim() ? product.image : null;
+  const gallery = (product.galleryImages || []).filter(
+    (url) => url && url.trim() && url !== primary && url !== '/logo.png'
+  );
+
+  // 1st photo is always the thumbnail/primary image, followed by 2nd, 3rd, etc. from gallery
+  const rawImages = primary
+    ? [primary, ...gallery]
+    : gallery.length > 0
+    ? gallery
+    : ['/logo.png'];
+
   const images = rawImages.map((url) => formatImageUrl(url, 150));
   const fullImages = rawImages.map((url) => formatImageUrl(url, 700));
   const originalImages = rawImages.map((url) => formatImageUrl(url, 'original'));

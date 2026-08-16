@@ -76,8 +76,13 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       setBestSeller(initialData.bestSeller ?? false);
       setPieceSelectionEnabled(initialData.pieceSelectionEnabled ?? false);
       setMaxPieces(initialData.maxPieces ?? 3);
-      setPrimaryImage(initialData.image || '');
-      setGalleryImages(initialData.galleryImages || (initialData.image ? [initialData.image] : []));
+      const initialPrimary = initialData.image || '';
+      setPrimaryImage(initialPrimary);
+      setGalleryImages(
+        (initialData.galleryImages || []).filter(
+          (img) => img && img !== initialPrimary && img !== '/logo.png'
+        )
+      );
       setShortDescription(initialData.shortDescription || '');
       setDescription(initialData.description || '');
       if (initialData.variations && initialData.variations.length > 0) {
@@ -121,10 +126,12 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   }, [catList, initialData]);
 
   const [primaryImage, setPrimaryImage] = useState<string>(
-    initialData?.image || '/logo.png'
+    initialData?.image || ''
   );
   const [galleryImages, setGalleryImages] = useState<string[]>(
-    initialData?.galleryImages || ['/logo.png']
+    (initialData?.galleryImages || []).filter(
+      (img) => img && img !== initialData?.image && img !== '/logo.png'
+    )
   );
 
   const [shortDescription, setShortDescription] = useState(
@@ -266,7 +273,9 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       regularPrice,
       priceRange,
       image: primaryImage,
-      galleryImages,
+      galleryImages: galleryImages.filter(
+        (img) => img && img !== primaryImage && img !== '/logo.png'
+      ),
       sale,
       featured,
       bestSeller: isBestSelling,

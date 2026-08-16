@@ -78,22 +78,25 @@ export default function ImageGalleryPicker({
       {/* Primary Thumbnail Image with Upload & Link */}
       <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
         <FileUploadBox
-          label="Primary Product Image (Main Display & Catalog Thumbnail)"
+          label="1. Primary Product Image (Catalog Thumbnail & 1st Photo)"
           value={primaryImage}
           onChange={onPrimaryChange}
           aspectRatio="wide"
         />
+        <p className="text-[11px] text-gray-500">
+          This is your product&apos;s main thumbnail on catalog cards and the <strong>1st (default) photo</strong> in the product detail gallery.
+        </p>
       </div>
 
       {/* Multi-Photo Gallery Manager */}
       <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-sm font-bold text-gray-900">Additional Gallery Photos</h3>
-            <p className="text-xs text-gray-500">Showcase detail shots, angles, and real-room wall mockups</p>
+            <h3 className="text-sm font-bold text-gray-900">2. Additional Gallery Photos (2nd, 3rd, 4th... Photos)</h3>
+            <p className="text-xs text-gray-500">Upload additional detail shots, angles, and mockups. These will appear as the 2nd, 3rd, etc. photos in the detail view.</p>
           </div>
           <span className="text-xs font-semibold text-gray-400">
-            {galleryImages.length} images
+            {galleryImages.length} additional
           </span>
         </div>
 
