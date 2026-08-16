@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         const { data: subCats } = await supabaseAdmin
           .from('categories')
           .select('slug, name')
-          .or(`parent_slug.ilike."${category}",parent_id.ilike."${category}",parent_slug.eq."${category}"`);
+          .ilike('parent_slug', category);
 
         const matchingSlugs = Array.from(
           new Set([category, ...(subCats || []).map((c) => c.slug)].filter(Boolean))
