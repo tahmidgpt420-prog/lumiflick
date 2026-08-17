@@ -85,12 +85,18 @@ function RawPhotosSkeletonGrid() {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 items-start">
-      {dummyHeights.map((h, i) => (
-        <div
-          key={i}
-          className={`bg-white rounded-xl sm:rounded-2xl border border-gray-200 overflow-hidden relative ${h} card-skeleton-shimmer`}
-        />
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 items-start">
+      {[0, 1, 2, 3].map((colIdx) => (
+        <div key={colIdx} className="flex flex-col gap-2.5 sm:gap-4">
+          {dummyHeights
+            .filter((_, i) => i % 4 === colIdx)
+            .map((h, i) => (
+              <div
+                key={i}
+                className={`bg-white rounded-xl sm:rounded-2xl border border-gray-200 overflow-hidden relative ${h} card-skeleton-shimmer`}
+              />
+            ))}
+        </div>
       ))}
     </div>
   );
@@ -102,6 +108,19 @@ export default function RawPhotosPage() {
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [lightboxLoaded, setLightboxLoaded] = useState(false);
+  const [cols, setCols] = useState(2);
+
+  useEffect(() => {
+    const updateCols = () => {
+      const w = window.innerWidth;
+      if (w < 768) setCols(2);
+      else if (w < 1024) setCols(3);
+      else setCols(4);
+    };
+    updateCols();
+    window.addEventListener('resize', updateCols);
+    return () => window.removeEventListener('resize', updateCols);
+  }, []);
 
   useEffect(() => {
     async function loadPhotos() {
@@ -122,6 +141,12 @@ export default function RawPhotosPage() {
 
   const visiblePhotos = photos.slice(0, visibleCount);
   const hasMorePhotos = visibleCount < photos.length;
+
+  // Distribute visible photos round-robin into column buckets
+  const columnBuckets = Array.from({ length: cols }, () => [] as { photo: RawPhoto; originalIndex: number }[]);
+  visiblePhotos.forEach((photo, idx) => {
+    columnBuckets[idx % cols].push({ photo, originalIndex: idx });
+  });
 
   const activePhoto =
     activePhotoIndex !== null && photos[activePhotoIndex]
@@ -216,14 +241,21 @@ export default function RawPhotosPage() {
             <p className="text-gray-400">Photos added via admin will appear here in their original ratio.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 items-start">
-            {visiblePhotos.map((photo, index) => (
-              <RawPhotoCard
-                key={photo.id || index}
-                photo={photo}
-                index={index}
-                onSelect={handleOpenPhoto}
-              />
+          <div
+            className="grid gap-2.5 sm:gap-4 items-start"
+            style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+          >
+            {columnBuckets.map((bucket, colIdx) => (
+              <div key={colIdx} className="flex flex-col gap-2.5 sm:gap-4">
+                {bucket.map(({ photo, originalIndex }) => (
+                  <RawPhotoCard
+                    key={photo.id || originalIndex}
+                    photo={photo}
+                    index={originalIndex}
+                    onSelect={handleOpenPhoto}
+                  />
+                ))}
+              </div>
             ))}
           </div>
         )}
