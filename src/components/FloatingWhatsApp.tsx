@@ -7,7 +7,7 @@ import { MessageCircle } from 'lucide-react';
 export default function FloatingWhatsApp() {
   const pathname = usePathname();
 
-  let messageText = 'Hello LUMIFLICK! I would like to inquire about your premium wall frames.';
+  let messageText = 'Hello LUMIFLICK! I would like to inquire about glass poster.';
 
   if (pathname && pathname.startsWith('/product/')) {
     const slug = pathname.replace('/product/', '').trim();
