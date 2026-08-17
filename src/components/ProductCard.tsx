@@ -49,7 +49,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
 
           <Image
-            src={hasError ? '/logo.png' : formatImageUrl(product.image || '/logo.png')}
+            // 640px, not the 240px default — this card renders up to ~350px
+            // CSS-wide on desktop grid, which is 700px+ at retina density.
+            // The 240px default was fine for a much smaller thumbnail than
+            // this grid actually renders, hence the visible pixelation.
+            src={hasError ? '/logo.png' : formatImageUrl(product.image || '/logo.png', 640)}
             alt={product.title || 'LUMIFLICK Frame'}
             fill
             onLoad={() => setImageLoaded(true)}
