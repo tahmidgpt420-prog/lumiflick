@@ -321,7 +321,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       }
 
       try {
-        await refreshProducts();
+        await refreshProducts(true);
       } catch {}
 
       setStatusMessage({

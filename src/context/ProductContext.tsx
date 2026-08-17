@@ -6,11 +6,11 @@ import { products as staticProducts } from '@/data/products';
 import { categories as staticCategories } from '@/data/categories';
 import { matchesCategory } from '@/utils/categoryHelpers';
 
-const CACHE_KEY = 'lumiflick_catalog_cache_v5';
+const CACHE_KEY = 'lumiflick_catalog_cache_v6';
 // Was 15 minutes to protect Firestore's read quota — no longer needed on
 // Postgres (Supabase). Short now mainly so rapid page navigations within
 // the same visit don't each refetch, not to hide admin edits from view.
-const CACHE_TTL_MS = 60 * 1000; // 1 minute
+const CACHE_TTL_MS = 30 * 1000; // 30 seconds
 
 interface CatalogCache {
   products: Product[];
