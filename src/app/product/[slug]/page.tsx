@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ProductDetailView from '@/components/ProductDetailView';
 import { ArrowLeft, Loader2, PackageX } from 'lucide-react';
-import { useProducts } from '@/context/ProductContext';
+import { fetchProductBySlug, fetchProductsPage } from '@/lib/products';
+import { Product } from '@/types';
 
 interface ProductPageProps {
   params: {
@@ -16,12 +17,57 @@ export default function ProductPage({ params }: ProductPageProps) {
   const rawSlug = decodeURIComponent(params.slug).trim();
   const normalizedSlug = rawSlug.toLowerCase();
 
-  const { products, getProductBySlug, isLoaded } = useProducts();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  // Instant lookup from client memory cache
-  const product = getProductBySlug(normalizedSlug);
+  // The one place a full product row (description, specifications,
+  // variations, gallery) gets downloaded — fired only when this page is
+  // actually opened, not as a side effect of browsing a grid.
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setNotFound(false);
 
-  if (!product && !isLoaded) {
+    fetchProductBySlug(normalizedSlug).then(async (found) => {
+      if (cancelled) return;
+      if (!found) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+      setProduct(found);
+      setLoading(false);
+
+      // Related products — a small lite-field fetch from the same
+      // category, not a slice of some full in-memory catalog. Backfill
+      // from the general catalog if this category has fewer than 4
+      // siblings, so a niche category doesn't show an empty section.
+      const categorySlug = found.categorySlug || 'best-selling';
+      const page = await fetchProductsPage({ category: categorySlug, limit: 5 });
+      if (cancelled) return;
+      let related = page.products.filter((p) => p.slug !== found.slug).slice(0, 4);
+      if (related.length < 4) {
+        const fallback = await fetchProductsPage({ limit: 4 + related.length + 1 });
+        if (cancelled) return;
+        const seen = new Set([found.slug, ...related.map((p) => p.slug)]);
+        for (const p of fallback.products) {
+          if (related.length >= 4) break;
+          if (seen.has(p.slug)) continue;
+          related.push(p);
+          seen.add(p.slug);
+        }
+      }
+      setRelatedProducts(related);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [normalizedSlug]);
+
+  if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
         <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
@@ -30,7 +76,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     );
   }
 
-  if (!product) {
+  if (notFound || !product) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center space-y-4 max-w-md mx-auto">
         <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
@@ -49,20 +95,6 @@ export default function ProductPage({ params }: ProductPageProps) {
       </div>
     );
   }
-
-  const categorySlug = product.categorySlug || 'best-selling';
-  const matching = products.filter(
-    (p) =>
-      p.slug !== product.slug &&
-      (p.categorySlug === categorySlug || p.category === product.category)
-  );
-  const others = products.filter(
-    (p) =>
-      p.slug !== product.slug &&
-      p.categorySlug !== categorySlug &&
-      p.category !== product.category
-  );
-  const relatedProducts = [...matching, ...others].slice(0, 4);
 
   return (
     <div className="bg-white">

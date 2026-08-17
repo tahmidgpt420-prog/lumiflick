@@ -152,6 +152,44 @@ export function getCategoryTreeSlugs(
 }
 
 /**
+ * Server-side counterpart to matchesCategory/getCategoryTreeSlugs — used by
+ * /api/products to build a Postgres .in() filter instead of pulling every
+ * row down and filtering client-side. Returns clean, exact-as-stored slug
+ * and name lists (not the mixed-normalization Set the client-side tree walk
+ * produces), since a DB .in() needs to match column values verbatim.
+ */
+export function resolveCategoryFilterValues(
+  targetSlugOrName: string,
+  categories: Category[]
+): { slugs: string[]; names: string[] } {
+  const target = findCategoryBySlugOrName(targetSlugOrName, categories);
+  if (!target) return { slugs: [], names: [] };
+
+  const collected: Category[] = [];
+  const queue = [target];
+  const visitedSlugs = new Set<string>();
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const key = normalizeCategorySlug(current.slug) || normalizeCategorySlug(current.name);
+    if (visitedSlugs.has(key)) continue;
+    visitedSlugs.add(key);
+    collected.push(current);
+
+    const children = categories.filter((c) => {
+      const pSlugNorm = normalizeCategorySlug(c.parentSlug || c.parentId);
+      return pSlugNorm === normalizeCategorySlug(current.slug) || pSlugNorm === normalizeCategorySlug(current.name);
+    });
+    queue.push(...children);
+  }
+
+  return {
+    slugs: collected.map((c) => c.slug).filter(Boolean),
+    names: collected.map((c) => c.name).filter(Boolean),
+  };
+}
+
+/**
  * Checks if a product matches a target category (handling parent/child category hierarchy and best sellers).
  */
 export function matchesCategory(

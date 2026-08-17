@@ -21,7 +21,7 @@ import { useProducts } from '@/context/ProductContext';
 type SortOption = 'newest' | 'oldest' | 'name-asc' | 'name-desc' | 'category';
 
 export default function AdminProductsPage() {
-  const { categories: contextCategories, refreshProducts } = useProducts();
+  const { categories: contextCategories } = useProducts();
   const [categoriesList, setCategoriesList] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,9 +96,6 @@ export default function AdminProductsPage() {
 
     try {
       await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
-      try {
-        await refreshProducts();
-      } catch {}
     } catch (e) {
       console.error('Error deleting product:', e);
     } finally {

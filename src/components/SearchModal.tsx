@@ -6,8 +6,11 @@ import Link from 'next/link';
 import { Search, X, ArrowRight, Sparkles } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useProducts } from '@/context/ProductContext';
+import { fetchProductsPage } from '@/lib/products';
 import { formatImageUrl } from '@/utils/driveUrl';
 import { Product } from '@/types';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 function SearchProductCard({ product, onSelect }: { product: Product; onSelect: () => void }) {
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -51,9 +54,12 @@ function SearchProductCard({ product, onSelect }: { product: Product; onSelect: 
 
 export default function SearchModal() {
   const { isSearchOpen, setIsSearchOpen } = useCart();
-  const { products, categories, isLoaded } = useProducts();
+  const { categories, isLoaded } = useProducts();
   const [searchQuery, setSearchQuery] = useState('');
+  const [results, setResults] = useState<Product[]>([]);
+  const [searching, setSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -62,6 +68,7 @@ export default function SearchModal() {
       }, 100);
     } else {
       setSearchQuery('');
+      setResults([]);
     }
   }, [isSearchOpen]);
 
@@ -90,29 +97,30 @@ export default function SearchModal() {
     return Array.from(new Set(['Best Selling', ...primaryCats, ...subCats])).slice(0, 10);
   }, [categories]);
 
-  // Smart multi-word search filter
-  const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const queryTokens = searchQuery
-      .toLowerCase()
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean);
+  // Debounced server-side search — every word must match somewhere across
+  // title/category/tags/description (server enforces this, see
+  // /api/products), but nothing gets downloaded per keystroke except the
+  // up-to-12 lite result rows actually shown here.
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
 
-    return products
-      .filter((p) => {
-        const title = (p.title || '').toLowerCase();
-        const category = (p.category || '').toLowerCase();
-        const categorySlug = (p.categorySlug || '').toLowerCase();
-        const tags = (p.tags || []).join(' ').toLowerCase();
-        const description = (p.description || '').toLowerCase();
+    setSearching(true);
+    const requestId = ++requestIdRef.current;
+    const timer = setTimeout(() => {
+      fetchProductsPage({ q: query, limit: 12 }).then((page) => {
+        if (requestId !== requestIdRef.current) return; // stale response
+        setResults(page.products);
+        setSearching(false);
+      });
+    }, SEARCH_DEBOUNCE_MS);
 
-        const combinedSearchable = `${title} ${category} ${categorySlug} ${tags} ${description}`;
-
-        return queryTokens.every((token) => combinedSearchable.includes(token));
-      })
-      .slice(0, 12);
-  }, [searchQuery, products]);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   if (!isSearchOpen) return null;
 
@@ -185,13 +193,19 @@ export default function SearchModal() {
                 </div>
               )}
             </div>
-          ) : filteredProducts.length > 0 ? (
+          ) : searching ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-[72px] rounded-xl card-skeleton-shimmer" />
+              ))}
+            </div>
+          ) : results.length > 0 ? (
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                Found Products ({filteredProducts.length})
+                Found Products ({results.length})
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {filteredProducts.map((p) => (
+                {results.map((p) => (
                   <SearchProductCard
                     key={p.id || p.slug}
                     product={p}
@@ -213,7 +227,7 @@ export default function SearchModal() {
         </div>
 
         {/* Footer */}
-        {filteredProducts.length > 0 && (
+        {results.length > 0 && (
           <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
             <Link
               href="/shop"

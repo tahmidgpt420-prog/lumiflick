@@ -24,7 +24,7 @@ export default function AdminCategoriesPage() {
   const [deletingSlug, setDeletingSlug] = useState<string | null>(null);
   const [draggedSlug, setDraggedSlug] = useState<string | null>(null);
   const [dragOverSlug, setDragOverSlug] = useState<string | null>(null);
-  const { refreshProducts } = useProducts();
+  const { refreshCategories } = useProducts();
 
   const fetchCategories = async () => {
     try {
@@ -79,7 +79,7 @@ export default function AdminCategoriesPage() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to delete category');
       try {
-        await refreshProducts();
+        await refreshCategories();
       } catch {}
       await fetchCategories();
     } catch (err: any) {
@@ -127,7 +127,7 @@ export default function AdminCategoriesPage() {
 
       // 2. Refresh global cache across the entire app
       try {
-        await refreshProducts();
+        await refreshCategories();
       } catch (err) {
         console.warn('Cache refresh error:', err);
       }
@@ -157,7 +157,7 @@ export default function AdminCategoriesPage() {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Failed to save order');
       try {
-        await refreshProducts();
+        await refreshCategories();
       } catch {}
     } catch (err) {
       console.error('Error saving category order:', err);

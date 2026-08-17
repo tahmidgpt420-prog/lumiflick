@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Product, ProductVariation, Category } from '@/types';
 import { categories as initialCategories } from '@/data/categories';
-import { useProducts } from '@/context/ProductContext';
 import ImageGalleryPicker from './ImageGalleryPicker';
 import {
   Save,
@@ -26,7 +25,6 @@ interface ProductFormProps {
 
 export default function ProductForm({ initialData, isEditing = false }: ProductFormProps) {
   const router = useRouter();
-  const { refreshProducts } = useProducts();
 
   const [title, setTitle] = useState(initialData?.title || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
@@ -319,10 +317,6 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       if (!res.ok || !data.success) {
         throw new Error(data.error || 'Failed to save product');
       }
-
-      try {
-        await refreshProducts(true);
-      } catch {}
 
       setStatusMessage({
         type: 'success',

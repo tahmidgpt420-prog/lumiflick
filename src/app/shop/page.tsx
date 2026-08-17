@@ -1,39 +1,73 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, Suspense } from 'react';
+import React, { useState, useMemo, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
 import { useProducts } from '@/context/ProductContext';
+import { fetchProductsPage } from '@/lib/products';
+import { Product } from '@/types';
 import {
   getMainCategories,
   getSubcategories,
   findCategoryBySlugOrName,
   getParentCategory,
-  matchesCategory,
   normalizeCategorySlug,
 } from '@/utils/categoryHelpers';
-import { Layers, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 
 const PAGE_SIZE = 16;
 
 function ShopContent() {
-  const { products, categories, isLoaded } = useProducts();
+  const { categories } = useProducts();
   const searchParams = useSearchParams();
   const initialCategoryParam = searchParams.get('category') || 'all';
 
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategoryParam);
   const [sortBy, setSortBy] = useState<string>('default');
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingInitial, setLoadingInitial] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Guards against an in-flight page-1 fetch resolving after a newer one
+  // (fast category/sort switching) and clobbering the current view.
+  const requestIdRef = useRef(0);
 
   // Sync state if URL search params change
   useEffect(() => {
     const param = searchParams.get('category');
-    if (param) {
-      setSelectedCategory(param);
-      setVisibleCount(PAGE_SIZE);
-    }
+    if (param) setSelectedCategory(param);
   }, [searchParams]);
+
+  // Every category/sort change is a fresh server fetch, not a client-side
+  // re-filter — this is the actual first Supabase read for this view.
+  useEffect(() => {
+    const requestId = ++requestIdRef.current;
+    setLoadingInitial(true);
+    fetchProductsPage({ category: selectedCategory, sort: sortBy, offset: 0, limit: PAGE_SIZE }).then((page) => {
+      if (requestId !== requestIdRef.current) return; // stale response
+      setProducts(page.products);
+      setTotal(page.total);
+      setHasMore(page.hasMore);
+      setLoadingInitial(false);
+    });
+  }, [selectedCategory, sortBy]);
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    const page = await fetchProductsPage({
+      category: selectedCategory,
+      sort: sortBy,
+      offset: products.length,
+      limit: PAGE_SIZE,
+    });
+    setProducts((prev) => [...prev, ...page.products]);
+    setHasMore(page.hasMore);
+    setLoadingMore(false);
+  };
 
   // Main (top-level) categories
   const mainCategories = useMemo(() => getMainCategories(categories), [categories]);
@@ -59,34 +93,12 @@ function ShopContent() {
     return getSubcategories(activeMainCat.slug, categories);
   }, [activeMainCat, categories]);
 
-  // Hierarchical product filtering & sorting
-  const filteredProducts = useMemo(() => {
-    let result = products.filter((p) => matchesCategory(p, selectedCategory, categories));
-
-    if (sortBy === 'price-low') {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-high') {
-      result.sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'popular') {
-      result.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
-    } else if (sortBy === 'name') {
-      result.sort((a, b) => a.title.localeCompare(b.title));
-    }
-
-    return result;
-  }, [products, selectedCategory, sortBy, categories]);
-
-  const visibleProducts = filteredProducts.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredProducts.length;
-
   const handleCategorySelect = (slug: string) => {
     setSelectedCategory(slug);
-    setVisibleCount(PAGE_SIZE);
   };
 
   const handleSortChange = (newSort: string) => {
     setSortBy(newSort);
-    setVisibleCount(PAGE_SIZE);
   };
 
   return (
@@ -215,7 +227,7 @@ function ShopContent() {
         {/* Sort & Stats Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-2.5 border-t border-gray-200 text-xs">
           <span className="text-gray-500 font-medium">
-            Showing <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'frame' : 'frames'}
+            Showing <strong>{total}</strong> {total === 1 ? 'frame' : 'frames'}
             {activeCatObj && (
               <span className="text-gray-700"> in <strong>{activeCatObj.name}</strong></span>
             )}
@@ -239,7 +251,21 @@ function ShopContent() {
       </div>
 
       {/* Products Grid */}
-      {filteredProducts.length === 0 ? (
+      {loadingInitial ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          {Array.from({ length: 8 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="flex flex-col bg-white rounded-xl overflow-hidden border border-gray-100 p-3 sm:p-4 space-y-3"
+            >
+              <div className="aspect-[4/3] w-full rounded-lg card-skeleton-shimmer" />
+              <div className="h-3 w-1/3 rounded bg-gray-200 card-skeleton-shimmer" />
+              <div className="h-4 w-3/4 rounded bg-gray-200 card-skeleton-shimmer" />
+              <div className="h-4 w-1/2 rounded bg-gray-200 card-skeleton-shimmer" />
+            </div>
+          ))}
+        </div>
+      ) : products.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200 space-y-4">
           <p className="text-gray-600 text-sm font-medium">
             No frames currently found matching this filter.
@@ -253,7 +279,7 @@ function ShopContent() {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {visibleProducts.map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id || product.slug} product={product} />
           ))}
         </div>
@@ -262,10 +288,12 @@ function ShopContent() {
       {hasMore && (
         <div className="flex justify-center mt-10">
           <button
-            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className="px-8 py-3 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors shadow-sm"
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            className="px-8 py-3 bg-black text-white text-xs font-bold rounded-full hover:bg-gray-800 transition-colors shadow-sm disabled:opacity-60 inline-flex items-center gap-2"
           >
-            Load More
+            {loadingMore && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            {loadingMore ? 'Loading...' : 'Load More'}
           </button>
         </div>
       )}
@@ -286,4 +314,3 @@ export default function ShopPage() {
     </Suspense>
   );
 }
-
