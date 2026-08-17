@@ -38,15 +38,15 @@ function RawPhotoCard({
   return (
     <div
       onClick={() => onSelect(index)}
-      className="break-inside-avoid bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden group cursor-zoom-in relative transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
+      className="break-inside-avoid bg-white rounded-xl sm:rounded-2xl border border-gray-200 shadow-sm overflow-hidden group cursor-zoom-in relative transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5"
     >
-      <div className="relative w-full min-h-[180px] bg-gray-100 flex items-center justify-center overflow-hidden">
+      <div className="relative w-full min-h-[120px] sm:min-h-[180px] bg-gray-100 flex items-center justify-center overflow-hidden">
         
         {/* Skeleton Shimmer Loading Placeholder */}
         {!imageLoaded && !hasError && (
           <div
             aria-hidden="true"
-            className="absolute inset-0 z-10 card-skeleton-shimmer transition-opacity duration-300 pointer-events-none min-h-[220px]"
+            className="absolute inset-0 z-10 card-skeleton-shimmer transition-opacity duration-300 pointer-events-none min-h-[140px] sm:min-h-[220px]"
           />
         )}
 
@@ -80,16 +80,16 @@ function RawPhotoCard({
 // Initial Masonry Grid Skeleton Loader
 function RawPhotosSkeletonGrid() {
   const dummyHeights = [
-    'h-72', 'h-96', 'h-64', 'h-80',
-    'h-84', 'h-60', 'h-76', 'h-90'
+    'h-48 sm:h-72', 'h-64 sm:h-96', 'h-40 sm:h-64', 'h-56 sm:h-80',
+    'h-60 sm:h-84', 'h-36 sm:h-60', 'h-52 sm:h-76', 'h-64 sm:h-90'
   ];
 
   return (
-    <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+    <div className="columns-2 md:columns-3 lg:columns-4 gap-2.5 sm:gap-4 space-y-2.5 sm:space-y-4">
       {dummyHeights.map((h, i) => (
         <div
           key={i}
-          className={`break-inside-avoid bg-white rounded-2xl border border-gray-200 overflow-hidden relative ${h} card-skeleton-shimmer`}
+          className={`break-inside-avoid bg-white rounded-xl sm:rounded-2xl border border-gray-200 overflow-hidden relative ${h} card-skeleton-shimmer`}
         />
       ))}
     </div>
@@ -206,7 +206,7 @@ export default function RawPhotosPage() {
       </section>
 
       {/* Original Aspect Ratio Masonry Gallery with Skeleton Shimmer */}
-      <section className="py-8 sm:py-12 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <section className="py-6 sm:py-12 max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         {loading ? (
           <RawPhotosSkeletonGrid />
         ) : photos.length === 0 ? (
@@ -216,7 +216,7 @@ export default function RawPhotosPage() {
             <p className="text-gray-400">Photos added via admin will appear here in their original ratio.</p>
           </div>
         ) : (
-          <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+          <div className="columns-2 md:columns-3 lg:columns-4 gap-2.5 sm:gap-4 space-y-2.5 sm:space-y-4">
             {visiblePhotos.map((photo, index) => (
               <RawPhotoCard
                 key={photo.id || index}
