@@ -4,8 +4,11 @@ import { settingsFromDb, settingsToDb } from '@/lib/supabaseMappers';
 
 export const dynamic = 'force-dynamic';
 
-// GET is deliberately reachable without an admin session (see middleware.ts) —
-// the public storefront calls it to load tracking scripts / store contact info.
+// GET requires an admin session (enforced by middleware.ts) — the storefront
+// used to read this unauthenticated but now hits /api/store-settings
+// instead, a column-limited public route. This one stays admin-only and
+// keeps selecting '*' since the settings form edits every field, including
+// the two frame-effect images.
 export async function GET() {
   try {
     const { data, error } = await supabaseAdmin.from('settings').select('*').eq('id', 1).single();

@@ -63,11 +63,14 @@ export async function middleware(request: NextRequest) {
   const isLoginPage = pathname === '/jw8yenjnkanhr823/login';
   const isSessionApi = pathname === '/api/admin/session';
 
-  // The public storefront reads these three unauthenticated (tracking scripts,
-  // testimonials, and the homepage hero slider) — only GET is exempt, writes
-  // to the same paths still require a session.
+  // The public storefront reads these unauthenticated (testimonials, the
+  // homepage hero slider, raw photo gallery) — only GET is exempt, writes
+  // to the same paths still require a session. Store settings used to be
+  // here too, but the storefront now reads /api/store-settings instead
+  // (outside this matcher, so no allowlist entry needed) — this route is
+  // admin-dashboard-only now, so header_scripts etc. are no longer
+  // world-readable.
   const publicGetPaths = new Set([
-    '/api/admin/settings',
     '/api/admin/reviews',
     '/api/admin/banners',
     '/api/admin/raw-photos',

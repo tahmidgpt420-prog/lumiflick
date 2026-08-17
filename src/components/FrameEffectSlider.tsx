@@ -5,14 +5,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeftRight, Sparkles, ArrowRight } from 'lucide-react';
 import { formatImageUrl } from '@/utils/driveUrl';
-import { fetchStoreSettings, getCachedStoreSettings } from '@/utils/storeSettings';
+import { fetchFrameSettings, getCachedFrameSettings } from '@/utils/storeSettings';
 
 export default function FrameEffectSlider() {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const initialSettings = getCachedStoreSettings();
+  const initialSettings = getCachedFrameSettings();
   const [beforeImage, setBeforeImage] = useState<string>(
     initialSettings?.frameEffectBeforeImage || ''
   );
@@ -36,7 +36,7 @@ export default function FrameEffectSlider() {
 
     let cancelled = false;
     const loadLatest = async () => {
-      const settings = await fetchStoreSettings();
+      const settings = await fetchFrameSettings();
       if (!cancelled && settings) {
         applyFromSettings(settings);
       } else if (!cancelled) {
@@ -45,8 +45,11 @@ export default function FrameEffectSlider() {
     };
     loadLatest();
 
+    // Admin's settings-save broadcasts this event for all settings fields,
+    // not just frame images — force a live refetch here rather than trying
+    // to read a same-tab cache the admin form doesn't write to.
     const handleUpdate = () => {
-      const cached = getCachedStoreSettings();
+      const cached = getCachedFrameSettings();
       if (cached) applyFromSettings(cached);
       loadLatest();
     };

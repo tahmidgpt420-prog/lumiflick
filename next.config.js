@@ -9,6 +9,13 @@ const nextConfig = {
     serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
   images: {
+    // Vercel Hobby's image optimizer caps out around 1,000 distinct source
+    // images/month. Every product/banner/photo here is already served by
+    // Google Drive's own thumbnail endpoint (formatImageUrl adds sz=w###-rw,
+    // which returns a pre-resized WebP) — running that through Vercel's
+    // optimizer a second time buys nothing and burns the quota. Unoptimized
+    // keeps next/image's layout/CLS + lazy-loading behavior without the cap.
+    unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: 'drive.google.com' },
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },

@@ -4,20 +4,21 @@ import { productFromDb, categoryFromDb } from '@/lib/supabaseMappers';
 import { products as staticProducts } from '@/data/products';
 import { categories as staticCategories } from '@/data/categories';
 
-// This cache existed to protect Firestore's per-document-read billing —
-// that constraint is gone now that this reads Postgres (Supabase), which
-// bills by compute time, not by row. A short cache is still worth keeping
-// as burst protection (a traffic spike shouldn't mean one Postgres query
-// per visitor), but it no longer needs to be aggressive — a long TTL here
-// just makes admin edits (new categories, product changes) look broken
-// for up to 15 minutes for no real benefit anymore.
-export const dynamic = 'force-dynamic';
-export const revalidate = 20;
-
-const CACHE_TTL_MS = 20 * 1000;
-
-let cached: { data: { products: any[]; categories: any[] }; expiresAt: number } | null = null;
+// Freshness now lives at the HTTP layer (Cache-Control below), which
+// Vercel's CDN respects and shares across every lambda instance/region.
+// That's strictly better than the old per-lambda in-memory TTL cache this
+// route used to keep: at this site's traffic, requests to any one warm
+// lambda arrive further apart than a short TTL, so that cache almost never
+// hit — every "cached" request was still a fresh Supabase read in practice.
+//
+// `inflight` stays: it's a same-instance concurrency guard (collapses N
+// simultaneous requests hitting a cold/expired CDN entry into one Supabase
+// call), not a freshness cache, and still earns its keep during a
+// cache-miss burst. `lastGood` is a resilience fallback for the catch
+// block below, not a serving path — normal requests always go through
+// buildCatalog() (or the CDN cache in front of this function).
 let inflight: Promise<{ products: any[]; categories: any[] }> | null = null;
+let lastGood: { products: any[]; categories: any[] } | null = null;
 
 async function buildCatalog() {
   const [{ data: productRows, error: pErr }, { data: categoryRows, error: cErr }] = await Promise.all([
@@ -27,41 +28,55 @@ async function buildCatalog() {
 
   if (pErr || cErr) throw pErr || cErr;
 
-  return {
+  const data = {
     products: (productRows || []).map(productFromDb),
     categories: (categoryRows || []).map(categoryFromDb),
   };
+  lastGood = data;
+  return data;
 }
 
-async function getCatalog(bypassCache: boolean) {
-  const now = Date.now();
-  if (!bypassCache && cached && cached.expiresAt > now) return cached.data;
-
+async function getCatalog() {
   if (!inflight) {
-    inflight = buildCatalog()
-      .then((data) => {
-        cached = { data, expiresAt: Date.now() + CACHE_TTL_MS };
-        return data;
-      })
-      .finally(() => {
-        inflight = null;
-      });
+    inflight = buildCatalog().finally(() => {
+      inflight = null;
+    });
   }
   return inflight;
 }
 
 export async function GET(request: NextRequest) {
+  // ProductContext's forced refresh (called right after an admin save)
+  // passes this so the admin sees their own change immediately instead of
+  // waiting out the CDN cache's TTL.
+  const bypassCache = request.nextUrl.searchParams.get('fresh') === '1';
+
   try {
-    // ProductContext's forced refresh (called right after an admin save)
-    // passes this so the admin sees their own change immediately instead
-    // of waiting out the burst-protection cache.
-    const bypassCache = request.nextUrl.searchParams.get('fresh') === '1';
-    const data = await getCatalog(bypassCache);
-    return NextResponse.json({ success: true, ...data });
+    // Same fetch either way — there's no more in-process TTL cache to skip.
+    // bypassCache only changes the Cache-Control header below, so the CDN
+    // doesn't keep serving a stale copy back to this same admin afterward.
+    // Still routed through getCatalog() so a concurrent normal + fresh
+    // request collapse into one Supabase call instead of two.
+    const data = await getCatalog();
+    return NextResponse.json(
+      { success: true, ...data },
+      {
+        headers: {
+          'Cache-Control': bypassCache
+            ? 'no-store'
+            : 'public, s-maxage=300, stale-while-revalidate=3600',
+        },
+      }
+    );
   } catch (error) {
     console.error('GET /api/catalog error:', error);
-    if (cached) return NextResponse.json({ success: true, ...cached.data });
+    if (lastGood) {
+      return NextResponse.json({ success: true, ...lastGood }, { headers: { 'Cache-Control': 'no-store' } });
+    }
     // Last-resort fallback if Supabase itself is unreachable.
-    return NextResponse.json({ success: true, products: staticProducts, categories: staticCategories });
+    return NextResponse.json(
+      { success: true, products: staticProducts, categories: staticCategories },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   }
 }

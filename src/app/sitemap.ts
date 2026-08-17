@@ -4,7 +4,10 @@ import { productFromDb, categoryFromDb } from '@/lib/supabaseMappers';
 import { products as fallbackProducts } from '@/data/products';
 import { categories as fallbackCategories } from '@/data/categories';
 
-export const dynamic = 'force-dynamic';
+// force-dynamic would cancel revalidate below (Next drops ISR caching
+// whenever it's set) — sitemap data doesn't need per-request freshness,
+// so a 1hr ISR cache is strictly better here: fewer Supabase calls, same
+// column-limited payload each time one does happen.
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -80,9 +83,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let categoriesList = fallbackCategories;
 
   try {
+    // Only slug + updatedAt are read below — select() is column-limited so
+    // this doesn't pull description/specifications/variations (the bulk of
+    // each product row) on every crawler hit.
     const [{ data: productRows, error: pErr }, { data: categoryRows, error: cErr }] = await Promise.all([
-      supabaseAdmin.from('products').select('*'),
-      supabaseAdmin.from('categories').select('*'),
+      supabaseAdmin.from('products').select('slug, updated_at'),
+      supabaseAdmin.from('categories').select('slug'),
     ]);
 
     if (!pErr && productRows && productRows.length > 0) {

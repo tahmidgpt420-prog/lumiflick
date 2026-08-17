@@ -5,6 +5,7 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import FileUploadBox from '@/components/admin/FileUploadBox';
 import { Save, CheckCircle2, Shield, Code2, EyeOff, Activity, HelpCircle, Loader2, Images, Megaphone, Plus, Trash2 } from 'lucide-react';
 import { StoreSettings } from '@/data/db';
+import { SETTINGS_CACHE_KEY } from '@/utils/storeSettings';
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<StoreSettings>({
@@ -34,7 +35,7 @@ export default function AdminSettingsPage() {
     async function fetchSettings() {
       try {
         if (typeof window !== 'undefined') {
-          const cached = localStorage.getItem('lumiflick_store_settings_v1');
+          const cached = localStorage.getItem(SETTINGS_CACHE_KEY);
           if (cached) {
             const parsed = JSON.parse(cached);
             if (parsed) setSettings((prev) => ({ ...prev, ...parsed }));
@@ -45,7 +46,7 @@ export default function AdminSettingsPage() {
         if (data.success && data.settings) {
           setSettings(data.settings);
           if (typeof window !== 'undefined') {
-            localStorage.setItem('lumiflick_store_settings_v1', JSON.stringify(data.settings));
+            localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(data.settings));
           }
         }
       } catch (e) {
@@ -80,7 +81,7 @@ export default function AdminSettingsPage() {
     // 1. Immediately cache in localStorage and broadcast event
     if (typeof window !== 'undefined') {
       try {
-        localStorage.setItem('lumiflick_store_settings_v1', JSON.stringify(settings));
+        localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(settings));
         window.dispatchEvent(new Event('lumiflick_settings_updated'));
       } catch (err) {
         console.error(err);
