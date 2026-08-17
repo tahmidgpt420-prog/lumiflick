@@ -48,8 +48,17 @@ export default function ProductDetailView({
     },
   ];
 
+  // Select "Large" option by default (or fallback to the last variation option)
+  const defaultVariation =
+    variations.find(
+      (v) =>
+        v.size?.toLowerCase().includes('large') ||
+        v.label?.toLowerCase().includes('large')
+    ) ||
+    (variations.length > 0 ? variations[variations.length - 1] : variations[0]);
+
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation>(
-    variations[0]
+    defaultVariation || variations[0]
   );
   const [selectedPiecesSet, setSelectedPiecesSet] = useState<Set<number>>(new Set([1]));
   const [quantity, setQuantity] = useState<number>(1);
@@ -57,6 +66,20 @@ export default function ProductDetailView({
   const [activeTab, setActiveTab] = useState<'desc' | 'specs'>('desc');
   const [addedToast, setAddedToast] = useState(false);
   const [copiedToast, setCopiedToast] = useState(false);
+
+  useEffect(() => {
+    const list = product.variations || variations;
+    const nextDefault =
+      list.find(
+        (v) =>
+          v.size?.toLowerCase().includes('large') ||
+          v.label?.toLowerCase().includes('large')
+      ) ||
+      (list.length > 0 ? list[list.length - 1] : list[0]);
+    if (nextDefault) {
+      setSelectedVariation(nextDefault);
+    }
+  }, [product.id, product.slug]);
 
   useEffect(() => {
     setSelectedImageIndex(0);
