@@ -573,7 +573,7 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
           {pieceEnabled && (
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-900 uppercase tracking-wider block">
-                Select Pieces
+                Select Your Preferred Design:
                 <span className="ml-2 text-[11px] text-gray-500 font-medium normal-case">
                   ({piecesFormatted}) &middot; ৳ {effectivePrice.toLocaleString()} total
                 </span>
@@ -586,13 +586,13 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
                       key={n}
                       type="button"
                       onClick={() => togglePiece(n)}
-                      className={`w-12 h-12 rounded-xl border text-base font-bold transition-all ${
+                      className={`px-4 h-12 rounded-xl border text-sm font-bold transition-all ${
                         isOn
                           ? 'border-black bg-black text-white shadow-md'
                           : 'border-gray-200 bg-white text-gray-800 hover:border-gray-400'
                       }`}
                     >
-                      {n}
+                      Design {n}
                     </button>
                   );
                 })}
