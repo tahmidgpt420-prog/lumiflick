@@ -42,6 +42,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [bestSeller, setBestSeller] = useState<boolean>(initialData?.bestSeller ?? false);
   const [pieceSelectionEnabled, setPieceSelectionEnabled] = useState<boolean>(initialData?.pieceSelectionEnabled ?? false);
   const [maxPieces, setMaxPieces] = useState<number>(initialData?.maxPieces ?? 3);
+  const [showSizeChart, setShowSizeChart] = useState<boolean>(initialData?.showSizeChart ?? true);
   const [catList, setCatList] = useState<Category[]>(initialCategories);
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       setBestSeller(initialData.bestSeller ?? false);
       setPieceSelectionEnabled(initialData.pieceSelectionEnabled ?? false);
       setMaxPieces(initialData.maxPieces ?? 3);
+      setShowSizeChart(initialData.showSizeChart ?? true);
       const initialPrimary = initialData.image || '';
       setPrimaryImage(initialPrimary);
       setGalleryImages(
@@ -284,6 +286,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       variations,
       pieceSelectionEnabled: Boolean(pieceSelectionEnabled),
       maxPieces: Number(maxPieces) || 3,
+      showSizeChart: Boolean(showSizeChart),
       specifications: {
         ...specifications,
         frameColorOptions: [
@@ -559,6 +562,16 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
               className="w-4 h-4 accent-black rounded"
             />
             Featured Product
+          </label>
+
+          <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-700">
+            <input
+              type="checkbox"
+              checked={showSizeChart}
+              onChange={(e) => setShowSizeChart(e.target.checked)}
+              className="w-4 h-4 accent-black rounded"
+            />
+            Show Size Chart (last gallery image)
           </label>
 
           {/* Piece Selection Toggle */}

@@ -39,6 +39,8 @@ export interface Product {
   maxPieces?: number; // default 3
   /** Set by the Firestore mirror on every save — used for newest/oldest sorting. */
   updatedAt?: number;
+  /** Show size chart as the last gallery image. Defaults to true. */
+  showSizeChart?: boolean;
 }
 
 export interface Category {

@@ -129,15 +129,18 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
   );
 
   // 1st photo is always the thumbnail/primary image, followed by 2nd, 3rd, etc. from gallery
+  // Size chart is appended as the last photo if enabled (defaults to true)
+  const SIZE_CHART = '/size-chart.png';
+  const appendSizeChart = product.showSizeChart !== false; // default true
   const rawImages = primary
-    ? [primary, ...gallery]
+    ? [primary, ...gallery, ...(appendSizeChart ? [SIZE_CHART] : [])]
     : gallery.length > 0
-    ? gallery
-    : ['/logo.png'];
+    ? [...gallery, ...(appendSizeChart ? [SIZE_CHART] : [])]
+    : appendSizeChart ? ['/logo.png', SIZE_CHART] : ['/logo.png'];
 
-  const images = rawImages.map((url) => formatImageUrl(url, 150));
-  const fullImages = rawImages.map((url) => formatImageUrl(url, 700));
-  const originalImages = rawImages.map((url) => formatImageUrl(url, 'original'));
+  const images = rawImages.map((url) => url.startsWith('/') ? url : formatImageUrl(url, 150));
+  const fullImages = rawImages.map((url) => url.startsWith('/') ? url : formatImageUrl(url, 700));
+  const originalImages = rawImages.map((url) => url.startsWith('/') ? url : formatImageUrl(url, 'original'));
 
   const [isPointerDown, setIsPointerDown] = useState(false);
   const [dragStartX, setDragStartX] = useState<number | null>(null);
