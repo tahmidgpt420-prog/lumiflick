@@ -85,11 +85,11 @@ function RawPhotosSkeletonGrid() {
   ];
 
   return (
-    <div className="columns-2 md:columns-3 lg:columns-4 gap-2.5 sm:gap-4 space-y-2.5 sm:space-y-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 items-start">
       {dummyHeights.map((h, i) => (
         <div
           key={i}
-          className={`break-inside-avoid bg-white rounded-xl sm:rounded-2xl border border-gray-200 overflow-hidden relative ${h} card-skeleton-shimmer`}
+          className={`bg-white rounded-xl sm:rounded-2xl border border-gray-200 overflow-hidden relative ${h} card-skeleton-shimmer`}
         />
       ))}
     </div>
@@ -216,7 +216,7 @@ export default function RawPhotosPage() {
             <p className="text-gray-400">Photos added via admin will appear here in their original ratio.</p>
           </div>
         ) : (
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-2.5 sm:gap-4 space-y-2.5 sm:space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 items-start">
             {visiblePhotos.map((photo, index) => (
               <RawPhotoCard
                 key={photo.id || index}
