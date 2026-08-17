@@ -89,6 +89,7 @@ export default function CheckoutPage() {
       .join('\n');
 
     const encodedMessage = encodeURIComponent(orderMessage);
+    // Keep ?text= for Android (where it works), clipboard copy covers iOS/tablets
     const redirectUrl = submitChannel === 'messenger'
       ? `https://m.me/LumiFlick?text=${encodedMessage}`
       : `https://wa.me/8801400307299?text=${encodedMessage}`;
@@ -118,10 +119,18 @@ export default function CheckoutPage() {
     try {
       localStorage.setItem(`gt_order_${orderId}`, JSON.stringify(orderRecord));
       clearCart();
+
+      // For Messenger, also copy to clipboard as fallback for iOS/tablets
+      if (submitChannel === 'messenger') {
+        navigator.clipboard.writeText(orderMessage).catch(() => {});
+      }
       window.open(redirectUrl, '_blank', 'noopener,noreferrer');
       router.push(`/order-success/${orderId}`);
     } catch (err) {
       console.error(err);
+      if (submitChannel === 'messenger') {
+        navigator.clipboard.writeText(orderMessage).catch(() => {});
+      }
       window.open(redirectUrl, '_blank', 'noopener,noreferrer');
       router.push(`/order-success/${orderId}`);
     }

@@ -290,12 +290,20 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
     `product:${product.slug}|size:${selectedVariation.label}|qty:${quantity}|price:${effectivePrice * quantity}${pieceEnabled && piecesFormatted ? `|pieces:${piecesFormatted}` : ''}`
   );
 
-  const handleMessengerClick = () => {
-    // Copy the order message to clipboard so the user can paste it in Messenger
+  const handleMessengerClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const messengerUrl = `https://m.me/LumiFlick?text=${whatsappMessage}`;
+    // Also copy to clipboard as fallback for iOS/tablets where ?text= is ignored
     navigator.clipboard.writeText(orderMessage).then(() => {
       setCopiedToast(true);
-      setTimeout(() => setCopiedToast(false), 3000);
-    }).catch(() => {});
+      setTimeout(() => setCopiedToast(false), 4000);
+      setTimeout(() => {
+        window.open(messengerUrl, '_blank', 'noopener,noreferrer');
+      }, 600);
+    }).catch(() => {
+      // Clipboard failed — still open Messenger with ?text= (works on Android)
+      window.open(messengerUrl, '_blank', 'noopener,noreferrer');
+    });
   };
 
   return (
@@ -625,18 +633,16 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
               </button>
             </div>
 
-            {/* Order on Messenger Button — pre-filled message via ?text= */}
-            <a
-              href={`https://m.me/LumiFlick?text=${whatsappMessage}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            {/* Order on Messenger Button — copies message to clipboard then opens m.me */}
+            <button
+              onClick={handleMessengerClick}
               className="w-full h-12 rounded-xl bg-[#0084FF] hover:bg-[#0073E6] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#0084FF]/20 active:scale-[0.98]"
             >
               <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
                 <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.2 5.51 3.24 7.34-.17 1.05-.62 2.7-1.78 3.84 0 0 2.5-.2 4.46-1.55.67.19 1.38.29 2.08.29 5.64 0 10-4.13 10-9.7S17.64 2 12 2zm1.09 13.06l-2.73-2.91-5.33 2.91 5.86-6.22 2.8 2.91 5.26-2.91-5.86 6.22z" />
               </svg>
               Order On Messenger
-            </a>
+            </button>
             {/* WhatsApp Order Button */}
             <a
               href={`https://wa.me/8801400307299?text=${whatsappMessage}`}
@@ -815,6 +821,18 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
                 lightboxLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
               }`}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Messenger clipboard toast */}
+      {copiedToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] animate-[slideUp_0.3s_ease-out]">
+          <div className="bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2.5">
+            <svg className="w-5 h-5 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Order message copied! <strong>Paste</strong> it in Messenger 📋</span>
           </div>
         </div>
       )}
