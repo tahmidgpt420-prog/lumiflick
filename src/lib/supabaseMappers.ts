@@ -26,11 +26,8 @@ export function productToDb(p: Partial<Product>) {
   if (p.tags !== undefined) row.tags = p.tags;
   if (p.pieceSelectionEnabled !== undefined) row.piece_selection_enabled = p.pieceSelectionEnabled;
   if (p.maxPieces !== undefined) row.max_pieces = p.maxPieces;
-  // Store showSizeChart inside the specifications JSONB to avoid a DB migration
-  if (p.showSizeChart !== undefined && row.specifications) {
-    row.specifications = { ...row.specifications, showSizeChart: p.showSizeChart };
-  } else if (p.showSizeChart !== undefined) {
-    row.specifications = { ...(p.specifications || {}), showSizeChart: p.showSizeChart };
+  if (p.showSizeChart !== undefined) {
+    row.show_size_chart = p.showSizeChart;
   }
   row.updated_at = new Date().toISOString();
   return row;
@@ -60,7 +57,9 @@ export function productFromDb(row: any): Product {
     tags: row.tags ?? undefined,
     pieceSelectionEnabled: row.piece_selection_enabled ?? undefined,
     maxPieces: row.max_pieces ?? undefined,
-    showSizeChart: row.specifications?.showSizeChart ?? true,
+    showSizeChart: row.show_size_chart !== undefined && row.show_size_chart !== null
+      ? Boolean(row.show_size_chart)
+      : (row.specifications?.showSizeChart ?? true),
     updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : undefined,
   };
 }

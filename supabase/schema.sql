@@ -32,6 +32,7 @@ create table if not exists products (
   tags jsonb default '[]',
   piece_selection_enabled boolean default false,
   max_pieces integer default 3,
+  show_size_chart boolean default true,
   updated_at timestamptz not null default now(),
   created_at timestamptz not null default now()
 );
