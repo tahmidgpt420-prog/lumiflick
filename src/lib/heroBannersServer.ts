@@ -31,13 +31,27 @@ export async function getHeroBannersServer(): Promise<HeroBanner[]> {
 }
 
 /**
- * Returns the direct image URL for the first active banner (mobile size).
- * Used to build the <link rel="preload"> tag in the <head>.
+ * Returns both mobile and desktop image URLs for the first active banner —
+ * used to build two <link rel="preload" media="..."> tags in the <head>,
+ * matching HeroSlider's own isMobile breakpoint (window.innerWidth < 640).
+ *
+ * A single unconditional preload used to exist here at the mobile (800px)
+ * size only. On desktop, HeroSlider requested a different URL (previously
+ * Drive's unbounded 'original', now capped at 1920px) — so the preload
+ * never matched what the browser actually needed for the LCP element, and
+ * Chrome couldn't credit it (Lighthouse flagged this: "fetchpriority=high
+ * should be applied to the image preload request" = false). Two
+ * media-gated preloads mean exactly one loads per visitor, and it always
+ * matches the real <img src>.
  */
-export function getFirstBannerPreloadUrl(banners: HeroBanner[]): string | null {
+export function getFirstBannerPreloadUrls(
+  banners: HeroBanner[]
+): { mobile: string; desktop: string } | null {
   if (!banners || banners.length === 0) return null;
   const first = banners[0];
   if (!first.image) return null;
-  // Use 800px width for mobile preload — matches the formatImageUrl call in HeroSlider
-  return formatImageUrl(first.image, 800);
+  return {
+    mobile: formatImageUrl(first.image, 800),
+    desktop: formatImageUrl(first.image, 1920),
+  };
 }

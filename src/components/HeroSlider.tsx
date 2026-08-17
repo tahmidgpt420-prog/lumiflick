@@ -216,9 +216,18 @@ export default function HeroSlider({ initialBanners }: HeroSliderProps = {}) {
               >
                 {/* Background Image
                     - idx === 0 gets priority + fetchpriority="high" (LCP element)
-                    - Mobile uses 800px width, desktop uses original quality */}
+                    - Mobile uses 800px width, desktop uses 1920px.
+                    - Was 'original' on desktop — Drive's unbounded source photo
+                      turned out to be 8.8MB, displayed at ~580px tall. That was
+                      the entire cause of a 12.6s LCP (Lighthouse-measured on the
+                      live site): 1920px is plenty for any real viewport and lets
+                      Drive's own resize+WebP endpoint (formatImageUrl's `-rw`
+                      suffix) do the compression, same as every other image here.
+                      next.config.js has images.unoptimized:true (Vercel's
+                      optimizer cap), so nothing downstream resizes this — the
+                      width has to be right at the source. */}
                 <Image
-                  src={isMobile ? formatImageUrl(slide.image, 800) : formatImageUrl(slide.image, 'original')}
+                  src={isMobile ? formatImageUrl(slide.image, 800) : formatImageUrl(slide.image, 1920)}
                   alt={slide.title || 'LUMIFLICK Banner'}
                   fill
                   priority={idx === 0}

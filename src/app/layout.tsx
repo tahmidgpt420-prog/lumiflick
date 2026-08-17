@@ -5,7 +5,7 @@ import { CartProvider } from '@/context/CartContext';
 import { ProductProvider } from '@/context/ProductContext';
 import StorefrontShell from '@/components/StorefrontShell';
 import TrackingScripts from '@/components/TrackingScripts';
-import { getHeroBannersServer, getFirstBannerPreloadUrl } from '@/lib/heroBannersServer';
+import { getHeroBannersServer, getFirstBannerPreloadUrls } from '@/lib/heroBannersServer';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -65,10 +65,10 @@ export default async function RootLayout({
   // Fetch banners server-side so the LCP image URL is available in the HTML.
   // This lets the browser discover and start downloading the hero image before
   // any JavaScript runs — the single most impactful fix for LCP.
-  let lcpPreloadUrl: string | null = null;
+  let lcpPreloadUrls: { mobile: string; desktop: string } | null = null;
   try {
     const banners = await getHeroBannersServer();
-    lcpPreloadUrl = getFirstBannerPreloadUrl(banners);
+    lcpPreloadUrls = getFirstBannerPreloadUrls(banners);
   } catch {
     // Non-fatal — the HeroSlider will still fetch and render client-side
   }
@@ -77,15 +77,29 @@ export default async function RootLayout({
     <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
       <head>
         {/* Preload the LCP hero image so the browser fetches it immediately,
-            before React hydrates and the HeroSlider's useEffect fires.
-            This is the primary fix for the 10.5 s LCP. */}
-        {lcpPreloadUrl && (
-          <link
-            rel="preload"
-            as="image"
-            href={lcpPreloadUrl}
-            fetchPriority="high"
-          />
+            before React hydrates and the HeroSlider's useEffect fires. Two
+            media-gated variants — matching HeroSlider's own isMobile check
+            (innerWidth < 640) — so the preloaded URL always matches what the
+            <img> actually requests. A single unconditional (mobile-sized)
+            preload here previously left desktop's real LCP request
+            undiscovered until React hydrated and rendered the <img> tag. */}
+        {lcpPreloadUrls && (
+          <>
+            <link
+              rel="preload"
+              as="image"
+              href={lcpPreloadUrls.mobile}
+              fetchPriority="high"
+              media="(max-width: 639px)"
+            />
+            <link
+              rel="preload"
+              as="image"
+              href={lcpPreloadUrls.desktop}
+              fetchPriority="high"
+              media="(min-width: 640px)"
+            />
+          </>
         )}
       </head>
       <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased selection:bg-black selection:text-white">
