@@ -106,12 +106,12 @@ export async function GET(request: NextRequest) {
         query = query.order('title', { ascending: true });
         break;
       default:
-        // created_at, not updated_at — updated_at bumps on every edit
-        // (even fixing a typo on a year-old product), which made "newest
-        // first" reorder unpredictably any time an old product got
-        // touched. created_at is set once at insert and never changes,
-        // so this is genuinely upload-order, stable across Load More too.
-        query = query.order('created_at', { ascending: false }).order('id', { ascending: true });
+        // updated_at, not created_at — reverted per explicit request:
+        // editing a product should bring it back to the top, same as
+        // before. (Trade-off: order can reshuffle mid-edit-session if
+        // many products get touched in a row — that's the accepted
+        // behavior now, not a bug.)
+        query = query.order('updated_at', { ascending: false }).order('id', { ascending: true });
     }
 
     const { data, error, count } = await query.range(offset, offset + limit - 1);

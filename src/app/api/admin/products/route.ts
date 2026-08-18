@@ -5,10 +5,10 @@ import { productFromDb, productToDb } from '@/lib/supabaseMappers';
 export const dynamic = 'force-dynamic';
 
 const SORT_MAP: Record<string, { column: string; ascending: boolean }> = {
-  // created_at, not updated_at — the latter bumps on every edit, so
-  // "newest first" used to reorder any time an old product got touched.
-  newest: { column: 'created_at', ascending: false },
-  oldest: { column: 'created_at', ascending: true },
+  // updated_at — reverted per explicit request: editing a product should
+  // bring it back to the top.
+  newest: { column: 'updated_at', ascending: false },
+  oldest: { column: 'updated_at', ascending: true },
   'name-asc': { column: 'title', ascending: true },
   'name-desc': { column: 'title', ascending: false },
   category: { column: 'category', ascending: true },
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
   // Full list — cheap on Postgres even at hundreds of rows, unlike Firestore's
   // per-document billing. Used by the dashboard's stat cards.
   try {
-    const { data, error } = await supabaseAdmin.from('products').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabaseAdmin.from('products').select('*').order('updated_at', { ascending: false });
     if (error) throw error;
     return NextResponse.json({ success: true, products: (data || []).map(productFromDb) });
   } catch (error) {
