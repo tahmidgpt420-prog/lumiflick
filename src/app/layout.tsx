@@ -36,10 +36,10 @@ export const metadata: Metadata = {
     'porsche wall art',
     'home decor bangladesh',
   ],
-  icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
-  },
+  // No `icons` field here on purpose — src/app/icon.png, apple-icon.png,
+  // and favicon.ico (Next's file-based convention) already generate the
+  // correct <link rel="icon"> tags. Declaring both risks duplicate tags,
+  // and file-based convention takes priority anyway.
   openGraph: {
     title: 'LUMIFLICK | Elegant Glass Poster',
     description: 'Museum-grade 2.5mm real glass frameless wall art with mirror-like HD finish and lifetime color guarantee.',
@@ -47,14 +47,32 @@ export const metadata: Metadata = {
     siteName: 'LUMIFLICK',
     images: [
       {
+        // Actual file is 120x120 (checked with `sips`) — was declaring
+        // 800x800, which didn't match reality.
         url: '/logo.png',
-        width: 800,
-        height: 800,
+        width: 120,
+        height: 120,
       },
     ],
     locale: 'en_US',
     type: 'website',
   },
+};
+
+// Organization structured data — Google's documented, reliable way to
+// associate a brand logo with search results (more reliable than favicon
+// heuristics alone: https://developers.google.com/search/docs/appearance/structured-data/logo).
+// This was completely absent before; likely the main fix for the missing
+// logo in search results. Logo is 120x120, just above Google's 112x112
+// documented minimum — a higher-res source logo would improve this
+// further if one becomes available.
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'LUMIFLICK',
+  url: 'https://www.lumiflick.shop',
+  logo: 'https://www.lumiflick.shop/logo.png',
+  sameAs: ['https://www.facebook.com/LumiFlick'],
 };
 
 export default async function RootLayout({
@@ -76,6 +94,12 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
       <head>
+        {/* Organization structured data — see comment above organizationJsonLd. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+
         {/* Preload the LCP hero image so the browser fetches it immediately,
             before React hydrates and the HeroSlider's useEffect fires. Two
             media-gated variants — matching HeroSlider's own isMobile check
