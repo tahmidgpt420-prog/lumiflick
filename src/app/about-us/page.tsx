@@ -67,9 +67,9 @@ export default function AboutUsPage() {
           <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center mx-auto">
             <Award className="w-5 h-5" />
           </div>
-          <h3 className="text-sm font-bold text-gray-900">Fade-Proof UV Print</h3>
+          <h3 className="text-sm font-bold text-gray-900">Fade-Proof Print</h3>
           <p className="text-xs text-gray-500">
-            High-definition UV cured pigments delivering lifetime vibrant colors.
+            High-definition cured pigments delivering lifetime vibrant colors.
           </p>
         </div>
 
