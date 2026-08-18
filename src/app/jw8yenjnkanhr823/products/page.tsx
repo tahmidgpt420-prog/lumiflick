@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import AdminHeader from '@/components/admin/AdminHeader';
@@ -31,7 +31,13 @@ export default function AdminProductsPage() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number | null>(null);
-  const [page, setPage] = useState(0);
+  // Ref, not state — fetchPage is memoized with deps [sortBy, selectedCat,
+  // search] and deliberately excludes the current page (recreating the
+  // callback on every page bump would fight the debounce effect below).
+  // Reading `page` from state inside that closure was permanently stale
+  // at whatever it was on the last filter change (0) — every Load More
+  // click re-fetched page 0. A ref sidesteps dependency tracking entirely.
+  const pageRef = useRef(0);
   const [hasMore, setHasMore] = useState(false);
 
   // Sync live categories from context or fetch directly from admin categories endpoint
@@ -55,7 +61,7 @@ export default function AdminProductsPage() {
     async (reset: boolean) => {
       reset ? setLoading(true) : setLoadingMore(true);
       try {
-        const nextPage = reset ? 0 : page;
+        const nextPage = reset ? 0 : pageRef.current;
         const params = new URLSearchParams({
           mode: 'page',
           sort: sortBy,
@@ -70,7 +76,7 @@ export default function AdminProductsPage() {
         setProducts((prev) => (reset ? data.products : [...prev, ...data.products]));
         setTotalCount(data.totalCount);
         setHasMore(data.hasMore);
-        setPage(nextPage + 1);
+        pageRef.current = nextPage + 1;
       } catch (e) {
         console.error('Error fetching products:', e);
         if (reset) setProducts([]);

@@ -50,7 +50,7 @@ export interface StoreData {
 
 const defaultSettings: StoreSettings = {
   storeName: 'LUMIFLICK',
-  phone: '+8801400307299',
+  phone: '+8801410307299',
   email: 'lumiflick@gmail.com',
   address: 'PTI Mor, Khulna, Bangladesh - 9100',
   insideDhakaDelivery: 70,

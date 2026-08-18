@@ -10,7 +10,7 @@ import { SETTINGS_CACHE_KEY } from '@/utils/storeSettings';
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<StoreSettings>({
     storeName: 'LUMIFLICK',
-    phone: '+8801400307299',
+    phone: '+8801410307299',
     email: 'lumiflick@gmail.com',
     address: 'PTI Mor, Khulna, Bangladesh - 9100',
     insideDhakaDelivery: 70,

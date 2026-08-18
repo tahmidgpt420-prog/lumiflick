@@ -42,7 +42,7 @@ export default function ContactPage() {
             <div className="space-y-3 pt-2">
               {/* WhatsApp */}
               <a
-                href="https://wa.me/8801400307299?text=Hello%20LUMIFLICK!%20I%20would%20like%20to%20inquire%20about%20your%20products."
+                href="https://wa.me/8801410307299?text=Hello%20LUMIFLICK!%20I%20would%20like%20to%20inquire%20about%20your%20products."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full p-4 bg-[#25D366]/10 hover:bg-[#25D366]/20 border border-[#25D366]/30 text-gray-900 rounded-xl font-semibold text-xs flex items-center justify-between transition-all group"
@@ -116,7 +116,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <h4 className="font-bold text-gray-900">Direct Phone Helpline</h4>
-                <p className="mt-0.5 font-semibold text-gray-800">+8801400307299</p>
+                <p className="mt-0.5 font-semibold text-gray-800">+8801410307299</p>
                 <p className="text-gray-500 text-[11px]">Available Daily: 10:00 AM - 10:00 PM</p>
               </div>
             </div>

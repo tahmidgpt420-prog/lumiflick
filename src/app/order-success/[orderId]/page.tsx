@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
-import { CheckCircle, Printer, MessageCircle, ArrowRight, ShoppingBag } from 'lucide-react';
+import { CheckCircle, MessageCircle, ArrowRight, ShoppingBag } from 'lucide-react';
 import { OrderDetails } from '@/types';
 
 export default function OrderSuccessPage() {
@@ -25,12 +25,8 @@ export default function OrderSuccessPage() {
     }
   }, [orderId]);
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const whatsappMessage = encodeURIComponent(
-    `Hello LUMIFLICK, I placed order #${orderId}. Please let me know the tracking and delivery update.`
+    `Hello LUMIFLICK, I placed an order. Please let me know the tracking and delivery update.`
   );
 
   return (
@@ -41,10 +37,10 @@ export default function OrderSuccessPage() {
           <CheckCircle className="w-10 h-10" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">
-          Thank You! Your Order Has Been Placed.
+          Thank You! Your Order Is Processing.
         </h1>
         <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
-          We have received your order <strong>#{orderId}</strong>. Our customer representative will call you shortly to confirm before dispatch.
+          We have received your order. Our customer representative will call you shortly to confirm before dispatch.
         </p>
       </div>
 
@@ -60,7 +56,6 @@ export default function OrderSuccessPage() {
               </div>
               <span className="font-bold uppercase tracking-wider text-black text-base font-serif">LUMIFLICK</span>
             </div>
-            <p className="text-xs text-gray-400 mt-1">Invoice #{orderId}</p>
           </div>
 
           <div className="text-left sm:text-right">
@@ -90,7 +85,7 @@ export default function OrderSuccessPage() {
             </p>
             <p className="mt-1">
               <strong>Delivery Zone:</strong>{' '}
-              {order?.deliveryZone === 'inside_dhaka' ? 'Inside Dhaka (৳70)' : 'Outside Dhaka (৳130)'}
+              {order?.deliveryZone === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'}
             </p>
           </div>
         </div>
@@ -130,24 +125,19 @@ export default function OrderSuccessPage() {
           </div>
           <div className="flex justify-between sm:justify-end gap-6 text-gray-600">
             <span>Shipping:</span>
-            <span className="font-semibold text-gray-900">৳ {order?.shippingCost || 70}</span>
+            <span className="font-semibold text-gray-900">To be confirmed via WhatsApp or Messenger</span>
           </div>
           <div className="flex justify-between sm:justify-end gap-6 text-base sm:text-lg font-black text-gray-900 pt-2 border-t border-gray-100">
             <span>Total Payable:</span>
             <span>৳ {order?.total?.toLocaleString() || '0'}</span>
           </div>
+          <p className="text-[11px] text-gray-400 font-normal">+ Delivery Charge (confirmed via WhatsApp or Messenger)</p>
         </div>
 
         {/* Action Buttons */}
         <div className="pt-4 flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={handlePrint}
-            className="flex-1 py-3 px-4 border border-gray-300 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-          >
-            <Printer className="w-4 h-4" /> Print Invoice
-          </button>
           <a
-            href={`https://wa.me/8801400307299?text=${whatsappMessage}`}
+            href={`https://wa.me/8801410307299?text=${whatsappMessage}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1 py-3 px-4 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2"

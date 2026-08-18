@@ -502,8 +502,8 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               <p className="font-medium text-gray-700">Need help with an order?</p>
               <p className="mt-0.5">
                 Hotline:{' '}
-                <a href="tel:+8801400307299" className="hover:text-black font-semibold text-gray-800">
-                  +8801400307299
+                <a href="tel:+8801410307299" className="hover:text-black font-semibold text-gray-800">
+                  +8801410307299
                 </a>
               </p>
             </div>

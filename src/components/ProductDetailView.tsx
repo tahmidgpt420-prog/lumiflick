@@ -316,20 +316,75 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
     `product:${product.slug}|size:${selectedVariation.label}|qty:${quantity}|price:${effectivePrice * quantity}${pieceEnabled && piecesFormatted ? `|pieces:${piecesFormatted}` : ''}`
   );
 
+  // These two buttons used to just open WhatsApp/Messenger with a message
+  // and nothing else — no order record, nothing to land on afterward, so
+  // clicking them never reached /order-success. Same minimal record shape
+  // checkout.tsx saves (id kept internal, never shown/sent per the "no
+  // order ID needed" change), just built from the single selected
+  // variation here instead of a full cart.
+  const saveQuickOrderAndGetId = () => {
+    const id = `GT-${Date.now().toString().slice(-6)}`;
+    const orderRecord = {
+      orderId: id,
+      items: [
+        {
+          id: `${product.slug}_${selectedVariation.label.replace(/\s+/g, '-')}`,
+          productId: product.id,
+          title: product.title,
+          slug: product.slug,
+          image: product.image,
+          price: effectivePrice,
+          regularPrice: effectiveRegularPrice,
+          quantity,
+          selectedSize: selectedVariation.label,
+          selectedPieces: pieceEnabled ? selectedPieces : undefined,
+          selectedPiecesLabel: pieceEnabled ? piecesFormatted : undefined,
+        },
+      ],
+      subtotal: effectivePrice * quantity,
+      total: effectivePrice * quantity,
+      orderDate: new Date().toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      status: 'pending',
+    };
+    try {
+      localStorage.setItem(`gt_order_${id}`, JSON.stringify(orderRecord));
+    } catch {
+      // Non-fatal — order-success just renders generic fallback text if this fails
+    }
+    return id;
+  };
+
   const handleMessengerClick = (e: React.MouseEvent) => {
     e.preventDefault();
     const messengerUrl = `https://m.me/LumiFlick?text=${whatsappMessage}`;
-    // Also copy to clipboard as fallback for iOS/tablets where ?text= is ignored
+    const id = saveQuickOrderAndGetId();
+    // Also copy to clipboard as fallback for iOS/tablets where ?text= is ignored.
+    // router.push waits for the same moment Messenger opens in each branch —
+    // firing it immediately would navigate this tab away before the
+    // "copied" toast below ever got a chance to show.
     navigator.clipboard.writeText(orderMessage).then(() => {
       setCopiedToast(true);
       setTimeout(() => setCopiedToast(false), 4000);
       setTimeout(() => {
         window.open(messengerUrl, '_blank', 'noopener,noreferrer');
+        router.push(`/order-success/${id}`);
       }, 600);
     }).catch(() => {
       // Clipboard failed — still open Messenger with ?text= (works on Android)
       window.open(messengerUrl, '_blank', 'noopener,noreferrer');
+      router.push(`/order-success/${id}`);
     });
+  };
+
+  const handleWhatsAppOrderClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const id = saveQuickOrderAndGetId();
+    window.open(`https://wa.me/8801410307299?text=${whatsappMessage}`, '_blank', 'noopener,noreferrer');
+    router.push(`/order-success/${id}`);
   };
 
   return (
@@ -669,11 +724,15 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
               </svg>
               Order On Messenger
             </button>
-            {/* WhatsApp Order Button */}
+            {/* WhatsApp Order Button — href kept for right-click/long-press
+                "copy link", but the actual click is intercepted (same
+                pattern as the Messenger button above) so a quick order gets
+                saved and the visitor lands on /order-success afterward. */}
             <a
-              href={`https://wa.me/8801400307299?text=${whatsappMessage}`}
+              href={`https://wa.me/8801410307299?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleWhatsAppOrderClick}
               className="w-full h-12 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-md shadow-[#25D366]/20"
             >
               <MessageCircle className="w-4 h-4 fill-white" />

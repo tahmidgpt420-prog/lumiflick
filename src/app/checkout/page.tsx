@@ -47,7 +47,7 @@ export default function CheckoutPage() {
     }
 
     if (!formData.phone.trim() || formData.phone.length < 11) {
-      setErrorMessage('Please enter a valid 11-digit Bangladeshi phone number (e.g. 01400307299).');
+      setErrorMessage('Please enter a valid 11-digit Bangladeshi phone number (e.g. 01410307299).');
       return;
     }
 
@@ -92,7 +92,7 @@ export default function CheckoutPage() {
     // Keep ?text= for Android (where it works), clipboard copy covers iOS/tablets
     const redirectUrl = submitChannel === 'messenger'
       ? `https://m.me/LumiFlick?text=${encodedMessage}`
-      : `https://wa.me/8801400307299?text=${encodedMessage}`;
+      : `https://wa.me/8801410307299?text=${encodedMessage}`;
 
     // Store order record
     const orderRecord = {

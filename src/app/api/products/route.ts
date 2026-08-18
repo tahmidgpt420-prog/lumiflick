@@ -106,10 +106,12 @@ export async function GET(request: NextRequest) {
         query = query.order('title', { ascending: true });
         break;
       default:
-        // No explicit ordering existed before either (plain select('*')) —
-        // pin one now so pagination is stable across Load More calls
-        // instead of relying on whatever order Postgres happens to return.
-        query = query.order('updated_at', { ascending: false }).order('id', { ascending: true });
+        // created_at, not updated_at — updated_at bumps on every edit
+        // (even fixing a typo on a year-old product), which made "newest
+        // first" reorder unpredictably any time an old product got
+        // touched. created_at is set once at insert and never changes,
+        // so this is genuinely upload-order, stable across Load More too.
+        query = query.order('created_at', { ascending: false }).order('id', { ascending: true });
     }
 
     const { data, error, count } = await query.range(offset, offset + limit - 1);
