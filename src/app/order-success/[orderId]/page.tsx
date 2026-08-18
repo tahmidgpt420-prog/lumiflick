@@ -65,29 +65,13 @@ export default function OrderSuccessPage() {
         </div>
 
         {/* Customer & Shipping Details */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs text-gray-700 bg-gray-50 p-4 rounded-xl">
-          <div>
-            <h3 className="font-bold text-gray-900 uppercase tracking-wider text-[11px] mb-2">
-              Delivery Address
-            </h3>
-            <p className="font-bold text-sm text-gray-900">{order?.customerName || 'Valued Customer'}</p>
-            <p className="mt-1">{order?.address}</p>
-            <p className="font-medium text-gray-900 mt-1">Phone: {order?.phone}</p>
-          </div>
-
-          <div>
-            <h3 className="font-bold text-gray-900 uppercase tracking-wider text-[11px] mb-2">
-              Payment & Shipping Method
-            </h3>
-            <p>
-              <strong>Payment:</strong>{' '}
-              {order?.paymentMethod === 'cod' ? 'Cash On Delivery (COD)' : 'bKash / Nagad Advance'}
-            </p>
-            <p className="mt-1">
-              <strong>Delivery Zone:</strong>{' '}
-              {order?.deliveryZone === 'inside_dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'}
-            </p>
-          </div>
+        <div className="text-xs text-gray-700 bg-gray-50 p-4 rounded-xl">
+          <h3 className="font-bold text-gray-900 uppercase tracking-wider text-[11px] mb-2">
+            Delivery Address
+          </h3>
+          <p className="font-bold text-sm text-gray-900">{order?.customerName || 'Valued Customer'}</p>
+          <p className="mt-1">{order?.address}</p>
+          <p className="font-medium text-gray-900 mt-1">Phone: {order?.phone}</p>
         </div>
 
         {/* Itemized Table */}
