@@ -31,7 +31,7 @@ export async function GET(_request: Request, { params }: { params: { slug: strin
 
     return NextResponse.json(
       { success: true, product: productFromDb(data) },
-      { headers: { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600' } }
+      { headers: { 'Cache-Control': 'public, s-maxage=5, stale-while-revalidate=15' } }
     );
   } catch (error) {
     console.error('GET /api/products/[slug] error:', error);
