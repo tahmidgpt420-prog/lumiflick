@@ -47,11 +47,17 @@ export async function GET(request: NextRequest) {
 
         const orParts: string[] = [];
         for (const s of matchingSlugs) {
-          orParts.push(`category_slug.ilike."${s}"`);
-          orParts.push(`category.ilike."${s}"`);
+          const clean = s.replace(/[,()"]/g, '').trim();
+          if (clean) {
+            orParts.push(`category_slug.ilike.${clean}`);
+            orParts.push(`category.ilike.${clean}`);
+          }
         }
         for (const n of matchingNames) {
-          orParts.push(`category.ilike."${n}"`);
+          const clean = n.replace(/[,()"]/g, '').trim();
+          if (clean) {
+            orParts.push(`category.ilike.${clean}`);
+          }
         }
 
         if (orParts.length > 0) {
@@ -59,7 +65,12 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      if (search) query = query.or(`title.ilike."%${search}%",category.ilike."%${search}%"`);
+      if (search) {
+        const safeSearch = search.replace(/[,()"]/g, '').trim();
+        if (safeSearch) {
+          query = query.or(`title.ilike.%${safeSearch}%,category.ilike.%${safeSearch}%,category_slug.ilike.%${safeSearch}%`);
+        }
+      }
       query = query.order(sort.column, { ascending: sort.ascending }).range(from, to);
 
       const { data, error, count } = await query;

@@ -116,7 +116,7 @@ export default function CategorySlider() {
             ))
           ) : (
             displayCategories.map((category) => (
-              <CategoryCardItem key={category.slug} category={category} />
+              <CategoryCardItem key={category.id || category.slug} category={category} />
             ))
           )}
         </div>

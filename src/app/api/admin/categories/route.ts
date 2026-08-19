@@ -35,11 +35,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const row = categoryToDb(body);
+    const cleanId = body.id || `cat_${body.slug.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/(^_|_$)/g, '') || 'gen'}`;
+    const row = categoryToDb({
+      ...body,
+      id: cleanId,
+    });
 
-    // Rename: slug is the primary key, so a rename is delete-old + insert-new.
+    // Rename: slug is primary key, so update children if parent slug changed
     if (body.oldSlug && body.oldSlug !== body.slug) {
       await supabaseAdmin.from('categories').delete().eq('slug', body.oldSlug);
+      // Update any child subcategories pointing to oldSlug
+      await supabaseAdmin
+        .from('categories')
+        .update({ parent_slug: body.slug, parent_id: cleanId })
+        .eq('parent_slug', body.oldSlug);
     }
 
     const { data, error } = await supabaseAdmin.from('categories').upsert(row, { onConflict: 'slug' }).select().single();
@@ -55,9 +64,7 @@ export async function POST(request: Request) {
   }
 }
 
-// Drag-to-reorder: body is { order: [{ slug, order }, ...] } — one entry
-// per category whose position changed (typically all siblings in whatever
-// list — main categories or one parent's sub-categories — was reordered).
+// Drag-to-reorder: body is { order: [{ slug, order }, ...] }
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
@@ -86,13 +93,25 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { slug } = await request.json();
-    if (!slug) {
-      return NextResponse.json({ success: false, error: 'slug is required' }, { status: 400 });
+    const { slug, id } = await request.json();
+    const targetSlug = slug || '';
+    if (!targetSlug && !id) {
+      return NextResponse.json({ success: false, error: 'slug or id is required' }, { status: 400 });
     }
 
-    const { error } = await supabaseAdmin.from('categories').delete().eq('slug', slug);
-    if (error) throw error;
+    // First detach any child subcategories so they don't become ghost rows
+    if (targetSlug) {
+      await supabaseAdmin
+        .from('categories')
+        .update({ parent_slug: null, parent_id: null })
+        .eq('parent_slug', targetSlug);
+
+      const { error } = await supabaseAdmin.from('categories').delete().eq('slug', targetSlug);
+      if (error) throw error;
+    } else if (id) {
+      const { error } = await supabaseAdmin.from('categories').delete().eq('id', id);
+      if (error) throw error;
+    }
 
     const { data: all } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
     const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));

@@ -105,7 +105,12 @@ export default function AdminCategoriesPage() {
           ? editingCategory.order
           : Math.max(0, ...siblingGroup.map((c) => c.order ?? 0)) + 1;
 
+      const cleanId =
+        editingCategory?.id ||
+        `cat_${slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/(^_|_$)/g, '') || 'gen'}`;
+
       const categoryData: Category = {
+        id: cleanId,
         name: name.trim(),
         slug: slug.trim(),
         image: image.trim() || '/logo.png',
@@ -116,7 +121,7 @@ export default function AdminCategoriesPage() {
         order,
       };
 
-      // 1. Save via the authenticated admin API (JSON store + Firestore mirror server-side)
+      // 1. Save via the authenticated admin API
       const res = await fetch('/api/admin/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -127,7 +132,7 @@ export default function AdminCategoriesPage() {
 
       // 2. Refresh global cache across the entire app
       try {
-        await refreshCategories();
+        await refreshCategories(true);
       } catch (err) {
         console.warn('Cache refresh error:', err);
       }

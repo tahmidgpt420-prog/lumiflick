@@ -28,11 +28,9 @@ export async function GET(request: NextRequest) {
   try {
     let query = supabaseAdmin.from('products').select(LITE_COLUMNS, { count: 'exact' });
 
-    // Category filter — resolved against the (small, cheap) categories
-    // table so parent categories include their subcategory products, same
-    // hierarchy logic the old client-side matchesCategory used.
-    const normCategory = category.toLowerCase();
-    if (normCategory === 'best-selling') {
+    // Category filter — resolved against the categories table
+    const normCategory = category.toLowerCase().trim();
+    if (normCategory === 'best-selling' || normCategory === 'best selling') {
       query = query.or('best_seller.eq.true,category_slug.eq.best-selling,category.ilike.best selling');
     } else if (normCategory && normCategory !== 'all') {
       const { data: categoryRows, error: catErr } = await supabaseAdmin
@@ -47,15 +45,22 @@ export async function GET(request: NextRequest) {
         // Unknown category — no matches, not an error.
         return NextResponse.json(
           { success: true, products: [], total: 0, hasMore: false },
-          { headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' } }
+          { headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' } }
         );
       }
-      const slugList = slugs.map((s) => `"${s}"`).join(',');
-      const nameList = names.map((n) => `"${n}"`).join(',');
-      const orParts = [];
-      if (slugs.length) orParts.push(`category_slug.in.(${slugList})`);
-      if (names.length) orParts.push(`category.in.(${nameList})`);
-      query = query.or(orParts.join(','));
+      const safeSlugs = slugs.map((s) => s.replace(/[",()]/g, '')).filter(Boolean);
+      const safeNames = names.map((n) => n.replace(/[",()]/g, '')).filter(Boolean);
+
+      const orParts: string[] = [];
+      if (safeSlugs.length > 0) {
+        orParts.push(`category_slug.in.(${safeSlugs.map((s) => `"${s}"`).join(',')})`);
+      }
+      if (safeNames.length > 0) {
+        orParts.push(`category.in.(${safeNames.map((n) => `"${n}"`).join(',')})`);
+      }
+      if (orParts.length > 0) {
+        query = query.or(orParts.join(','));
+      }
     }
 
     // Free-text search — same "every word must match somewhere" semantics

@@ -196,16 +196,17 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
 
             {/* Dynamic Main Categories with Sub-Category Dropdowns */}
             {mainCategories.map((cat) => {
+              const catKey = cat.id || cat.slug;
               const href = `/product-category/${cat.slug}`;
               const isActive = pathname === href;
-              const subs = getSubcategories(cat.slug, categories);
+              const subs = getSubcategories(catKey, categories);
               const hasSubs = subs.length > 0;
               const isCurrentDropdown = activeDropdown?.slug === cat.slug;
 
               if (hasSubs) {
                 return (
                   <li
-                    key={cat.slug}
+                    key={catKey}
                     className="shrink-0"
                     onMouseEnter={(e) => handleMouseEnterCategory(e, cat, subs)}
                     onMouseLeave={handleMouseLeaveCategory}
@@ -230,7 +231,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               }
 
               return (
-                <li key={cat.slug} className="shrink-0">
+                <li key={catKey} className="shrink-0">
                   <Link
                     href={href}
                     className={`px-3 py-1.5 rounded-full transition-all block hover:text-black hover:bg-gray-100 ${
@@ -405,12 +406,13 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
               </div>
 
               {mainCategories.map((cat) => {
-                const subs = getSubcategories(cat.slug, categories);
-                const isExpanded = openMobileAccordions[cat.slug];
+                const catKey = cat.id || cat.slug;
+                const subs = getSubcategories(catKey, categories);
+                const isExpanded = openMobileAccordions[cat.slug] || (cat.id && openMobileAccordions[cat.id]);
 
                 if (subs.length > 0) {
                   return (
-                    <div key={cat.slug} className="rounded-xl overflow-hidden bg-gray-50/70 border border-gray-100">
+                    <div key={catKey} className="rounded-xl overflow-hidden bg-gray-50/70 border border-gray-100">
                       <div className="flex items-center justify-between p-3">
                         <Link
                           href={`/product-category/${cat.slug}`}
@@ -444,7 +446,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
                           </Link>
                           {subs.map((sub) => (
                             <Link
-                              key={sub.slug}
+                              key={sub.id || sub.slug}
                               href={`/product-category/${sub.slug}`}
                               onClick={() => setMobileOpen(false)}
                               className="flex items-center gap-1.5 py-1.5 px-2 text-xs text-gray-600 hover:text-black rounded hover:bg-gray-50 font-medium"
@@ -461,7 +463,7 @@ export default function NavMenu({ mobileOpen, setMobileOpen }: NavMenuProps) {
 
                 return (
                   <Link
-                    key={cat.slug}
+                    key={catKey}
                     href={`/product-category/${cat.slug}`}
                     onClick={() => setMobileOpen(false)}
                     className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-100 text-gray-700 font-normal text-sm"

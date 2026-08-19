@@ -42,12 +42,14 @@ create index if not exists products_title_idx on products (title);
 
 create table if not exists categories (
   slug text primary key,
+  id text unique,
   name text not null,
   image text,
   description text,
   parent_slug text,
+  parent_id text,
   show_on_homepage boolean default false,
-  -- Drag-to-reorder position, compared among siblings (same parent_slug).
+  -- Drag-to-reorder position, compared among siblings (same parent_slug/parent_id).
   -- Controls nav bar + homepage section order.
   display_order integer default 0,
   updated_at timestamptz not null default now()

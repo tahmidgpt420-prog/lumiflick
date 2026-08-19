@@ -100,16 +100,27 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     const currentCatName = initialData?.category || category || '';
     const currentCatSlug = initialData?.categorySlug || '';
 
-    const foundCat = catList.find(
-      (c) =>
-        (currentCatName && c.name.toLowerCase() === currentCatName.toLowerCase()) ||
-        (currentCatSlug && c.slug.toLowerCase() === currentCatSlug.toLowerCase())
-    );
+    const foundCat = catList.find((c) => {
+      const cId = (c.id || '').toLowerCase().trim();
+      const cSlug = (c.slug || '').toLowerCase().trim();
+      const cName = (c.name || '').toLowerCase().trim();
+      const rawName = currentCatName.toLowerCase().trim();
+      const rawSlug = currentCatSlug.toLowerCase().trim();
+
+      return (
+        (rawName && (cName === rawName || cSlug === rawName || cId === rawName)) ||
+        (rawSlug && (cSlug === rawSlug || cId === rawSlug || cName === rawSlug))
+      );
+    });
 
     if (foundCat) {
       if (foundCat.parentSlug || foundCat.parentId) {
         const parent = catList.find(
-          (c) => c.slug === foundCat.parentSlug || c.slug === foundCat.parentId
+          (c) =>
+            c.id === foundCat.parentId ||
+            c.slug === foundCat.parentSlug ||
+            c.slug === foundCat.parentId ||
+            (foundCat.parentSlug && c.name.toLowerCase() === foundCat.parentSlug.toLowerCase())
         );
         if (parent) {
           setMainCategory(parent.name);
@@ -445,11 +456,19 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                 c.slug.toLowerCase() === mainCategory.toLowerCase().replace(/[^a-z0-9]+/g, '-')
             );
             const currentSubCats = selectedMainObj
-              ? catList.filter(
-                  (c) =>
-                    c.parentSlug === selectedMainObj.slug ||
-                    c.parentId === selectedMainObj.slug
-                )
+              ? catList.filter((c) => {
+                  const pSlug = (c.parentSlug || '').toLowerCase().trim();
+                  const pId = (c.parentId || '').toLowerCase().trim();
+                  const mSlug = (selectedMainObj.slug || '').toLowerCase().trim();
+                  const mId = (selectedMainObj.id || '').toLowerCase().trim();
+                  const mName = (selectedMainObj.name || '').toLowerCase().trim();
+
+                  return (
+                    (mSlug && pSlug === mSlug) ||
+                    (mId && (pId === mId || pSlug === mId)) ||
+                    (mName && pSlug === mName)
+                  );
+                })
               : [];
 
             return (
@@ -477,7 +496,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                 >
                   <option value="">-- No Sub-Category (General) --</option>
                   {currentSubCats.map((sub) => (
-                    <option key={sub.slug || sub.name} value={sub.name}>
+                    <option key={sub.id || sub.slug || sub.name} value={sub.name}>
                       {sub.name}
                     </option>
                   ))}

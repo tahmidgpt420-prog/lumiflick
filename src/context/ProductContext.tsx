@@ -25,7 +25,13 @@ function getInitialCache(): CategoryCache | null {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed && Array.isArray(parsed.categories) && parsed.categories.length > 0) {
+    if (
+      parsed &&
+      Array.isArray(parsed.categories) &&
+      parsed.categories.length > 0 &&
+      typeof parsed.savedAt === 'number' &&
+      Date.now() - parsed.savedAt < CACHE_TTL_MS
+    ) {
       return parsed as CategoryCache;
     }
   } catch {
@@ -52,7 +58,8 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
 
   const fetchCategories = useCallback(async (force = false) => {
     try {
-      const res = await fetch('/api/categories', {
+      const url = force ? `/api/categories?t=${Date.now()}` : '/api/categories';
+      const res = await fetch(url, {
         cache: force ? 'no-store' : 'default',
       });
       const data = await res.json();

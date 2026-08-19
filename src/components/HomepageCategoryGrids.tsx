@@ -47,7 +47,7 @@ export default function HomepageCategoryGrids() {
     <>
       {sections.map(({ category, products }) => (
         <ProductGridSection
-          key={category.slug}
+          key={category.id || category.slug}
           title={category.name.toUpperCase()}
           products={products}
           categorySlug={category.slug}

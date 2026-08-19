@@ -68,10 +68,15 @@ export function productFromDb(row: any): Product {
 export function categoryToDb(c: Partial<Category>) {
   const row: Record<string, any> = {};
   if (c.slug !== undefined) row.slug = c.slug;
+  if (c.id !== undefined) row.id = c.id;
   if (c.name !== undefined) row.name = c.name;
   if (c.image !== undefined) row.image = c.image;
   if (c.description !== undefined) row.description = c.description;
-  if (c.parentSlug !== undefined) row.parent_slug = c.parentSlug;
+  const parentValue = c.parentSlug || c.parentId || null;
+  if (c.parentSlug !== undefined || c.parentId !== undefined) {
+    row.parent_slug = parentValue;
+  }
+  if (c.parentId !== undefined) row.parent_id = c.parentId;
   if (c.showOnHomepage !== undefined) row.show_on_homepage = c.showOnHomepage;
   if (c.order !== undefined) row.display_order = c.order;
   row.updated_at = new Date().toISOString();
@@ -79,13 +84,18 @@ export function categoryToDb(c: Partial<Category>) {
 }
 
 export function categoryFromDb(row: any): Category {
+  const rawSlug = row.slug || '';
+  const cleanId = row.id || `cat_${rawSlug.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/(^_|_$)/g, '') || 'gen'}`;
+  const parent = row.parent_slug || row.parent_id || null;
+
   return {
+    id: cleanId,
     slug: row.slug,
     name: row.name,
     image: row.image ?? '/logo.png',
     description: row.description ?? undefined,
-    parentSlug: row.parent_slug ?? null,
-    parentId: row.parent_slug ?? null,
+    parentSlug: parent,
+    parentId: row.parent_id || parent,
     showOnHomepage: row.show_on_homepage ?? false,
     order: row.display_order ?? 0,
   };
