@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { categoryFromDb } from '@/lib/supabaseMappers';
 
+export const dynamic = 'force-dynamic';
+
 // Public, unauthenticated. Categories are small (~20 rows) and needed on
 // almost every page (nav, breadcrumbs, homepage sections, category-tree
 // filtering for /api/products) — so unlike products, there's no lite/full
