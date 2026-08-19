@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { Outfit, DM_Sans } from 'next/font/google';
+import { headers } from 'next/headers';
 import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { ProductProvider } from '@/context/ProductContext';
 import StorefrontShell from '@/components/StorefrontShell';
 import TrackingScripts from '@/components/TrackingScripts';
 import { getHeroBannersServer, getFirstBannerPreloadUrls } from '@/lib/heroBannersServer';
+import { getTrackingScriptsServer } from '@/lib/trackingScriptsServer';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -80,6 +82,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Detect admin routes so we never inject tracking pixels there.
+  // middleware.ts sets the x-pathname header on every request.
+  const headersList = await headers();
+  const pathname = headersList.get('x-pathname') ?? '';
+  const isAdminRoute = pathname.startsWith('/jw8yenjnkanhr823');
+
   // Fetch banners server-side so the LCP image URL is available in the HTML.
   // This lets the browser discover and start downloading the hero image before
   // any JavaScript runs — the single most impactful fix for LCP.
@@ -90,6 +98,13 @@ export default async function RootLayout({
   } catch {
     // Non-fatal — the HeroSlider will still fetch and render client-side
   }
+
+  // Fetch tracking scripts server-side so GTM/Meta Pixel appear in the
+  // initial HTML — not injected later by client JS. This is what Google's
+  // tag detection tool checks for.
+  const ssrScripts = isAdminRoute
+    ? { headerScripts: '', bodyScripts: '', footerScripts: '' }
+    : await getTrackingScriptsServer();
 
   return (
     <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
@@ -125,14 +140,36 @@ export default async function RootLayout({
             />
           </>
         )}
+
+        {/* SSR tracking scripts (GTM head snippet, Meta Pixel base, GA4).
+            Rendered directly into the initial HTML so tag-detection tools
+            (Google Tag Manager's "Test" button, Meta Events Manager, etc.)
+            can find them without waiting for JavaScript to execute.
+            Never injected on admin routes — isAdminRoute check above. */}
+        {ssrScripts.headerScripts && (
+          <div dangerouslySetInnerHTML={{ __html: ssrScripts.headerScripts }} />
+        )}
       </head>
       <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased selection:bg-black selection:text-white">
+        {/* SSR body-open scripts (GTM <noscript> iframe fallback).
+            Same admin-isolation and initial-HTML rationale as headerScripts. */}
+        {ssrScripts.bodyScripts && (
+          <div dangerouslySetInnerHTML={{ __html: ssrScripts.bodyScripts }} />
+        )}
+
+        {/* Client-side component handles live updates: when the admin saves
+            new scripts the storefront picks them up without a redeploy. */}
         <TrackingScripts />
         <CartProvider>
           <ProductProvider>
             <StorefrontShell>{children}</StorefrontShell>
           </ProductProvider>
         </CartProvider>
+
+        {/* SSR footer scripts (chat widgets, conversion tags). */}
+        {ssrScripts.footerScripts && (
+          <div dangerouslySetInnerHTML={{ __html: ssrScripts.footerScripts }} />
+        )}
       </body>
     </html>
   );

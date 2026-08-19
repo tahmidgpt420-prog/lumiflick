@@ -78,7 +78,11 @@ export async function middleware(request: NextRequest) {
   const isPublicRead = request.method === 'GET' && publicGetPaths.has(pathname);
 
   if (isLoginPage || isSessionApi || isPublicRead) {
-    return NextResponse.next();
+    // Still forward the pathname header so the root layout can detect
+    // admin routes and skip injecting tracking scripts.
+    const res = NextResponse.next();
+    res.headers.set('x-pathname', pathname);
+    return res;
   }
 
   const secret = process.env.ADMIN_SESSION_SECRET;
@@ -94,7 +98,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  const res = NextResponse.next();
+  // Forward the pathname so the root Server Component layout can
+  // check isAdminRoute without re-parsing the URL.
+  res.headers.set('x-pathname', pathname);
+  return res;
 }
 
 export const config = {
