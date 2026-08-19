@@ -33,22 +33,40 @@ export function getSubcategories(
   parentIdOrSlugOrName: string,
   categories: Category[]
 ): Category[] {
-  const norm = normalizeCategorySlug(parentIdOrSlugOrName);
-  if (!norm) return [];
+  if (!parentIdOrSlugOrName) return [];
+  const parentCat = findCategoryBySlugOrName(parentIdOrSlugOrName, categories);
 
+  const targetKeys = new Set<string>();
   const rawLower = parentIdOrSlugOrName.toLowerCase().trim();
+  const norm = normalizeCategorySlug(parentIdOrSlugOrName);
+
+  if (rawLower) targetKeys.add(rawLower);
+  if (norm) targetKeys.add(norm);
+
+  if (parentCat) {
+    if (parentCat.id) {
+      targetKeys.add(parentCat.id.toLowerCase().trim());
+      targetKeys.add(normalizeCategorySlug(parentCat.id));
+    }
+    if (parentCat.slug) {
+      targetKeys.add(parentCat.slug.toLowerCase().trim());
+      targetKeys.add(normalizeCategorySlug(parentCat.slug));
+    }
+    if (parentCat.name) {
+      targetKeys.add(parentCat.name.toLowerCase().trim());
+      targetKeys.add(normalizeCategorySlug(parentCat.name));
+    }
+  }
 
   return categories.filter((c) => {
+    const pSlug = (c.parentSlug || '').toLowerCase().trim();
     const pSlugNorm = normalizeCategorySlug(c.parentSlug);
+    const pId = (c.parentId || '').toLowerCase().trim();
     const pIdNorm = normalizeCategorySlug(c.parentId);
-    const pSlugRaw = (c.parentSlug || '').toLowerCase().trim();
-    const pIdRaw = (c.parentId || '').toLowerCase().trim();
 
     return (
-      pSlugNorm === norm ||
-      pIdNorm === norm ||
-      pSlugRaw === rawLower ||
-      pIdRaw === rawLower
+      (pSlug && (targetKeys.has(pSlug) || targetKeys.has(pSlugNorm))) ||
+      (pId && (targetKeys.has(pId) || targetKeys.has(pIdNorm)))
     );
   });
 }

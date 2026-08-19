@@ -18,7 +18,7 @@ export async function GET() {
     if (error) throw error;
     return NextResponse.json(
       { success: true, categories: (data || []).map(categoryFromDb) },
-      { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } }
+      { headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30' } }
     );
   } catch (error) {
     console.error('GET /api/categories error:', error);
