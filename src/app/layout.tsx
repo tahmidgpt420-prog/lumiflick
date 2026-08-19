@@ -77,6 +77,22 @@ const organizationJsonLd = {
   sameAs: ['https://www.facebook.com/LumiFlick'],
 };
 
+/**
+ * Extracts the inner text of every <script> tag from a raw HTML string.
+ * Used to render GTM/GA4 snippets as proper <script> elements inside <head>
+ * without a wrapping <div> (which is invalid HTML and gets ejected to <body>
+ * by the browser, breaking tag detection tools).
+ */
+function extractScripts(html: string): string[] {
+  const results: string[] = [];
+  const regex = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+  let match;
+  while ((match = regex.exec(html)) !== null) {
+    if (match[1]?.trim()) results.push(match[1]);
+  }
+  return results;
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -142,13 +158,14 @@ export default async function RootLayout({
         )}
 
         {/* SSR tracking scripts (GTM head snippet, Meta Pixel base, GA4).
-            Rendered directly into the initial HTML so tag-detection tools
-            (Google Tag Manager's "Test" button, Meta Events Manager, etc.)
-            can find them without waiting for JavaScript to execute.
-            Never injected on admin routes — isAdminRoute check above. */}
-        {ssrScripts.headerScripts && (
-          <div dangerouslySetInnerHTML={{ __html: ssrScripts.headerScripts }} />
-        )}
+            Rendered as real <script> elements — NOT wrapped in a <div>.
+            A <div> inside <head> is invalid HTML: browsers eject it to <body>
+            which is exactly why GTM's tag detection couldn't find the snippet.
+            We parse the raw HTML string and render each <script> individually. */}
+        {ssrScripts.headerScripts &&
+          extractScripts(ssrScripts.headerScripts).map((src, i) => (
+            <script key={i} dangerouslySetInnerHTML={{ __html: src }} />
+          ))}
       </head>
       <body className="min-h-screen flex flex-col bg-white text-gray-900 antialiased selection:bg-black selection:text-white">
         {/* SSR body-open scripts (GTM <noscript> iframe fallback).
