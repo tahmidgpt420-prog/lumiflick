@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
 import { Sparkles, ArrowLeft, Loader2 } from 'lucide-react';
 import { useProducts } from '@/context/ProductContext';
@@ -64,23 +63,23 @@ export default function CategoryPage({ params }: CategoryPageProps) {
     setLoadingMore(false);
   };
 
-  // Find category object
-  const category =
+  // Find category object or fallback to dynamic category metadata based on slug
+  const foundCategory =
     slug === 'best-selling'
       ? BEST_SELLING_CATEGORY
       : findCategoryBySlugOrName(slug, categories);
 
-  if (!category) {
-    if (!isLoaded) {
-      return (
-        <div className="py-24 flex items-center justify-center text-gray-400 text-xs gap-2">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          Loading category...
-        </div>
-      );
-    }
-    notFound();
-  }
+  const fallbackCategory: Category = {
+    name: slug
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' '),
+    slug,
+    image: '/logo.png',
+    description: '',
+  };
+
+  const category = foundCategory || fallbackCategory;
 
   // Find parent category if this is a subcategory
   const parentCategory = category.parentSlug || category.parentId

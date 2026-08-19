@@ -51,17 +51,10 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState<boolean>(() => getInitialCache() !== null);
 
   const fetchCategories = useCallback(async (force = false) => {
-    if (!force) {
-      const cache = getInitialCache();
-      if (cache && Date.now() - cache.savedAt < CACHE_TTL_MS) {
-        setCategories(cache.categories);
-        setIsLoaded(true);
-        return;
-      }
-    }
-
     try {
-      const res = await fetch('/api/categories');
+      const res = await fetch('/api/categories', {
+        cache: force ? 'no-store' : 'default',
+      });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Failed to load categories');
 
