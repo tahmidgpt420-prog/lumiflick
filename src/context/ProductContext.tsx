@@ -12,7 +12,7 @@ import { categories as staticCategories } from '@/data/categories';
 // table is tiny (~20 rows) and nearly every page needs it (nav, breadcrumbs,
 // homepage sections, and /api/products' own category-tree resolution).
 const CACHE_KEY = 'lumiflick_categories_cache_v1';
-const CACHE_TTL_MS = 30 * 1000;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes client cache to protect database egress
 
 interface CategoryCache {
   categories: Category[];
@@ -57,10 +57,19 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
   const [isLoaded, setIsLoaded] = useState<boolean>(() => getInitialCache() !== null);
 
   const fetchCategories = useCallback(async (force = false) => {
+    // If not forced and we already have valid fresh cache, skip network fetch
+    if (!force) {
+      const existing = getInitialCache();
+      if (existing && existing.categories.length > 0) {
+        setIsLoaded(true);
+        return;
+      }
+    }
+
     try {
       const url = force ? `/api/categories?t=${Date.now()}` : '/api/categories';
       const res = await fetch(url, {
-        cache: 'no-store',
+        cache: force ? 'no-store' : 'default',
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Failed to load categories');

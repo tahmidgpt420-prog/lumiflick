@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase';
 import { categoryFromDb, categoryToDb } from '@/lib/supabaseMappers';
 
 export const dynamic = 'force-dynamic';
 
 const RESERVED_SLUGS = new Set(['best-selling']);
+
+function triggerCachePurge() {
+  try {
+    revalidatePath('/api/categories');
+    revalidatePath('/');
+    revalidatePath('/shop');
+  } catch (err) {
+    console.warn('Revalidation warning:', err);
+  }
+}
 
 export async function GET() {
   try {
@@ -57,6 +68,7 @@ export async function POST(request: Request) {
     const { data: all } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
     const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
 
+    triggerCachePurge();
     return NextResponse.json({ success: true, category: categoryFromDb(data), categories });
   } catch (error: any) {
     console.error('POST /api/admin/categories error:', error);
@@ -84,6 +96,7 @@ export async function PATCH(request: Request) {
     const { data: all } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
     const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
 
+    triggerCachePurge();
     return NextResponse.json({ success: true, categories });
   } catch (error) {
     console.error('PATCH /api/admin/categories error:', error);
@@ -116,6 +129,7 @@ export async function DELETE(request: Request) {
     const { data: all } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
     const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
 
+    triggerCachePurge();
     return NextResponse.json({ success: true, categories });
   } catch (error) {
     console.error('DELETE /api/admin/categories error:', error);
