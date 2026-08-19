@@ -68,7 +68,6 @@ export function productFromDb(row: any): Product {
 export function categoryToDb(c: Partial<Category>) {
   const row: Record<string, any> = {};
   if (c.slug !== undefined) row.slug = c.slug;
-  if (c.id !== undefined) row.id = c.id;
   if (c.name !== undefined) row.name = c.name;
   if (c.image !== undefined) row.image = c.image;
   if (c.description !== undefined) row.description = c.description;
@@ -76,7 +75,6 @@ export function categoryToDb(c: Partial<Category>) {
   if (c.parentSlug !== undefined || c.parentId !== undefined) {
     row.parent_slug = parentValue;
   }
-  if (c.parentId !== undefined) row.parent_id = c.parentId;
   if (c.showOnHomepage !== undefined) row.show_on_homepage = c.showOnHomepage;
   if (c.order !== undefined) row.display_order = c.order;
   row.updated_at = new Date().toISOString();

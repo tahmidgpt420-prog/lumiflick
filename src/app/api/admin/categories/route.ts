@@ -47,7 +47,7 @@ export async function POST(request: Request) {
       // Update any child subcategories pointing to oldSlug
       await supabaseAdmin
         .from('categories')
-        .update({ parent_slug: body.slug, parent_id: cleanId })
+        .update({ parent_slug: body.slug })
         .eq('parent_slug', body.oldSlug);
     }
 
@@ -58,9 +58,9 @@ export async function POST(request: Request) {
     const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
 
     return NextResponse.json({ success: true, category: categoryFromDb(data), categories });
-  } catch (error) {
+  } catch (error: any) {
     console.error('POST /api/admin/categories error:', error);
-    return NextResponse.json({ success: false, error: 'Failed to save category' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error?.message || 'Failed to save category' }, { status: 500 });
   }
 }
 
