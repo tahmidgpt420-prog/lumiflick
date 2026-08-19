@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Award, Shield, Sparkles, Heart } from 'lucide-react';
+import { Award, Shield, Sparkles } from 'lucide-react';
 
 export default function AboutUsPage() {
   return (
@@ -52,7 +52,7 @@ export default function AboutUsPage() {
       </div>
 
       {/* Value Pillars */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-6 bg-white rounded-2xl border border-gray-200 text-center space-y-2">
           <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center mx-auto">
             <Sparkles className="w-5 h-5" />
@@ -80,16 +80,6 @@ export default function AboutUsPage() {
           <h3 className="text-sm font-bold text-gray-900">Transit Damage Warranty</h3>
           <p className="text-xs text-gray-500">
             Instant free replacement if courier mishandling causes any damage.
-          </p>
-        </div>
-
-        <div className="p-6 bg-white rounded-2xl border border-gray-200 text-center space-y-2">
-          <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center mx-auto">
-            <Heart className="w-5 h-5" />
-          </div>
-          <h3 className="text-sm font-bold text-gray-900">100% Cash On Delivery</h3>
-          <p className="text-xs text-gray-500">
-            Check your package upon delivery and pay only when satisfied.
           </p>
         </div>
       </div>
