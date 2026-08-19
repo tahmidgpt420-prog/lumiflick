@@ -60,7 +60,7 @@ export function ProductProvider({ children }: { children: React.ReactNode }) {
     try {
       const url = force ? `/api/categories?t=${Date.now()}` : '/api/categories';
       const res = await fetch(url, {
-        cache: force ? 'no-store' : 'default',
+        cache: 'no-store',
       });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Failed to load categories');
