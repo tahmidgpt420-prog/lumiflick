@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const row = settingsToDb(body);
-    const { data, error } = await supabaseAdmin.from('settings').update(row).eq('id', 1).select().single();
+    const { data, error } = await (supabaseAdmin.from('settings') as any).update(row).eq('id', 1).select().single();
     if (error) throw error;
     return NextResponse.json({ success: true, settings: settingsFromDb(data) });
   } catch (error) {

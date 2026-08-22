@@ -1,4 +1,4 @@
-import { Product, Category, HeroBanner, CustomerReview, OrderDetails, RawPhoto } from '@/types';
+import { Product, Category, HeroBanner, CustomerReview, OrderDetails } from '@/types';
 import { formatImageUrl } from '@/utils/driveUrl';
 
 // --- Product ---
@@ -245,26 +245,6 @@ export function settingsToDb(s: Record<string, any>) {
   if (s.frameEffectAfterImage !== undefined) row.frame_effect_after_image = s.frameEffectAfterImage;
   if (s.promoBarItems !== undefined) row.promo_bar_items = s.promoBarItems;
   row.updated_at = new Date().toISOString();
-  return row;
 }
 
-// --- Raw Photo ---
-export function rawPhotoToDb(p: Partial<RawPhoto>) {
-  const row: Record<string, any> = {};
-  if (p.id !== undefined) row.id = p.id;
-  if (p.image !== undefined) row.image = p.image;
-  if (p.displayOrder !== undefined) row.display_order = p.displayOrder;
-  row.updated_at = new Date().toISOString();
-  return row;
-}
-
-export function rawPhotoFromDb(row: any): RawPhoto {
-  return {
-    id: row.id,
-    image: row.image ?? '',
-    displayOrder: row.display_order ?? 1,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
 

@@ -73,7 +73,6 @@ export async function middleware(request: NextRequest) {
   const publicGetPaths = new Set([
     '/api/admin/reviews',
     '/api/admin/banners',
-    '/api/admin/raw-photos',
   ]);
   const isPublicRead = request.method === 'GET' && publicGetPaths.has(pathname);
 

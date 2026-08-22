@@ -152,11 +152,6 @@ export default function Footer() {
             </h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/raw-photos" className="hover:text-white transition-colors">
-                  Raw Photos
-                </Link>
-              </li>
-              <li>
                 <Link href="/reviews" className="hover:text-white transition-colors">
                   Customer Reviews
                 </Link>
