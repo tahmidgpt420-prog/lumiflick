@@ -1,24 +1,12 @@
 import { NextResponse } from 'next/server';
-import { queryOne } from '@/lib/db';
-import { settingsFromDb } from '@/lib/dbMappers';
+import { getStoreSettings } from '@/lib/catalogServer';
 
 // Public, unauthenticated (outside the /api/admin/* middleware matcher by
-// design) — every storefront page's TrackingScripts + PromoBar read this.
-// Deliberately column-limited: the `settings` row also holds the two
-// frame-effect images (~150KB of base64 each), which only the homepage
-// slider needs — see /api/store-settings/frame for those. Selecting '*'
-// here meant every page load on the whole site paid for the homepage's
-// images.
+// design). Column-limited: the two large frame-effect images are served by
+// /api/store-settings/frame, only on the homepage.
 export async function GET() {
   try {
-    const data = await queryOne(
-      'SELECT store_name, phone, email, address, inside_dhaka_delivery, outside_dhaka_delivery, promo_notice, promo_bar_items, header_scripts, body_scripts, footer_scripts FROM settings WHERE id = 1'
-    );
-    if (!data) throw new Error('settings row missing');
-    return NextResponse.json(
-      { success: true, settings: settingsFromDb(data) },
-      { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } }
-    );
+    return NextResponse.json({ success: true, settings: await getStoreSettings() });
   } catch (error) {
     console.error('GET /api/store-settings error:', error);
     return NextResponse.json({ success: false, error: 'Failed to load settings' }, { status: 500 });

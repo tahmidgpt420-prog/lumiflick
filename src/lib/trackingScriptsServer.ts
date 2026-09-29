@@ -17,8 +17,8 @@ export interface TrackingScriptsSsr {
 
 /**
  * Fetches header/body/footer tracking scripts from the settings row.
- * Cached for 5 minutes server-side (same TTL as /api/store-settings CDN
- * cache) — so the database is queried at most once per 5-minute window across
+ * Cached for 5 minutes server-side
+ * — so the database is queried at most once per 5-minute window across
  * all page loads, not on every individual request.
  * Returns empty strings on any error so the page still renders normally.
  */
@@ -45,5 +45,5 @@ export const getTrackingScriptsServer = unstable_cache(
     }
   },
   ['tracking-scripts'], // cache key
-  { revalidate: 300 }  // 5 minutes — matches /api/store-settings s-maxage
+  { revalidate: 300 }  // 5 minutes
 );

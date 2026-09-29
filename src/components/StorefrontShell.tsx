@@ -9,7 +9,13 @@ import CartDrawer from '@/components/CartDrawer';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp';
 import Footer from '@/components/Footer';
 
-export default function StorefrontShell({ children }: { children: React.ReactNode }) {
+export default function StorefrontShell({
+  children,
+  promoBarItems,
+}: {
+  children: React.ReactNode;
+  promoBarItems?: { icon: string; text: string }[];
+}) {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/jw8yenjnkanhr823');
 
@@ -19,7 +25,7 @@ export default function StorefrontShell({ children }: { children: React.ReactNod
 
   return (
     <>
-      <PromoBar />
+      <PromoBar initialItems={promoBarItems} />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />

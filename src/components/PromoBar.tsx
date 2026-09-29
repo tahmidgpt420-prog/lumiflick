@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { fetchStoreSettings, getCachedStoreSettings } from '@/utils/storeSettings';
+import { fetchStoreSettings } from '@/utils/storeSettings';
 
 interface PromoBarItem {
   icon: string;
@@ -14,14 +14,10 @@ const DEFAULT_ITEMS: PromoBarItem[] = [
   { icon: '🚚', text: 'Fast Delivery All Over Bangladesh' },
 ];
 
-export default function PromoBar() {
-  const [items, setItems] = useState<PromoBarItem[]>(() => {
-    const cached = getCachedStoreSettings();
-    if (cached && Array.isArray(cached.promoBarItems)) {
-      return cached.promoBarItems;
-    }
-    return DEFAULT_ITEMS;
-  });
+// Items come from the server-rendered layout; the client only re-fetches
+// when the admin saves settings in another tab of the same browser.
+export default function PromoBar({ initialItems }: { initialItems?: PromoBarItem[] }) {
+  const [items, setItems] = useState<PromoBarItem[]>(initialItems ?? DEFAULT_ITEMS);
 
   useEffect(() => {
     let isMounted = true;
@@ -33,22 +29,16 @@ export default function PromoBar() {
       }
     }
 
-    const handleSettingsUpdate = () => {
-      const cached = getCachedStoreSettings();
-      if (cached && Array.isArray(cached.promoBarItems)) {
-        setItems(cached.promoBarItems);
-      }
-      load();
-    };
+    const handleSettingsUpdate = () => load();
 
     window.addEventListener('lumiflick_settings_updated', handleSettingsUpdate);
-    load();
+    if (!initialItems) load();
 
     return () => {
       isMounted = false;
       window.removeEventListener('lumiflick_settings_updated', handleSettingsUpdate);
     };
-  }, []);
+  }, [initialItems]);
 
   // Admin cleared every line — hide the bar rather than show an empty strip.
   if (items.length === 0) return null;

@@ -132,7 +132,7 @@ export default function AdminCategoriesPage() {
 
       // 2. Refresh global cache across the entire app
       try {
-        await refreshCategories(true);
+        await refreshCategories();
       } catch (err) {
         console.warn('Cache refresh error:', err);
       }

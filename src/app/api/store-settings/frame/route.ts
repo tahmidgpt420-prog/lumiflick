@@ -16,8 +16,7 @@ export async function GET() {
           frameEffectBeforeImage: data?.frame_effect_before_image ?? '',
           frameEffectAfterImage: data?.frame_effect_after_image ?? '',
         },
-      },
-      { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600' } }
+      }
     );
   } catch (error) {
     console.error('GET /api/store-settings/frame error:', error);

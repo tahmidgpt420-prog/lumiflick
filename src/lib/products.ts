@@ -19,12 +19,9 @@ export interface ProductsPageResult {
 const EMPTY_PAGE: ProductsPageResult = { products: [], total: 0, hasMore: false };
 
 /**
- * Fetches one page of lite product rows from /api/products — category
- * browsing, homepage sections, and search all go through this rather than
- * holding the full catalog in memory. Every call is a real Supabase read
- * (behind the route's own CDN cache for non-search requests); nothing here
- * is cached client-side, since "click Load More" is supposed to mean
- * "fetch more," not "reveal more of what's already downloaded."
+ * Fetches one page of lite product rows from /api/products — "load more",
+ * sort/category switching and search. The first page of each listing comes
+ * from the server-rendered HTML instead. Nothing here is cached client-side.
  */
 export async function fetchProductsPage(params: ProductsPageParams = {}, signal?: AbortSignal): Promise<ProductsPageResult> {
   const qs = new URLSearchParams();
@@ -47,23 +44,5 @@ export async function fetchProductsPage(params: ProductsPageParams = {}, signal?
     if ((err as any)?.name === 'AbortError') throw err;
     console.error('Failed to fetch products page:', err);
     return EMPTY_PAGE;
-  }
-}
-
-/**
- * Fetches one full product (description, specifications, variations,
- * gallery) by slug — only called when a visitor actually opens a product's
- * detail page.
- */
-export async function fetchProductBySlug(slug: string): Promise<Product | null> {
-  try {
-    const res = await fetch(`/api/products/${encodeURIComponent(slug)}`);
-    if (res.status === 404) return null;
-    const data = await res.json();
-    if (!data.success || !data.product) return null;
-    return data.product as Product;
-  } catch (err) {
-    console.error('Failed to fetch product:', err);
-    return null;
   }
 }

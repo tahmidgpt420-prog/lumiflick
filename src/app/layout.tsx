@@ -8,6 +8,7 @@ import StorefrontShell from '@/components/StorefrontShell';
 import TrackingScripts from '@/components/TrackingScripts';
 import { getHeroBannersServer, getFirstBannerPreloadUrls } from '@/lib/heroBannersServer';
 import { getTrackingScriptsServer } from '@/lib/trackingScriptsServer';
+import { getCategories, getStoreSettings } from '@/lib/catalogServer';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -122,6 +123,14 @@ export default async function RootLayout({
     ? { headerScripts: '', bodyScripts: '', footerScripts: '' }
     : await getTrackingScriptsServer();
 
+  // Categories and promo bar lines go straight into the HTML, so the nav
+  // and promo bar don't wait on a client-side API call. On a database error
+  // they're undefined and the client falls back to fetching them.
+  const [categories, storeSettings] = await Promise.all([
+    getCategories().catch(() => undefined),
+    getStoreSettings().catch(() => undefined),
+  ]);
+
   return (
     <html lang="en" className={`${outfit.variable} ${dmSans.variable}`}>
       <head>
@@ -178,8 +187,8 @@ export default async function RootLayout({
             new scripts the storefront picks them up without a redeploy. */}
         <TrackingScripts />
         <CartProvider>
-          <ProductProvider>
-            <StorefrontShell>{children}</StorefrontShell>
+          <ProductProvider initialCategories={categories}>
+            <StorefrontShell promoBarItems={storeSettings?.promoBarItems}>{children}</StorefrontShell>
           </ProductProvider>
         </CartProvider>
 
