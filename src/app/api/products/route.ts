@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
-import { productFromDb, categoryFromDb } from '@/lib/supabaseMappers';
+import { query } from '@/lib/db';
+import { productFromDb, categoryFromDb } from '@/lib/dbMappers';
 import { resolveCategoryFilterValues } from '@/utils/categoryHelpers';
 
 // Public, unauthenticated. Paginated + filtered + sorted product listing —
@@ -26,21 +26,16 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(MAX_LIMIT, Math.max(1, Number(params.get('limit')) || DEFAULT_LIMIT));
 
   try {
-    let query = supabaseAdmin.from('products').select(LITE_COLUMNS, { count: 'exact' });
+    const where: string[] = [];
+    const args: any[] = [];
 
     // Category filter — resolved against the categories table
     const normCategory = category.toLowerCase().trim();
     if (normCategory === 'best-selling' || normCategory === 'best selling') {
-      query = query.or('best_seller.eq.true,category_slug.eq.best-selling,category.ilike.best selling');
+      where.push("(best_seller = TRUE OR category_slug = 'best-selling' OR category = 'best selling')");
     } else if (normCategory && normCategory !== 'all') {
-      const { data: categoryRows, error: catErr } = await supabaseAdmin
-        .from('categories')
-        .select('*');
-      if (catErr) throw catErr;
-      const { slugs, names } = resolveCategoryFilterValues(
-        category,
-        (categoryRows || []).map(categoryFromDb)
-      );
+      const categoryRows = await query('SELECT * FROM categories');
+      const { slugs, names } = resolveCategoryFilterValues(category, categoryRows.map(categoryFromDb));
       if (slugs.length === 0 && names.length === 0) {
         // Unknown category — no matches, not an error.
         return NextResponse.json(
@@ -48,34 +43,25 @@ export async function GET(request: NextRequest) {
           { headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' } }
         );
       }
-      const safeSlugs = slugs.map((s) => s.replace(/[",()]/g, '')).filter(Boolean);
-      const safeNames = names.map((n) => n.replace(/[",()]/g, '')).filter(Boolean);
-
       const orParts: string[] = [];
-      if (safeSlugs.length > 0) {
-        orParts.push(`category_slug.in.(${safeSlugs.map((s) => `"${s}"`).join(',')})`);
+      if (slugs.length > 0) {
+        orParts.push('category_slug IN (?)');
+        args.push(slugs);
       }
-      if (safeNames.length > 0) {
-        orParts.push(`category.in.(${safeNames.map((n) => `"${n}"`).join(',')})`);
+      if (names.length > 0) {
+        orParts.push('category IN (?)');
+        args.push(names);
       }
-      if (orParts.length > 0) {
-        query = query.or(orParts.join(','));
-      }
+      where.push(`(${orParts.join(' OR ')})`);
     }
 
-    // Free-text search — same "every word must match somewhere" semantics
-    // the old client-side search had (one .or() per token, chained calls
-    // AND together), just evaluated server-side against title/category/
-    // tags/description. Only lite columns are ever SELECTed back, so a
-    // description match never costs a description download.
+    // Free-text search — "every word must match somewhere" semantics: each
+    // token must appear in title, category or description. Values are bound
+    // parameters; only LIKE wildcards need stripping.
     if (q) {
-      // Strip PostgREST .or() filter-string metacharacters — these values
-      // get concatenated straight into filter expressions, not bound as
-      // parameters, so any of , ( ) would let a crafted query re-shape the
-      // filter itself rather than just search text.
       const tokens = q
         .split(/\s+/)
-        .map((t) => t.replace(/[%,()."]/g, ''))
+        .map((t) => t.replace(/[%_\\]/g, ''))
         .filter(Boolean)
         .slice(0, 6);
 
@@ -87,28 +73,29 @@ export async function GET(request: NextRequest) {
       }
 
       for (const token of tokens) {
-        // No tags column here — PostgREST's filter DSL can't ilike inside a
-        // jsonb array (no ::text cast support), and `cs` (contains) needs
-        // an exact element match, not substring. title/category/description
-        // cover what tags would have added in practice.
-        query = query.or(
-          `title.ilike.%${token}%,category.ilike.%${token}%,category_slug.ilike.%${token}%,description.ilike.%${token}%`
-        );
+        where.push('(title LIKE ? OR category LIKE ? OR category_slug LIKE ? OR description LIKE ?)');
+        const like = `%${token}%`;
+        args.push(like, like, like, like);
       }
     }
 
+    // Every sort ends in `id` so ties (same price, same review count) keep a
+    // stable order across pages — otherwise products repeat or go missing
+    // between offset pages.
+    let orderBy: string;
     switch (sort) {
       case 'price-low':
-        query = query.order('price', { ascending: true });
+        orderBy = 'price ASC, id ASC';
         break;
       case 'price-high':
-        query = query.order('price', { ascending: false });
+        orderBy = 'price DESC, id ASC';
         break;
       case 'popular':
-        query = query.order('review_count', { ascending: false, nullsFirst: false });
+        // MySQL sorts NULLs last on DESC
+        orderBy = 'review_count DESC, id ASC';
         break;
       case 'name':
-        query = query.order('title', { ascending: true });
+        orderBy = 'title ASC, id ASC';
         break;
       default:
         // updated_at, not created_at — reverted per explicit request:
@@ -116,14 +103,18 @@ export async function GET(request: NextRequest) {
         // before. (Trade-off: order can reshuffle mid-edit-session if
         // many products get touched in a row — that's the accepted
         // behavior now, not a bug.)
-        query = query.order('updated_at', { ascending: false }).order('id', { ascending: true });
+        orderBy = 'updated_at DESC, id ASC';
     }
 
-    const { data, error, count } = await query.range(offset, offset + limit - 1);
-    if (error) throw error;
-
-    const rows = data || [];
-    const total = count ?? rows.length;
+    const whereSql = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+    const [rows, [{ total }]] = await Promise.all([
+      query(`SELECT ${LITE_COLUMNS} FROM products ${whereSql} ORDER BY ${orderBy} LIMIT ? OFFSET ?`, [
+        ...args,
+        limit,
+        offset,
+      ]),
+      query<{ total: number }>(`SELECT COUNT(*) AS total FROM products ${whereSql}`, args),
+    ]);
 
     return NextResponse.json(
       {

@@ -1,12 +1,12 @@
 import { MetadataRoute } from 'next';
-import { supabaseAdmin } from '@/lib/supabase';
-import { productFromDb, categoryFromDb } from '@/lib/supabaseMappers';
+import { query } from '@/lib/db';
+import { productFromDb, categoryFromDb } from '@/lib/dbMappers';
 import { products as fallbackProducts } from '@/data/products';
 import { categories as fallbackCategories } from '@/data/categories';
 
 // force-dynamic would cancel revalidate below (Next drops ISR caching
 // whenever it's set) — sitemap data doesn't need per-request freshness,
-// so a 1hr ISR cache is strictly better here: fewer Supabase calls, same
+// so a 1hr ISR cache is strictly better here: fewer database calls, same
 // column-limited payload each time one does happen.
 export const revalidate = 3600;
 
@@ -80,15 +80,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Only slug + updatedAt are read below — select() is column-limited so
     // this doesn't pull description/specifications/variations (the bulk of
     // each product row) on every crawler hit.
-    const [{ data: productRows, error: pErr }, { data: categoryRows, error: cErr }] = await Promise.all([
-      supabaseAdmin.from('products').select('slug, updated_at'),
-      supabaseAdmin.from('categories').select('slug'),
+    const [productRows, categoryRows] = await Promise.all([
+      query('SELECT slug, updated_at FROM products'),
+      query('SELECT slug FROM categories'),
     ]);
 
-    if (!pErr && productRows && productRows.length > 0) {
+    if (productRows.length > 0) {
       productsList = productRows.map(productFromDb);
     }
-    if (!cErr && categoryRows && categoryRows.length > 0) {
+    if (categoryRows.length > 0) {
       categoriesList = categoryRows.map(categoryFromDb);
     }
   } catch (err) {

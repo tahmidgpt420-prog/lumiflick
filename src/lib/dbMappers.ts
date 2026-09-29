@@ -29,7 +29,7 @@ export function productToDb(p: Partial<Product>) {
   if (p.showSizeChart !== undefined) {
     row.show_size_chart = p.showSizeChart;
   }
-  row.updated_at = new Date().toISOString();
+  row.updated_at = new Date();
   return row;
 }
 
@@ -77,7 +77,7 @@ export function categoryToDb(c: Partial<Category>) {
   }
   if (c.showOnHomepage !== undefined) row.show_on_homepage = c.showOnHomepage;
   if (c.order !== undefined) row.display_order = c.order;
-  row.updated_at = new Date().toISOString();
+  row.updated_at = new Date();
   return row;
 }
 
@@ -111,7 +111,7 @@ export function bannerToDb(b: Partial<HeroBanner>) {
   if (b.badge !== undefined) row.badge = b.badge;
   if (b.order !== undefined) row.display_order = b.order;
   if (b.isActive !== undefined) row.is_active = b.isActive;
-  row.updated_at = new Date().toISOString();
+  row.updated_at = new Date();
   return row;
 }
 
@@ -142,7 +142,7 @@ export function reviewToDb(r: Partial<CustomerReview>) {
   if (r.location !== undefined) row.location = r.location;
   if (r.screenshotImage !== undefined) row.screenshot_image = r.screenshotImage;
   if (r.featured !== undefined) row.featured = r.featured;
-  row.updated_at = new Date().toISOString();
+  row.updated_at = new Date();
   return row;
 }
 
@@ -244,7 +244,8 @@ export function settingsToDb(s: Record<string, any>) {
   if (s.frameEffectBeforeImage !== undefined) row.frame_effect_before_image = s.frameEffectBeforeImage;
   if (s.frameEffectAfterImage !== undefined) row.frame_effect_after_image = s.frameEffectAfterImage;
   if (s.promoBarItems !== undefined) row.promo_bar_items = s.promoBarItems;
-  row.updated_at = new Date().toISOString();
+  row.updated_at = new Date();
+  return row;
 }
 
 

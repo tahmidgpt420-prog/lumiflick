@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
-import { orderFromDb, orderToDb } from '@/lib/supabaseMappers';
+import { execute, query, queryOne, toRow } from '@/lib/db';
+import { orderFromDb, orderToDb } from '@/lib/dbMappers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin.from('orders').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    return NextResponse.json({ success: true, orders: (data || []).map(orderFromDb) });
+    const rows = await query('SELECT * FROM orders ORDER BY created_at DESC');
+    return NextResponse.json({ success: true, orders: rows.map(orderFromDb) });
   } catch (error) {
     console.error('GET /api/admin/orders error:', error);
     return NextResponse.json({ success: false, error: 'Failed to load orders' }, { status: 500 });
@@ -19,8 +18,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const row = orderToDb(body);
-    const { data, error } = await supabaseAdmin.from('orders').insert(row).select().single();
-    if (error) throw error;
+    await execute('INSERT INTO orders SET ?', [toRow(row)]);
+    const data = await queryOne('SELECT * FROM orders WHERE order_id = ?', [row.order_id]);
     return NextResponse.json({ success: true, order: orderFromDb(data) }, { status: 201 });
   } catch (error) {
     console.error('POST /api/admin/orders error:', error);
@@ -34,8 +33,7 @@ export async function PUT(request: Request) {
     if (!orderId || !status) {
       return NextResponse.json({ success: false, error: 'orderId and status are required' }, { status: 400 });
     }
-    const { error, count } = await supabaseAdmin.from('orders').update({ status }, { count: 'exact' }).eq('order_id', orderId);
-    if (error) throw error;
+    const count = await execute('UPDATE orders SET status = ? WHERE order_id = ?', [status, orderId]);
     return NextResponse.json({ success: Boolean(count) });
   } catch (error) {
     console.error('PUT /api/admin/orders error:', error);

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
-import { reviewFromDb, reviewToDb } from '@/lib/supabaseMappers';
+import { execute, queryOne, toRow } from '@/lib/db';
+import { reviewFromDb, reviewToDb } from '@/lib/dbMappers';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,8 +12,8 @@ export async function PUT(request: Request, { params }: RouteProps) {
   try {
     const body = await request.json();
     const row = reviewToDb({ ...body, id: params.id });
-    const { data, error } = await supabaseAdmin.from('reviews').update(row).eq('id', params.id).select().maybeSingle();
-    if (error) throw error;
+    const matched = await execute('UPDATE reviews SET ? WHERE id = ?', [toRow(row), params.id]);
+    const data = matched ? await queryOne('SELECT * FROM reviews WHERE id = ?', [params.id]) : null;
     if (!data) return NextResponse.json({ success: false, error: 'Review not found' }, { status: 404 });
     return NextResponse.json({ success: true, review: reviewFromDb(data) });
   } catch (error) {
@@ -24,8 +24,7 @@ export async function PUT(request: Request, { params }: RouteProps) {
 
 export async function DELETE(request: Request, { params }: RouteProps) {
   try {
-    const { error, count } = await supabaseAdmin.from('reviews').delete({ count: 'exact' }).eq('id', params.id);
-    if (error) throw error;
+    const count = await execute('DELETE FROM reviews WHERE id = ?', [params.id]);
     if (!count) return NextResponse.json({ success: false, error: 'Review not found' }, { status: 404 });
     return NextResponse.json({ success: true, message: 'Review deleted successfully' });
   } catch (error) {

@@ -3,11 +3,11 @@
  * Used by the root layout to SSR the first banner and inject a <link rel="preload">
  * so the browser can start downloading the LCP image before JS runs.
  *
- * Never import this from a 'use client' component — it uses the service_role key.
+ * Never import this from a 'use client' component — it opens a database connection.
  */
 import 'server-only';
-import { supabaseAdmin } from '@/lib/supabase';
-import { bannerFromDb } from '@/lib/supabaseMappers';
+import { query } from '@/lib/db';
+import { bannerFromDb } from '@/lib/dbMappers';
 import { HeroBanner } from '@/types';
 import { formatImageUrl } from '@/utils/driveUrl';
 
@@ -17,12 +17,8 @@ import { formatImageUrl } from '@/utils/driveUrl';
  */
 export async function getHeroBannersServer(): Promise<HeroBanner[]> {
   try {
-    const { data, error } = await supabaseAdmin
-      .from('banners')
-      .select('*')
-      .order('display_order');
-    if (error) throw error;
-    const all: HeroBanner[] = (data || []).map(bannerFromDb);
+    const rows = await query('SELECT * FROM banners ORDER BY display_order IS NULL, display_order');
+    const all: HeroBanner[] = rows.map(bannerFromDb);
     return all.filter((b) => b.isActive !== false);
   } catch (err) {
     console.warn('[SSR] Failed to fetch hero banners:', err);

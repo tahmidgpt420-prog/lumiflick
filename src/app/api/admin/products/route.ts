@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
-import { productFromDb, productToDb } from '@/lib/supabaseMappers';
+import { query, queryOne, upsert } from '@/lib/db';
+import { productFromDb, productToDb } from '@/lib/dbMappers';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,57 +27,41 @@ export async function GET(request: NextRequest) {
       const search = searchParams.get('search')?.trim() || '';
       const page = Number(searchParams.get('page') || '0');
       const from = page * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
 
-      let query = supabaseAdmin.from('products').select('*', { count: 'exact' });
+      // Comparisons are case-insensitive (utf8mb4_unicode_ci collation).
+      const where: string[] = [];
+      const args: any[] = [];
 
       if (category !== 'all') {
         // Fetch sub-categories if this is a parent category
-        const { data: subCats } = await supabaseAdmin
-          .from('categories')
-          .select('slug, name')
-          .ilike('parent_slug', category);
-
-        const matchingSlugs = Array.from(
-          new Set([category, ...(subCats || []).map((c) => c.slug)].filter(Boolean))
+        const subCats = await query<{ slug: string; name: string }>(
+          'SELECT slug, name FROM categories WHERE parent_slug = ?',
+          [category]
         );
-        const matchingNames = Array.from(
-          new Set((subCats || []).map((c) => c.name).filter(Boolean))
-        );
+        const matchingSlugs = Array.from(new Set([category, ...subCats.map((c) => c.slug)].filter(Boolean)));
+        const matchingNames = Array.from(new Set(subCats.map((c) => c.name).filter(Boolean)));
 
-        const orParts: string[] = [];
-        for (const s of matchingSlugs) {
-          const clean = s.replace(/[,()"]/g, '').trim();
-          if (clean) {
-            orParts.push(`category_slug.ilike.${clean}`);
-            orParts.push(`category.ilike.${clean}`);
-          }
-        }
-        for (const n of matchingNames) {
-          const clean = n.replace(/[,()"]/g, '').trim();
-          if (clean) {
-            orParts.push(`category.ilike.${clean}`);
-          }
-        }
-
-        if (orParts.length > 0) {
-          query = query.or(orParts.join(','));
-        }
+        where.push('(category_slug IN (?) OR category IN (?))');
+        args.push(matchingSlugs, [...matchingSlugs, ...matchingNames]);
       }
 
       if (search) {
-        const safeSearch = search.replace(/[,()"]/g, '').trim();
-        if (safeSearch) {
-          query = query.or(`title.ilike.%${safeSearch}%,category.ilike.%${safeSearch}%,category_slug.ilike.%${safeSearch}%`);
-        }
+        const like = `%${search.replace(/[%_\\]/g, '')}%`;
+        where.push('(title LIKE ? OR category LIKE ? OR category_slug LIKE ?)');
+        args.push(like, like, like);
       }
-      query = query.order(sort.column, { ascending: sort.ascending }).range(from, to);
 
-      const { data, error, count } = await query;
-      if (error) throw error;
+      const whereSql = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
+      const [rows, [{ count }]] = await Promise.all([
+        query(
+          `SELECT * FROM products ${whereSql} ORDER BY ${sort.column} ${sort.ascending ? 'ASC' : 'DESC'}, id ASC LIMIT ? OFFSET ?`,
+          [...args, PAGE_SIZE, from]
+        ),
+        query<{ count: number }>(`SELECT COUNT(*) AS count FROM products ${whereSql}`, args),
+      ]);
 
-      const products = (data || []).map(productFromDb);
-      const hasMore = count !== null && from + products.length < count;
+      const products = rows.map(productFromDb);
+      const hasMore = from + products.length < count;
 
       return NextResponse.json({ success: true, products, totalCount: count, hasMore, nextPage: page + 1 });
     } catch (error) {
@@ -86,12 +70,11 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Full list — cheap on Postgres even at hundreds of rows, unlike Firestore's
+  // Full list — cheap on MySQL even at hundreds of rows, unlike Firestore's
   // per-document billing. Used by the dashboard's stat cards.
   try {
-    const { data, error } = await supabaseAdmin.from('products').select('*').order('updated_at', { ascending: false });
-    if (error) throw error;
-    return NextResponse.json({ success: true, products: (data || []).map(productFromDb) });
+    const rows = await query('SELECT * FROM products ORDER BY updated_at DESC');
+    return NextResponse.json({ success: true, products: rows.map(productFromDb) });
   } catch (error) {
     console.error('GET /api/admin/products error:', error);
     return NextResponse.json({ success: false, error: 'Failed to load products' }, { status: 500 });
@@ -130,8 +113,8 @@ export async function POST(request: Request) {
       categorySlug,
       image,
     });
-    const { data, error } = await supabaseAdmin.from('products').upsert(row, { onConflict: 'id' }).select().single();
-    if (error) throw error;
+    await upsert('products', 'id', row);
+    const data = await queryOne('SELECT * FROM products WHERE id = ?', [id]);
 
     return NextResponse.json({ success: true, product: productFromDb(data) }, { status: 201 });
   } catch (error) {

@@ -1,12 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // @supabase/supabase-js pulls in an ESM-only dependency that breaks with
-  // ERR_REQUIRE_ESM when webpack bundles it into server route handlers on
-  // Vercel's build (didn't reproduce in local `next start` — different
-  // bundling environment). This tells Next to leave it as a real Node
-  // require() at runtime instead of webpack-bundling it.
+  // mysql2 is a native-Node driver — load it with a real require() at
+  // runtime instead of webpack-bundling it into route handlers.
   experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
+    serverComponentsExternalPackages: ['mysql2'],
   },
   images: {
     // Vercel Hobby's image optimizer caps out around 1,000 distinct source

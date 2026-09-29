@@ -1,17 +1,14 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { queryOne } from '@/lib/db';
 
 // Public, unauthenticated — only the homepage's FrameEffectSlider calls
 // this. Split out from /api/store-settings so every other page on the site
 // stops paying for these two base64 images (~150KB combined) on every load.
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin
-      .from('settings')
-      .select('frame_effect_before_image, frame_effect_after_image')
-      .eq('id', 1)
-      .single();
-    if (error) throw error;
+    const data = await queryOne(
+      'SELECT frame_effect_before_image, frame_effect_after_image FROM settings WHERE id = 1'
+    );
     return NextResponse.json(
       {
         success: true,

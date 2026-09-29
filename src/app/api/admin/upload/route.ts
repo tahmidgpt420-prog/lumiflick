@@ -1,7 +1,4 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import { randomUUID } from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,28 +44,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const base64Data = `data:${match.mime};base64,${buffer.toString('base64')}`;
-
-    // Attempt to write to public/uploads (works in local dev / persistent node servers)
-    try {
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-
-      // Extension is derived from the sniffed content type, never from the
-      // client-supplied filename — that's what made arbitrary-extension
-      // uploads (e.g. .html, .svg) possible before.
-      const filename = `${Date.now()}_${randomUUID().slice(0, 8)}${match.ext}`;
-      const filePath = path.join(uploadsDir, filename);
-
-      fs.writeFileSync(filePath, buffer);
-      return NextResponse.json({ success: true, url: `/uploads/${filename}` });
-    } catch (fsErr) {
-      // Expected on serverless hosts like Vercel (read-only filesystem).
-      console.warn('Server filesystem is read-only; falling back to Base64 Data URL.');
-      return NextResponse.json({ success: true, url: base64Data });
-    }
+    // Stored inline as a data URL in the database. Not written to
+    // public/uploads: on Hostinger every deploy is a fresh build directory,
+    // so files saved there would vanish on the next deploy.
+    return NextResponse.json({ success: true, url: `data:${match.mime};base64,${buffer.toString('base64')}` });
   } catch (error) {
     console.error('File upload error:', error);
     return NextResponse.json({ success: false, error: 'Upload failed' }, { status: 500 });

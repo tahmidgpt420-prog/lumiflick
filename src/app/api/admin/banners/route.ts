@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
-import { bannerFromDb, bannerToDb } from '@/lib/supabaseMappers';
+import { query, queryOne, upsert } from '@/lib/db';
+import { bannerFromDb, bannerToDb } from '@/lib/dbMappers';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin.from('banners').select('*').order('display_order');
-    if (error) throw error;
-    return NextResponse.json({ success: true, banners: (data || []).map(bannerFromDb) });
+    const rows = await query('SELECT * FROM banners ORDER BY display_order IS NULL, display_order');
+    return NextResponse.json({ success: true, banners: rows.map(bannerFromDb) });
   } catch (error) {
     console.error('GET /api/admin/banners error:', error);
     return NextResponse.json({ success: false, error: 'Failed to load banners' }, { status: 500 });
@@ -20,8 +19,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const id = body.id || `banner-${Date.now()}`;
     const row = bannerToDb({ ...body, id });
-    const { data, error } = await supabaseAdmin.from('banners').upsert(row, { onConflict: 'id' }).select().single();
-    if (error) throw error;
+    await upsert('banners', 'id', row);
+    const data = await queryOne('SELECT * FROM banners WHERE id = ?', [id]);
     return NextResponse.json({ success: true, banner: bannerFromDb(data) }, { status: 201 });
   } catch (error) {
     console.error('POST /api/admin/banners error:', error);

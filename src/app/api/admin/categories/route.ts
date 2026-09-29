@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
-import { supabaseAdmin } from '@/lib/supabase';
-import { categoryFromDb, categoryToDb } from '@/lib/supabaseMappers';
+import { execute, query, queryOne, upsert } from '@/lib/db';
+import { categoryFromDb, categoryToDb } from '@/lib/dbMappers';
 
 export const dynamic = 'force-dynamic';
 
 const RESERVED_SLUGS = new Set(['best-selling']);
+
+async function listCategories() {
+  const rows = await query('SELECT * FROM categories ORDER BY display_order IS NULL, display_order, name');
+  return rows.map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
+}
 
 function triggerCachePurge() {
   try {
@@ -19,10 +24,7 @@ function triggerCachePurge() {
 
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
-    if (error) throw error;
-    const categories = (data || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
-    return NextResponse.json({ success: true, categories });
+    return NextResponse.json({ success: true, categories: await listCategories() });
   } catch (error) {
     console.error('GET /api/admin/categories error:', error);
     return NextResponse.json({ success: false, error: 'Failed to load categories' }, { status: 500 });
@@ -54,22 +56,16 @@ export async function POST(request: Request) {
 
     // Rename: slug is primary key, so update children if parent slug changed
     if (body.oldSlug && body.oldSlug !== body.slug) {
-      await supabaseAdmin.from('categories').delete().eq('slug', body.oldSlug);
+      await execute('DELETE FROM categories WHERE slug = ?', [body.oldSlug]);
       // Update any child subcategories pointing to oldSlug
-      await supabaseAdmin
-        .from('categories')
-        .update({ parent_slug: body.slug })
-        .eq('parent_slug', body.oldSlug);
+      await execute('UPDATE categories SET parent_slug = ? WHERE parent_slug = ?', [body.slug, body.oldSlug]);
     }
 
-    const { data, error } = await supabaseAdmin.from('categories').upsert(row, { onConflict: 'slug' }).select().single();
-    if (error) throw error;
-
-    const { data: all } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
-    const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
+    await upsert('categories', 'slug', row);
+    const data = await queryOne('SELECT * FROM categories WHERE slug = ?', [row.slug]);
 
     triggerCachePurge();
-    return NextResponse.json({ success: true, category: categoryFromDb(data), categories });
+    return NextResponse.json({ success: true, category: categoryFromDb(data), categories: await listCategories() });
   } catch (error: any) {
     console.error('POST /api/admin/categories error:', error);
     return NextResponse.json({ success: false, error: error?.message || 'Failed to save category' }, { status: 500 });
@@ -85,19 +81,14 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ success: false, error: 'order array is required' }, { status: 400 });
     }
 
-    const results = await Promise.all(
+    await Promise.all(
       updates.map(({ slug, order }) =>
-        supabaseAdmin.from('categories').update({ display_order: order }).eq('slug', slug)
+        execute('UPDATE categories SET display_order = ? WHERE slug = ?', [order, slug])
       )
     );
-    const firstError = results.find((r) => r.error)?.error;
-    if (firstError) throw firstError;
-
-    const { data: all } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
-    const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
 
     triggerCachePurge();
-    return NextResponse.json({ success: true, categories });
+    return NextResponse.json({ success: true, categories: await listCategories() });
   } catch (error) {
     console.error('PATCH /api/admin/categories error:', error);
     return NextResponse.json({ success: false, error: 'Failed to reorder categories' }, { status: 500 });
@@ -114,23 +105,14 @@ export async function DELETE(request: Request) {
 
     // First detach any child subcategories so they don't become ghost rows
     if (targetSlug) {
-      await supabaseAdmin
-        .from('categories')
-        .update({ parent_slug: null, parent_id: null })
-        .eq('parent_slug', targetSlug);
-
-      const { error } = await supabaseAdmin.from('categories').delete().eq('slug', targetSlug);
-      if (error) throw error;
+      await execute('UPDATE categories SET parent_slug = NULL, parent_id = NULL WHERE parent_slug = ?', [targetSlug]);
+      await execute('DELETE FROM categories WHERE slug = ?', [targetSlug]);
     } else if (id) {
-      const { error } = await supabaseAdmin.from('categories').delete().eq('id', id);
-      if (error) throw error;
+      await execute('DELETE FROM categories WHERE id = ?', [id]);
     }
 
-    const { data: all } = await supabaseAdmin.from('categories').select('*').order('display_order').order('name');
-    const categories = (all || []).map(categoryFromDb).filter((c) => !RESERVED_SLUGS.has(c.slug));
-
     triggerCachePurge();
-    return NextResponse.json({ success: true, categories });
+    return NextResponse.json({ success: true, categories: await listCategories() });
   } catch (error) {
     console.error('DELETE /api/admin/categories error:', error);
     return NextResponse.json({ success: false, error: 'Failed to delete category' }, { status: 500 });

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
-import { productFromDb } from '@/lib/supabaseMappers';
+import { queryOne } from '@/lib/db';
+import { productFromDb } from '@/lib/dbMappers';
 
 // Public, unauthenticated. Full row — description, specifications,
 // variations, gallery_images and all — for exactly one product. This is
@@ -14,16 +14,11 @@ export async function GET(_request: Request, { params }: { params: { slug: strin
   }
 
   try {
-    let { data, error } = await supabaseAdmin.from('products').select('*').eq('slug', norm).maybeSingle();
-    if (error) throw error;
-
     // Old links / admin-pasted IDs sometimes use the row id instead of the
     // slug — fall back to that before giving up.
-    if (!data) {
-      const byId = await supabaseAdmin.from('products').select('*').eq('id', raw).maybeSingle();
-      if (byId.error) throw byId.error;
-      data = byId.data;
-    }
+    const data =
+      (await queryOne('SELECT * FROM products WHERE slug = ?', [norm])) ??
+      (await queryOne('SELECT * FROM products WHERE id = ?', [raw]));
 
     if (!data) {
       return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });

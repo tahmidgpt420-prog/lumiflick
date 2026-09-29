@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
-import { settingsFromDb, settingsToDb } from '@/lib/supabaseMappers';
+import { execute, queryOne, toRow } from '@/lib/db';
+import { settingsFromDb, settingsToDb } from '@/lib/dbMappers';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,8 +11,8 @@ export const dynamic = 'force-dynamic';
 // the two frame-effect images.
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin.from('settings').select('*').eq('id', 1).single();
-    if (error) throw error;
+    const data = await queryOne('SELECT * FROM settings WHERE id = 1');
+    if (!data) throw new Error('settings row missing');
     return NextResponse.json({ success: true, settings: settingsFromDb(data) });
   } catch (error) {
     console.error('GET /api/admin/settings error:', error);
@@ -25,8 +25,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const row = settingsToDb(body);
-    const { data, error } = await (supabaseAdmin.from('settings') as any).update(row).eq('id', 1).select().single();
-    if (error) throw error;
+    await execute('UPDATE settings SET ? WHERE id = 1', [toRow(row)]);
+    const data = await queryOne('SELECT * FROM settings WHERE id = 1');
     return NextResponse.json({ success: true, settings: settingsFromDb(data) });
   } catch (error) {
     console.error('POST /api/admin/settings error:', error);

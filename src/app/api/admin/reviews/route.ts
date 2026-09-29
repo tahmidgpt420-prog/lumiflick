@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
-import { reviewFromDb, reviewToDb } from '@/lib/supabaseMappers';
+import { query, queryOne, upsert } from '@/lib/db';
+import { reviewFromDb, reviewToDb } from '@/lib/dbMappers';
 
 export const dynamic = 'force-dynamic';
 
 // GET is public (see middleware.ts) — the storefront's /reviews page reads it.
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin.from('reviews').select('*').order('updated_at', { ascending: false });
-    if (error) throw error;
-    return NextResponse.json({ success: true, reviews: (data || []).map(reviewFromDb) });
+    const rows = await query('SELECT * FROM reviews ORDER BY updated_at DESC');
+    return NextResponse.json({ success: true, reviews: rows.map(reviewFromDb) });
   } catch (error) {
     console.error('GET /api/admin/reviews error:', error);
     return NextResponse.json({ success: false, error: 'Failed to load reviews' }, { status: 500 });
@@ -33,8 +32,8 @@ export async function POST(request: Request) {
       ...body,
       id,
     });
-    const { data, error } = await supabaseAdmin.from('reviews').upsert(row, { onConflict: 'id' }).select().single();
-    if (error) throw error;
+    await upsert('reviews', 'id', row);
+    const data = await queryOne('SELECT * FROM reviews WHERE id = ?', [id]);
     return NextResponse.json({ success: true, review: reviewFromDb(data) }, { status: 201 });
   } catch (error) {
     console.error('POST /api/admin/reviews error:', error);

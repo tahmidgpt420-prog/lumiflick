@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
-import { categoryFromDb } from '@/lib/supabaseMappers';
+import { query } from '@/lib/db';
+import { categoryFromDb } from '@/lib/dbMappers';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,14 +10,9 @@ export const dynamic = 'force-dynamic';
 // split here, this is always the whole table.
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin
-      .from('categories')
-      .select('*')
-      .order('display_order')
-      .order('name');
-    if (error) throw error;
+    const rows = await query('SELECT * FROM categories ORDER BY display_order IS NULL, display_order, name');
     return NextResponse.json(
-      { success: true, categories: (data || []).map(categoryFromDb) },
+      { success: true, categories: rows.map(categoryFromDb) },
       { headers: { 'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30' } }
     );
   } catch (error) {

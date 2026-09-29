@@ -7,30 +7,39 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// Primary key per table (supabase/schema.sql). Categories before products.
+const TABLES = {
+  categories: 'slug',
+  products: 'id',
+  banners: 'id',
+  reviews: 'id',
+  settings: 'id',
+  orders: 'order_id',
+  raw_photos: 'id',
+};
+
 async function restore() {
   const file = path.resolve('./supabase_backup_complete.json');
   if (!fs.existsSync(file)) {
     console.error('Backup file not found:', file);
-    return;
+    process.exit(1);
   }
 
   const data = JSON.parse(fs.readFileSync(file, 'utf8'));
   console.log('Restoring from backup dated:', data.backup_metadata.timestamp);
 
-  // 1. Restore Categories
-  console.log(`Restoring ${data.categories.length} categories...`);
-  for (const c of data.categories) {
-    await supabase.from('categories').upsert(c, { onConflict: 'slug' });
-  }
-
-  // 2. Restore Products
-  console.log(`Restoring ${data.products.length} products...`);
   const chunkSize = 100;
-  for (let i = 0; i < data.products.length; i += chunkSize) {
-    const chunk = data.products.slice(i, i + chunkSize);
-    const { error } = await supabase.from('products').upsert(chunk, { onConflict: 'id' });
-    if (error) console.error('Error on batch:', error);
-    else console.log(`Restored ${Math.min(i + chunkSize, data.products.length)} / ${data.products.length} products`);
+  for (const [table, key] of Object.entries(TABLES)) {
+    const rows = data[table];
+    if (!rows?.length) continue;
+    for (let i = 0; i < rows.length; i += chunkSize) {
+      const { error } = await supabase.from(table).upsert(rows.slice(i, i + chunkSize), { onConflict: key });
+      if (error) {
+        console.error(`Error restoring ${table}:`, error);
+        process.exit(1);
+      }
+    }
+    console.log(`Restored ${rows.length} ${table}`);
   }
 
   console.log('Restore complete!');

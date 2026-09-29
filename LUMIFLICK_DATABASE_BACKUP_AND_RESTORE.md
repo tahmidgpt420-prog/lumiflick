@@ -1,11 +1,11 @@
 # 🛡️ LUMIFLICK Database Master Backup & Instant Restore Guide
 
-> **Backup Date:** August 20, 2026  
+> **Backup Date:** September 29, 2026  
 > **Source Database:** Supabase PostgreSQL (`pvqxufwberckolhavqle.supabase.co`)  
-> **Total Categories:** 32 Categories  
-> **Total Products:** 981 Products (100% Full Details: Sizes, Frame Variations, Gallery Images, Descriptions, Specs, Tags, Prices, Inventory)  
-> **Total Banners:** Active Hero Slider Banners  
-> **Total Reviews:** Verified Customer Reviews  
+> **Total Categories:** 33 Categories  
+> **Total Products:** 1022 Products (100% Full Details: Sizes, Frame Variations, Gallery Images, Descriptions, Specs, Tags, Prices, Inventory)  
+> **Also Included:** 2 banners, 51 reviews, store settings, orders, 943 raw_photos  
+
 
 ---
 
@@ -70,4 +70,41 @@ Whenever you add more products or categories and want to create a brand new back
 ```bash
 node --env-file=.env.local scripts/export-full-backup.mjs
 node scripts/export-sql-dump.mjs
+```
+
+---
+
+## 🐬 Hostinger MySQL (Live Database)
+
+Since the Hostinger move, the app reads and writes Hostinger MariaDB (`u552750866_lumiflick_db`). Supabase is no longer used by the app — the Supabase sections above describe the old setup and the pre-migration snapshot.
+
+Credentials live in `~/.my.cnf` on the server, so no password is typed in commands.
+
+**Back up** (run from your Mac):
+
+```bash
+ssh hostinger 'mysqldump --single-transaction --no-tablespaces u552750866_lumiflick_db' | gzip > "lumiflick_$(date +%F).sql.gz"
+```
+
+Hostinger hPanel also keeps automatic daily database backups (Websites → Backups).
+
+**Restore** a dump:
+
+```bash
+gunzip -c lumiflick_YYYY-MM-DD.sql.gz | ssh hostinger mysql
+```
+
+**Local development:** the database only accepts connections from the Hostinger server. Open a tunnel first, and keep `DB_HOST=127.0.0.1` / `DB_PORT=3307` in `.env.local`:
+
+```bash
+ssh -N -L 3307:127.0.0.1:3306 hostinger
+```
+
+Local dev writes go to the live database.
+
+**Re-importing from Supabase** (one-off, drops and recreates all tables):
+
+```bash
+node --env-file=.env.local scripts/export-full-backup.mjs
+node scripts/export-mysql-dump.mjs | ssh hostinger mysql
 ```
