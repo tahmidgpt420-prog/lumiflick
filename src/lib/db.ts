@@ -13,6 +13,11 @@ function createPool() {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     connectionLimit: 5,
+    // Hostinger's MariaDB kills connections idle for 20s (wait_timeout),
+    // so reusing one after that fails with ECONNRESET. Close our idle ones
+    // first. mysql2 only runs its idle reaper when maxIdle < connectionLimit.
+    maxIdle: 4,
+    idleTimeout: 10_000,
     charset: 'utf8mb4',
     timezone: 'Z',
     decimalNumbers: true,
