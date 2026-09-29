@@ -23,9 +23,10 @@ const PAGE_SIZE = 16;
 export default function ShopContent({ initialPage }: { initialPage?: ProductsPageResult }) {
   const { categories } = useProducts();
   const searchParams = useSearchParams();
-  const initialCategoryParam = searchParams.get('category') || 'all';
+  // The URL is the single source of truth for the category: plain /shop
+  // always means "all", whichever filter was active before.
+  const selectedCategory = searchParams.get('category') || 'all';
 
-  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategoryParam);
   const [sortBy, setSortBy] = useState<string>('default');
 
   const [products, setProducts] = useState<Product[]>(initialPage?.products ?? []);
@@ -39,12 +40,6 @@ export default function ShopContent({ initialPage }: { initialPage?: ProductsPag
   const requestIdRef = useRef(0);
   // The server already rendered page 1 for the initial category/sort.
   const skipInitialFetchRef = useRef(Boolean(initialPage));
-
-  // Sync state if URL search params change
-  useEffect(() => {
-    const param = searchParams.get('category');
-    if (param) setSelectedCategory(param);
-  }, [searchParams]);
 
   // Every category/sort change is a fresh server fetch, not a client-side re-filter.
   useEffect(() => {
@@ -100,8 +95,10 @@ export default function ShopContent({ initialPage }: { initialPage?: ProductsPag
     return getSubcategories(activeMainCat.slug, categories);
   }, [activeMainCat, categories]);
 
+  // Native pushState: Next syncs useSearchParams with it without a server
+  // round-trip, and the filter becomes a shareable URL with working Back.
   const handleCategorySelect = (slug: string) => {
-    setSelectedCategory(slug);
+    window.history.pushState(null, '', slug === 'all' ? '/shop' : `/shop?category=${encodeURIComponent(slug)}`);
   };
 
   const handleSortChange = (newSort: string) => {
