@@ -238,7 +238,8 @@ export default function AdminOrdersPage() {
                       <div key={item.id} className="py-2.5 flex items-center justify-between gap-4 text-xs">
                         <div className="flex items-center gap-3">
                           <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                            <Image src={item.image} alt={item.title} fill className="object-cover" />
+                            <Image src={item.image}
+                    sizes="40px" alt={item.title} fill className="object-cover" />
                           </div>
                           <div>
                             <p className="font-bold text-gray-900">{item.title}</p>

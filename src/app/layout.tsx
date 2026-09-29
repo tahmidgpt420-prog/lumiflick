@@ -6,7 +6,6 @@ import { CartProvider } from '@/context/CartContext';
 import { ProductProvider } from '@/context/ProductContext';
 import StorefrontShell from '@/components/StorefrontShell';
 import TrackingScripts from '@/components/TrackingScripts';
-import { getHeroBannersServer, getFirstBannerPreloadUrls } from '@/lib/heroBannersServer';
 import { getTrackingScriptsServer } from '@/lib/trackingScriptsServer';
 import { getCategories, getStoreSettings } from '@/lib/catalogServer';
 
@@ -105,17 +104,6 @@ export default async function RootLayout({
   const pathname = headersList.get('x-pathname') ?? '';
   const isAdminRoute = pathname.startsWith('/jw8yenjnkanhr823');
 
-  // Fetch banners server-side so the LCP image URL is available in the HTML.
-  // This lets the browser discover and start downloading the hero image before
-  // any JavaScript runs — the single most impactful fix for LCP.
-  let lcpPreloadUrls: { mobile: string; desktop: string } | null = null;
-  try {
-    const banners = await getHeroBannersServer();
-    lcpPreloadUrls = getFirstBannerPreloadUrls(banners);
-  } catch {
-    // Non-fatal — the HeroSlider will still fetch and render client-side
-  }
-
   // Fetch tracking scripts server-side so GTM/Meta Pixel appear in the
   // initial HTML — not injected later by client JS. This is what Google's
   // tag detection tool checks for.
@@ -139,32 +127,6 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
-
-        {/* Preload the LCP hero image so the browser fetches it immediately,
-            before React hydrates and the HeroSlider's useEffect fires. Two
-            media-gated variants — matching HeroSlider's own isMobile check
-            (innerWidth < 640) — so the preloaded URL always matches what the
-            <img> actually requests. A single unconditional (mobile-sized)
-            preload here previously left desktop's real LCP request
-            undiscovered until React hydrated and rendered the <img> tag. */}
-        {lcpPreloadUrls && (
-          <>
-            <link
-              rel="preload"
-              as="image"
-              href={lcpPreloadUrls.mobile}
-              fetchPriority="high"
-              media="(max-width: 639px)"
-            />
-            <link
-              rel="preload"
-              as="image"
-              href={lcpPreloadUrls.desktop}
-              fetchPriority="high"
-              media="(min-width: 640px)"
-            />
-          </>
-        )}
 
         {/* SSR tracking scripts (GTM head snippet, Meta Pixel base, GA4).
             Rendered as real <script> elements — NOT wrapped in a <div>.

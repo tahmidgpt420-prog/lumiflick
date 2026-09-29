@@ -79,20 +79,10 @@ export default function HeroSlider({ initialBanners }: HeroSliderProps = {}) {
   // If we have SSR data, mark the first image as "not yet loaded" so it fades in
   // smoothly rather than popping. The priority={true} on the Image handles preloading.
   const [imagesLoaded, setImagesLoaded] = useState<Record<number, boolean>>({});
-  const [isMobile, setIsMobile] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -214,20 +204,14 @@ export default function HeroSlider({ initialBanners }: HeroSliderProps = {}) {
                 href={slide.link || '/shop'}
                 className="block relative w-full h-full cursor-pointer"
               >
-                {/* Background Image
-                    - idx === 0 gets priority + fetchpriority="high" (LCP element)
-                    - Mobile uses 800px width, desktop uses 1920px.
-                    - Was 'original' on desktop — Drive's unbounded source photo
-                      turned out to be 8.8MB, displayed at ~580px tall. That was
-                      the entire cause of a 12.6s LCP (Lighthouse-measured on the
-                      live site): 1920px is plenty for any real viewport and lets
-                      Drive's own resize+WebP endpoint (formatImageUrl's `-rw`
-                      suffix) do the compression, same as every other image here.
-                      next.config.js has images.unoptimized:true (Vercel's
-                      optimizer cap), so nothing downstream resizes this — the
-                      width has to be right at the source. */}
+                {/* Background Image — srcset via src/lib/imageLoader.ts, so the
+                    browser picks the width from the first HTML (phones no
+                    longer download the 1920px desktop banner first). Phones
+                    are sized as 267px (≈828px at 3x), matching the 800px
+                    mobile banner this used before; desktop gets 1440 or 1920.
+                    `priority` makes Next preload the chosen width. */}
                 <Image
-                  src={isMobile ? formatImageUrl(slide.image, 800) : formatImageUrl(slide.image, 1920)}
+                  src={formatImageUrl(slide.image, 1920)}
                   alt={slide.title || 'LUMIFLICK Banner'}
                   fill
                   priority={idx === 0}
@@ -236,8 +220,7 @@ export default function HeroSlider({ initialBanners }: HeroSliderProps = {}) {
                     imagesLoaded[idx] ? 'opacity-100' : 'opacity-0'
                   }`}
                   onLoad={() => setImagesLoaded((prev) => ({ ...prev, [idx]: true }))}
-                  sizes="100vw"
-                  quality={85}
+                  sizes="(max-width: 639px) 267px, 100vw"
                 />
 
                 {/* Text Overlay if provided */}

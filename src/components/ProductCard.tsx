@@ -49,10 +49,8 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
 
           <Image
-            // 640px, not the 240px default — this card renders up to ~350px
-            // CSS-wide on desktop grid, which is 700px+ at retina density.
-            // The 240px default was fine for a much smaller thumbnail than
-            // this grid actually renders, hence the visible pixelation.
+            // srcset via src/lib/imageLoader.ts: ~300px cards get 320px on
+            // standard screens and 640px on retina, instead of always 640px.
             src={hasError ? '/logo.png' : formatImageUrl(product.image || '/logo.png', 640)}
             alt={product.title || 'LUMIFLICK Frame'}
             fill
@@ -64,7 +62,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             className={`object-cover group-hover:scale-110 transition-all duration-500 ease-out ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
             }`}
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, (max-width: 1280px) 25vw, 300px"
           />
         </Link>
 

@@ -4,13 +4,14 @@ const nextConfig = {
   // runtime instead of webpack-bundling it into route handlers.
   serverExternalPackages: ['mysql2'],
   images: {
-    // Vercel Hobby's image optimizer caps out around 1,000 distinct source
-    // images/month. Every product/banner/photo here is already served by
-    // Google Drive's own thumbnail endpoint (formatImageUrl adds sz=w###-rw,
-    // which returns a pre-resized WebP) — running that through Vercel's
-    // optimizer a second time buys nothing and burns the quota. Unoptimized
-    // keeps next/image's layout/CLS + lazy-loading behavior without the cap.
-    unoptimized: true,
+    // Drive's thumbnail endpoint does the resizing (see src/lib/imageLoader.ts),
+    // so next/image emits a srcset of Drive URLs instead of running Next's own
+    // optimizer on this server. Widths cover product cards (320-640 px) and
+    // full-width banners (up to 1920 px).
+    loader: 'custom',
+    loaderFile: './src/lib/imageLoader.ts',
+    imageSizes: [32, 48, 64, 96, 128, 256, 320, 384, 480],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1920],
     remotePatterns: [
       { protocol: 'https', hostname: 'drive.google.com' },
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },

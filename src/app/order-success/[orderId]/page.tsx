@@ -82,7 +82,8 @@ export default function OrderSuccessPage() {
               <div key={item.id} className="py-3 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                    <Image src={item.image} alt={item.title} fill className="object-cover" />
+                    <Image src={item.image}
+                    sizes="48px" alt={item.title} fill className="object-cover" />
                   </div>
                   <div>
                     <h4 className="text-xs sm:text-sm font-bold text-gray-900">{item.title}</h4>

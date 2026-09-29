@@ -153,7 +153,7 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
 
   // 1st photo is always the thumbnail/primary image, followed by 2nd, 3rd, etc. from gallery
   // Size chart is appended as the last photo if enabled (defaults to true)
-  const SIZE_CHART = '/size-chart.png';
+  const SIZE_CHART = '/size-chart.webp';
   const appendSizeChart = product.showSizeChart !== false; // default true
   const rawImages = primary
     ? [primary, ...gallery, ...(appendSizeChart ? [SIZE_CHART] : [])]
