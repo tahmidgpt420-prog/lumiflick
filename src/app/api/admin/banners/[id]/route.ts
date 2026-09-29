@@ -3,9 +3,10 @@ import { execute } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
-    const count = await execute('DELETE FROM banners WHERE id = ?', [params.id]);
+    const count = await execute('DELETE FROM banners WHERE id = ?', [id]);
     if (!count) return NextResponse.json({ success: false, error: 'Banner not found' }, { status: 404 });
     return NextResponse.json({ success: true, message: 'Banner deleted successfully' });
   } catch (error) {

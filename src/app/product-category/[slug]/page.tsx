@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
 import { Sparkles, ArrowLeft, Loader2 } from 'lucide-react';
 import { useProducts } from '@/context/ProductContext';
@@ -24,13 +25,8 @@ const BEST_SELLING_CATEGORY: Category = {
   description: 'Our top most popular, best-selling handcrafted glass posters across Bangladesh.',
 };
 
-interface CategoryPageProps {
-  params: {
-    slug: string;
-  };
-}
-
-export default function CategoryPage({ params }: CategoryPageProps) {
+export default function CategoryPage() {
+  const params = useParams<{ slug: string }>();
   const slug = decodeURIComponent(params.slug).toLowerCase().trim();
   const { categories, isLoaded } = useProducts();
 

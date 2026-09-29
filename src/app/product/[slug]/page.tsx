@@ -2,18 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import ProductDetailView from '@/components/ProductDetailView';
 import { ArrowLeft, Loader2, PackageX } from 'lucide-react';
 import { fetchProductBySlug, fetchProductsPage } from '@/lib/products';
 import { Product } from '@/types';
 
-interface ProductPageProps {
-  params: {
-    slug: string;
-  };
-}
-
-export default function ProductPage({ params }: ProductPageProps) {
+export default function ProductPage() {
+  const params = useParams<{ slug: string }>();
   const rawSlug = decodeURIComponent(params.slug).trim();
   const normalizedSlug = rawSlug.toLowerCase();
 

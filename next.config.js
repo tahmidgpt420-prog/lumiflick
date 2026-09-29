@@ -2,9 +2,7 @@
 const nextConfig = {
   // mysql2 is a native-Node driver — load it with a real require() at
   // runtime instead of webpack-bundling it into route handlers.
-  experimental: {
-    serverComponentsExternalPackages: ['mysql2'],
-  },
+  serverExternalPackages: ['mysql2'],
   images: {
     // Vercel Hobby's image optimizer caps out around 1,000 distinct source
     // images/month. Every product/banner/photo here is already served by

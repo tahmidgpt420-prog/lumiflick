@@ -6,8 +6,9 @@ import { productFromDb } from '@/lib/dbMappers';
 // variations, gallery_images and all — for exactly one product. This is
 // the only place those heavy text columns get downloaded now; the list
 // endpoint (/api/products) deliberately excludes them.
-export async function GET(_request: Request, { params }: { params: { slug: string } }) {
-  const raw = decodeURIComponent(params.slug || '').trim();
+export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const raw = decodeURIComponent(slug || '').trim();
   const norm = raw.toLowerCase();
   if (!norm) {
     return NextResponse.json({ success: false, error: 'Missing slug' }, { status: 400 });
