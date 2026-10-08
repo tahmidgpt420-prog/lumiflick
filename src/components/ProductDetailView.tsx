@@ -20,6 +20,7 @@ import {
   ZoomIn,
   Loader2,
   Maximize2,
+  Instagram,
 } from 'lucide-react';
 import { Product, ProductVariation } from '@/types';
 import { useCart } from '@/context/CartContext';
@@ -65,7 +66,7 @@ export default function ProductDetailView({
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'desc' | 'specs'>('desc');
   const [addedToast, setAddedToast] = useState(false);
-  const [copiedToast, setCopiedToast] = useState(false);
+  const [copiedToast, setCopiedToast] = useState<string | null>(null);
 
   useEffect(() => {
     const list = product.variations || variations;
@@ -358,24 +359,23 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
     return id;
   };
 
-  const handleMessengerClick = (e: React.MouseEvent) => {
+  const handleDmOrderClick = (dmUrl: string, app: string) => (e: React.MouseEvent) => {
     e.preventDefault();
-    const messengerUrl = `https://m.me/LumiFlick?text=${whatsappMessage}`;
     const id = saveQuickOrderAndGetId();
     // Also copy to clipboard as fallback for iOS/tablets where ?text= is ignored.
     // router.push waits for the same moment Messenger opens in each branch —
     // firing it immediately would navigate this tab away before the
     // "copied" toast below ever got a chance to show.
     navigator.clipboard.writeText(orderMessage).then(() => {
-      setCopiedToast(true);
-      setTimeout(() => setCopiedToast(false), 4000);
+      setCopiedToast(app);
+      setTimeout(() => setCopiedToast(null), 4000);
       setTimeout(() => {
-        window.open(messengerUrl, '_blank', 'noopener,noreferrer');
+        window.open(dmUrl, '_blank', 'noopener,noreferrer');
         router.push(`/order-success/${id}`);
       }, 600);
     }).catch(() => {
-      // Clipboard failed — still open Messenger with ?text= (works on Android)
-      window.open(messengerUrl, '_blank', 'noopener,noreferrer');
+      // Clipboard failed — still open the app (Messenger also takes ?text= on Android)
+      window.open(dmUrl, '_blank', 'noopener,noreferrer');
       router.push(`/order-success/${id}`);
     });
   };
@@ -716,7 +716,7 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
 
             {/* Order on Messenger Button — copies message to clipboard then opens m.me */}
             <button
-              onClick={handleMessengerClick}
+              onClick={handleDmOrderClick(`https://m.me/LumiFlick?text=${whatsappMessage}`, 'Messenger')}
               className="w-full h-12 rounded-xl bg-[#0084FF] hover:bg-[#0073E6] text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#0084FF]/20 active:scale-[0.98]"
             >
               <svg className="w-4 h-4 fill-white" viewBox="0 0 24 24">
@@ -737,6 +737,17 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
             >
               <MessageCircle className="w-4 h-4 fill-white" />
               Order On WhatsApp
+            </a>
+            {/* Instagram Order Button — ig.me can't prefill text, so the message is copied like Messenger */}
+            <a
+              href="https://ig.me/m/lumi.flick"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleDmOrderClick('https://ig.me/m/lumi.flick', 'Instagram')}
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF] hover:brightness-110 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-md shadow-[#DD2A7B]/20 active:scale-[0.98]"
+            >
+              <Instagram className="w-4 h-4" />
+              Order On Instagram
             </a>
           </div>
 
@@ -910,14 +921,14 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
         </div>
       )}
 
-      {/* Messenger clipboard toast */}
+      {/* Messenger/Instagram clipboard toast */}
       {copiedToast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] animate-[slideUp_0.3s_ease-out]">
           <div className="bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2.5">
             <svg className="w-5 h-5 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>Order message copied! <strong>Paste</strong> it in Messenger 📋</span>
+            <span>Order message copied! <strong>Paste</strong> it in {copiedToast} 📋</span>
           </div>
         </div>
       )}
