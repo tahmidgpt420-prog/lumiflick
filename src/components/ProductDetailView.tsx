@@ -20,7 +20,6 @@ import {
   ZoomIn,
   Loader2,
   Maximize2,
-  Instagram,
 } from 'lucide-react';
 import { Product, ProductVariation } from '@/types';
 import { useCart } from '@/context/CartContext';
@@ -738,17 +737,6 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
               <MessageCircle className="w-4 h-4 fill-white" />
               Order On WhatsApp
             </a>
-            {/* Instagram Order Button — ig.me can't prefill text, so the message is copied like Messenger */}
-            <a
-              href="https://ig.me/m/lumi.flick"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleDmOrderClick('https://ig.me/m/lumi.flick', 'Instagram')}
-              className="w-full h-12 rounded-xl bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF] hover:brightness-110 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-md shadow-[#DD2A7B]/20 active:scale-[0.98]"
-            >
-              <Instagram className="w-4 h-4" />
-              Order On Instagram
-            </a>
           </div>
 
           {/* Delivery & Trust Highlights */}
@@ -921,7 +909,7 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
         </div>
       )}
 
-      {/* Messenger/Instagram clipboard toast */}
+      {/* Messenger clipboard toast */}
       {copiedToast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] animate-[slideUp_0.3s_ease-out]">
           <div className="bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2.5">

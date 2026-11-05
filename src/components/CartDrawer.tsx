@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 
 export default function CartDrawer() {
+  const router = useRouter();
+  const pathname = usePathname();
   const {
     items,
     isCartDrawerOpen,
@@ -16,6 +18,16 @@ export default function CartDrawer() {
     subtotal,
     totalItems,
   } = useCart();
+
+  // Close the cart drawer whenever the route changes
+  useEffect(() => {
+    closeCartDrawer();
+  }, [pathname]);
+
+  const handleNavigate = (path: string) => {
+    closeCartDrawer();
+    router.push(path);
+  };
 
   if (!isCartDrawerOpen) return null;
 
@@ -28,8 +40,8 @@ export default function CartDrawer() {
       />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col animate-slide-up">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10 z-50">
+        <div className="w-full sm:w-[420px] max-w-md bg-white shadow-2xl flex flex-col animate-slide-up">
           {/* Header */}
           <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/80">
             <div className="flex items-center gap-2">
@@ -59,13 +71,13 @@ export default function CartDrawer() {
                 <p className="text-xs text-gray-500 max-w-xs mt-1 mb-6">
                   Looks like you haven&apos;t added any luxury wall frames to your cart yet.
                 </p>
-                <Link
-                  href="/shop"
-                  onClick={closeCartDrawer}
-                  className="px-6 py-2.5 bg-black text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => handleNavigate('/shop')}
+                  className="px-6 py-2.5 bg-black text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-colors cursor-pointer"
                 >
                   Explore Collection
-                </Link>
+                </button>
               </div>
             ) : (
               items.map((item) => (
@@ -83,13 +95,13 @@ export default function CartDrawer() {
                   <div className="flex-1 min-w-0 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start gap-2">
-                        <Link
-                          href={`/product/${item.slug}`}
-                          onClick={closeCartDrawer}
-                          className="text-sm font-semibold text-gray-900 hover:underline line-clamp-1"
+                        <button
+                          type="button"
+                          onClick={() => handleNavigate(`/product/${item.slug}`)}
+                          className="text-sm font-semibold text-gray-900 hover:underline line-clamp-1 text-left cursor-pointer"
                         >
                           {item.title}
-                        </Link>
+                        </button>
                         <button
                           onClick={() => removeItem(item.id)}
                           className="text-gray-400 hover:text-red-600 transition-colors p-1"
@@ -155,20 +167,20 @@ export default function CartDrawer() {
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <Link
-                  href="/cart"
-                  onClick={closeCartDrawer}
-                  className="w-full py-3 px-4 border border-gray-300 rounded-xl text-center text-xs font-bold text-gray-800 hover:bg-gray-100 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => handleNavigate('/cart')}
+                  className="w-full py-3 px-4 border border-gray-300 rounded-xl text-center text-xs font-bold text-gray-800 hover:bg-gray-100 transition-colors cursor-pointer active:scale-[0.98]"
                 >
                   View Cart
-                </Link>
-                <Link
-                  href="/checkout"
-                  onClick={closeCartDrawer}
-                  className="w-full py-3 px-4 bg-black text-white rounded-xl text-center text-xs font-bold hover:bg-gray-800 transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-black/10"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleNavigate('/checkout')}
+                  className="w-full py-3 px-4 bg-black text-white rounded-xl text-center text-xs font-bold hover:bg-gray-800 transition-colors flex items-center justify-center gap-1.5 shadow-md shadow-black/10 cursor-pointer active:scale-[0.98]"
                 >
                   Checkout <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                </button>
               </div>
 
               <p className="text-[11px] text-center text-gray-400">
