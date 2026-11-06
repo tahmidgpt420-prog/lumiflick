@@ -382,6 +382,7 @@ function formatPieceSelectionDescription(piecesSet: Set<number>): string {
   const handleWhatsAppOrderClick = (e: React.MouseEvent) => {
     e.preventDefault();
     const id = saveQuickOrderAndGetId();
+    navigator.clipboard.writeText(orderMessage).catch(() => {});
     window.open(`https://wa.me/8801410307299?text=${whatsappMessage}`, '_blank', 'noopener,noreferrer');
     router.push(`/order-success/${id}`);
   };

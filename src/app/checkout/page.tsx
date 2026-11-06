@@ -120,17 +120,13 @@ export default function CheckoutPage() {
       localStorage.setItem(`gt_order_${orderId}`, JSON.stringify(orderRecord));
       clearCart();
 
-      // For Messenger, also copy to clipboard as fallback for iOS/tablets
-      if (submitChannel === 'messenger') {
-        navigator.clipboard.writeText(orderMessage).catch(() => {});
-      }
+      // Copy to clipboard as fallback in case prefill is blocked by browser/iOS
+      navigator.clipboard.writeText(orderMessage).catch(() => {});
       window.open(redirectUrl, '_blank', 'noopener,noreferrer');
       router.push(`/order-success/${orderId}`);
     } catch (err) {
       console.error(err);
-      if (submitChannel === 'messenger') {
-        navigator.clipboard.writeText(orderMessage).catch(() => {});
-      }
+      navigator.clipboard.writeText(orderMessage).catch(() => {});
       window.open(redirectUrl, '_blank', 'noopener,noreferrer');
       router.push(`/order-success/${orderId}`);
     }
